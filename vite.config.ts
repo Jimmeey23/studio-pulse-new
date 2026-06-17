@@ -1,12 +1,12 @@
 import { defineConfig, type ViteDevServer, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 import notesHandler from "./api/notes.js";
 import payrollHandler from "./api/payroll.js";
 import openaiHandler from "./api/openai.js";
 import geminiHandler from "./api/gemini.js";
 import googleTokenHandler from "./api/google-token.js";
+import deepseekHandler from "./api/deepseek.js";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -25,7 +25,6 @@ export default defineConfig(({ mode }) => {
     react({
       jsxImportSource: "react",
     }),
-    mode === "development" && componentTagger(),
 
     // Local API middleware for /api/notes
     mode === "development" && {
@@ -177,6 +176,34 @@ export default defineConfig(({ mode }) => {
             try { (req as any).body = body ? JSON.parse(body) : {}; } catch { (req as any).body = {}; }
             Promise.resolve(geminiHandler(req, wrapResponse(res))).catch((err: any) => {
               console.error("Local /api/gemini error", err);
+              wrapResponse(res).status(500).json({ error: "Internal server error" });
+            });
+          });
+        });
+      },
+    },
+
+    // Local API middleware for /api/deepseek
+    mode === "development" && {
+      name: "local-api-deepseek",
+      configureServer(server: ViteDevServer) {
+        server.middlewares.use("/api/deepseek", (req: any, res: any, next: any) => {
+          if (req.method !== "POST") return next();
+
+          process.env.DEEPSEEK_API_KEY = env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY;
+
+          const wrapResponse = (res: any) =>
+            Object.assign(res, {
+              status(code: number) { res.statusCode = code; return res; },
+              json(obj: any) { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); },
+            });
+
+          let body = "";
+          req.on("data", (chunk: any) => (body += chunk));
+          req.on("end", async () => {
+            try { (req as any).body = body ? JSON.parse(body) : {}; } catch { (req as any).body = {}; }
+            Promise.resolve(deepseekHandler(req, wrapResponse(res))).catch((err: any) => {
+              console.error("Local /api/deepseek error", err);
               wrapResponse(res).status(500).json({ error: "Internal server error" });
             });
           });

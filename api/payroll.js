@@ -5,25 +5,6 @@
 // - GOOGLE_REFRESH_TOKEN
 // - GOOGLE_SHEETS_SPREADSHEET_ID
 
-// Load environment variables from .env file in development
-import { readFileSync } from 'fs';
-import { join } from 'path';
-
-// Load .env file manually
-try {
-  const envFile = readFileSync(join(process.cwd(), '.env'), 'utf8');
-  envFile.split('\n').forEach(line => {
-    if (line && line.includes('=') && !line.startsWith('#')) {
-      const [key, value] = line.split('=');
-      if (key && value) {
-        process.env[key.trim()] = value.trim();
-      }
-    }
-  });
-} catch (e) {
-  console.log('No .env file found or error reading it:', e.message);
-}
-
 async function getAccessToken() {
   const clientId = process.env.GOOGLE_CLIENT_ID || '';
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';

@@ -119,7 +119,7 @@ STRICT RULES — violating any rule = failure:
 7. No preamble, no markdown, ONLY valid JSON`;
 };
 
-/** Try GPT-5, fall back to deepseek-chat */
+/** Try GPT-4o via server proxy, fall back to deepseek-chat via server proxy */
 const callAI = async (prompt: string): Promise<{ bullets: string[]; narrative?: string }> => {
   const hasOpenAI = import.meta.env.VITE_OPENAI_API_KEY && import.meta.env.VITE_OPENAI_API_KEY !== 'your_openai_api_key';
   const hasDeepSeek = import.meta.env.VITE_DEEPSEEK_API_KEY && import.meta.env.VITE_DEEPSEEK_API_KEY !== 'your_deepseek_api_key';
@@ -168,15 +168,12 @@ const callAI = async (prompt: string): Promise<{ bullets: string[]; narrative?: 
     }
   }
 
-  // DeepSeek fallback
+  // DeepSeek fallback via server proxy
   if (hasDeepSeek) {
     try {
-      const res = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
+      const res = await fetch('/api/deepseek', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_DEEPSEEK_API_KEY}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'deepseek-chat',
           messages: [{ role: 'user', content: prompt }],
@@ -192,6 +189,29 @@ const callAI = async (prompt: string): Promise<{ bullets: string[]; narrative?: 
     } catch {
       // fall through to empty
     }
+  }
+
+  // Try server-side AI even without VITE_ env vars (server may have keys configured)
+  try {
+    const res = await fetch('/api/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.2,
+        max_tokens: 900,
+        response_format: { type: 'json_object' },
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content || '{}';
+      const result = parseResult(content);
+      if (result.bullets.length >= 3) return result;
+    }
+  } catch {
+    // ignore
   }
 
   return { bullets: [] };
