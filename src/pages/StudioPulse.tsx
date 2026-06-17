@@ -1932,11 +1932,16 @@ const StudioPulse = memo(() => {
       { label: 'Sessions', type: 'number', values: {} },
       { label: 'Empty Sessions', type: 'number', values: {} },
       { label: 'Active Sessions', type: 'number', values: {} },
+      { label: 'Empty Session Rate', type: 'percent', values: {} },
       { label: 'Customers', type: 'number', values: {} },
       { label: 'Pay', type: 'currency', values: {} },
+      { label: 'Pay / Session', type: 'currency', values: {} },
+      { label: 'Pay / Customer', type: 'currency', values: {} },
       { label: 'Avg Incl Empty', type: 'number', values: {} },
       { label: 'Avg Excl Empty', type: 'number', values: {} },
       { label: 'New Members', type: 'number', values: {} },
+      { label: 'Converted', type: 'number', values: {} },
+      { label: 'Retained', type: 'number', values: {} },
       { label: 'Conversion %', type: 'percent', values: {} },
       { label: 'Retention %', type: 'percent', values: {} },
     ];
@@ -1956,13 +1961,18 @@ const StudioPulse = memo(() => {
       rows[1].values[month] = totalSessions;
       rows[2].values[month] = emptySessions;
       rows[3].values[month] = activeSessions;
-      rows[4].values[month] = customers;
-      rows[5].values[month] = pay;
-      rows[6].values[month] = totalSessions ? customers / totalSessions : 0;
-      rows[7].values[month] = activeSessions ? customers / activeSessions : 0;
-      rows[8].values[month] = newMembers;
-      rows[9].values[month] = newMembers ? (converted / newMembers) * 100 : 0;
-      rows[10].values[month] = newMembers ? (retained / newMembers) * 100 : 0;
+      rows[4].values[month] = totalSessions ? (emptySessions / totalSessions) * 100 : 0;
+      rows[5].values[month] = customers;
+      rows[6].values[month] = pay;
+      rows[7].values[month] = totalSessions ? pay / totalSessions : 0;
+      rows[8].values[month] = customers ? pay / customers : 0;
+      rows[9].values[month] = totalSessions ? customers / totalSessions : 0;
+      rows[10].values[month] = activeSessions ? customers / activeSessions : 0;
+      rows[11].values[month] = newMembers;
+      rows[12].values[month] = converted;
+      rows[13].values[month] = retained;
+      rows[14].values[month] = newMembers ? (converted / newMembers) * 100 : 0;
+      rows[15].values[month] = newMembers ? (retained / newMembers) * 100 : 0;
     });
 
     return { months, monthLabels, metricRows: rows };
@@ -2482,6 +2492,28 @@ const StudioPulse = memo(() => {
   const [isExportingPulse, setIsExportingPulse] = useState(false);
   const monthViewMode = searchParams.get('mv') === '1';
   const aiSummaryCacheOnly = import.meta.env.VITE_TESTMODE === 'true' && searchParams.get('testmode') !== 'false';
+  const [reportMode, setReportMode] = useState(false);
+  const [sectionEdits, setSectionEdits] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem('sp_section_edits_v1') || '{}'); } catch { return {}; }
+  });
+  const [editingSectionKey, setEditingSectionKey] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState('');
+  const saveSectionEdit = useCallback((key: string, text: string) => {
+    setSectionEdits((prev) => {
+      const next = { ...prev, [key]: text };
+      try { localStorage.setItem('sp_section_edits_v1', JSON.stringify(next)); } catch {}
+      return next;
+    });
+    setEditingSectionKey(null);
+  }, []);
+  const clearSectionEdit = useCallback((key: string) => {
+    setSectionEdits((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      try { localStorage.setItem('sp_section_edits_v1', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
   const toggleSessionGroup = useCallback((key: string) => {
     setSessionExpandedGroups((prev) => {
       const next = new Set(prev);
@@ -2868,22 +2900,79 @@ const StudioPulse = memo(() => {
     </ul>
   );
 
-  /** AI-powered section summary — shows spinner while loading, then bullets */
+  /** AI-powered section summary — shows spinner while loading, then bullets. Supports inline editing. */
   const renderAISummary = (sectionKey: string, fallbackItems: string[], columns: 1 | 2 = 2) => {
     const s = getSummary(sectionKey);
     const loading = aiSectionLoading(sectionKey);
-    const bullets = s ? s.bullets : (aiSummaryCacheOnly ? [] : fallbackItems);
+    const manualEdit = sectionEdits[sectionKey];
+    const isEditing = editingSectionKey === sectionKey;
+    const aiBullets = s ? s.bullets : (aiSummaryCacheOnly ? [] : fallbackItems);
+    const displayBullets = manualEdit
+      ? manualEdit.split('\n').map((l) => l.replace(/^[•\-*]\s*/, '').trim()).filter(Boolean)
+      : aiBullets;
+
+    if (isEditing) {
+      return (
+        <div className="rounded-2xl border border-violet-200 bg-violet-50/60 p-4 shadow-sm">
+          <div className="mb-2 flex items-center gap-2">
+            <svg className="h-3.5 w-3.5 text-violet-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-violet-500">Editing summary · one bullet per line</span>
+          </div>
+          <textarea
+            autoFocus
+            className="w-full rounded-xl border border-violet-200 bg-white p-3 text-sm text-slate-700 placeholder-slate-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-300 resize-none"
+            rows={6}
+            value={editDraft}
+            onChange={(e) => setEditDraft(e.target.value)}
+            placeholder="• Enter each bullet on its own line&#10;• Use • or - prefix or just plain text&#10;• Changes persist until AI is regenerated"
+          />
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              onClick={() => saveSectionEdit(sectionKey, editDraft)}
+              className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700 transition"
+            >Save</button>
+            <button
+              onClick={() => setEditingSectionKey(null)}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
+            >Cancel</button>
+            {manualEdit && (
+              <button
+                onClick={() => { clearSectionEdit(sectionKey); setEditingSectionKey(null); }}
+                className="ml-auto rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition"
+              >Clear manual edit</button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 shadow-sm">
+      <div className={`rounded-2xl border p-4 shadow-sm ${manualEdit ? 'border-violet-200 bg-violet-50/40' : 'border-slate-200 bg-slate-50/90'}`}>
         <div className="mb-2 flex items-center gap-2">
           <Sparkles className="h-3.5 w-3.5 text-purple-500 shrink-0" />
           <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            {loading ? 'Generating AI insights…' : s ? `AI insights · generated ${new Date(s.lastGenerated).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : 'Summary'}
+            {loading ? 'Generating AI insights…' : manualEdit ? 'Manual summary · edited' : s ? `AI insights · generated ${new Date(s.lastGenerated).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : 'Summary'}
           </span>
           {loading && <div className="h-3 w-3 animate-spin rounded-full border-2 border-purple-200 border-t-purple-500 shrink-0" />}
+          <button
+            onClick={() => { setEditDraft(manualEdit || displayBullets.map((b) => `• ${b}`).join('\n')); setEditingSectionKey(sectionKey); }}
+            title="Edit summary"
+            className="ml-auto flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 transition shrink-0"
+          >
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+          </button>
+          {manualEdit && (
+            <button
+              onClick={() => clearSectionEdit(sectionKey)}
+              title="Clear manual edit, restore AI summary"
+              className="flex h-6 w-6 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition shrink-0"
+            >
+              <RotateCcw className="h-3 w-3" />
+            </button>
+          )}
         </div>
-        {bullets.length > 0 ? renderBulletSummary(bullets, columns) : (
-          <p className="text-sm text-slate-400">AI summary will appear here when cached or generated.</p>
+        {displayBullets.length > 0 ? renderBulletSummary(displayBullets, columns) : (
+          <p className="text-sm text-slate-400">Click the pencil icon to add notes, or use the ✦ button to generate AI insights.</p>
         )}
       </div>
     );
@@ -2943,8 +3032,8 @@ const StudioPulse = memo(() => {
               </tr>
             </thead>
             <tbody className="bg-white">
-              {rows.map((row) => (
-                <tr key={row.label} className="h-[35px] bg-white">
+              {rows.map((row, rowIdx) => (
+                <tr key={`${rowIdx}-${row.label}`} className="h-[35px] bg-white">
                   <td className="sticky left-0 z-10 min-w-[280px] border-b border-gray-200 bg-white px-4 py-2 font-medium leading-none text-slate-900 border-r border-gray-200">
                     <button type="button" className="w-full text-left hover:text-blue-700" onClick={() => onCellClick(row)}>
                       {row.label}
@@ -3677,29 +3766,8 @@ const StudioPulse = memo(() => {
     };
   }, [salesStats, clientStats, sessionStats, trainerRankingsExtended, expirationStats, lcStats, lapsedByMembership, sessionIntelligence.rows]);
 
-  useEffect(() => {
-    if (anyLoading) return;
-    generateAISummary(buildSummaryInput('main'));
-    generateAISummary(buildSummaryInput('sales', sectionContexts.sales));
-    generateAISummary(buildSummaryInput('sales-matrix', sectionContexts.salesMatrix));
-    generateAISummary(buildSummaryInput('sales-mom', sectionContexts.salesMom));
-    generateAISummary(buildSummaryInput('sales-rankings', sectionContexts.salesRankings));
-    generateAISummary(buildSummaryInput('sales-mix', sectionContexts.salesMix));
-    generateAISummary(buildSummaryInput('funnel', sectionContexts.funnel));
-    generateAISummary(buildSummaryInput('funnel-overview', sectionContexts.funnelOverview));
-    generateAISummary(buildSummaryInput('funnel-rankings', sectionContexts.funnelRankings));
-    generateAISummary(buildSummaryInput('trainers', sectionContexts.trainers));
-    generateAISummary(buildSummaryInput('trainer-scorecard', sectionContexts.trainerScorecard));
-    generateAISummary(buildSummaryInput('trainer-efficiency', sectionContexts.trainerEfficiency));
-    generateAISummary(buildSummaryInput('lapsed', sectionContexts.lapsed));
-    generateAISummary(buildSummaryInput('lapsed-trend', sectionContexts.lapsedTrend));
-    generateAISummary(buildSummaryInput('lapsed-table', sectionContexts.lapsedTable));
-    generateAISummary(buildSummaryInput('attendance', sectionContexts.attendance));
-    generateAISummary(buildSummaryInput('attendance-heatmap', sectionContexts.attendanceHeatmap));
-    generateAISummary(buildSummaryInput('attendance-capacity', sectionContexts.attendanceCapacity));
-    generateAISummary(buildSummaryInput('attendance-comp', sectionContexts.attendanceComp));
-    generateAISummary(buildSummaryInput('attendance-table', sectionContexts.attendanceTable));
-  }, [anyLoading, studio, dateRange.start, dateRange.end]);
+  // Auto-generation disabled — AI summaries are triggered manually via the Sparkles button or AI panel
+  // useEffect(() => { ... }, [anyLoading, studio, dateRange.start, dateRange.end]);
 
   const handleRefresh = useCallback(() => {
     refetchSales();
@@ -4172,6 +4240,20 @@ const StudioPulse = memo(() => {
               <CalendarDays className="h-3.5 w-3.5" />
               Monthly Report View
             </button>
+            {/* Report Mode toggle */}
+            <button
+              onClick={() => setReportMode((v) => !v)}
+              title={reportMode ? 'Exit Report Mode' : 'Enter Report Mode — focused single-month view'}
+              className={cn(
+                'flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-semibold shadow-sm backdrop-blur transition',
+                reportMode
+                  ? 'border-blue-400 bg-blue-600 text-white hover:bg-blue-700'
+                  : 'border-slate-200 bg-white/70 text-slate-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
+              )}
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              Report
+            </button>
             {/* Refresh Summaries */}
             <button
               onClick={handleRefreshSummaries}
@@ -4240,6 +4322,37 @@ const StudioPulse = memo(() => {
         {monthViewMode ? (
           <LocationReport />
         ) : (
+        <>
+        {reportMode && (
+          <div className="mb-6 overflow-hidden rounded-3xl border border-blue-200 bg-gradient-to-r from-blue-900 via-slate-900 to-blue-900 shadow-lg">
+            <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-blue-300 shrink-0" />
+                <span className="text-xs font-bold uppercase tracking-widest text-blue-200">Report Mode</span>
+                <span className="text-xs text-white/50">·</span>
+                <span className="text-xs text-white/70">{activeStudio.name} · {dateRange.start} to {dateRange.end}</span>
+              </div>
+              <button onClick={() => setReportMode(false)} className="text-white/40 hover:text-white/80 transition text-xs">✕ Exit</button>
+            </div>
+            <div className="grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-4 lg:grid-cols-8">
+              {[
+                { label: 'Net Sales', value: sharedMetrics.netSales },
+                { label: 'Transactions', value: formatNumber(sharedMetrics.transactions) },
+                { label: 'Members', value: formatNumber(sharedMetrics.uniqueMembers) },
+                { label: 'Sessions', value: formatNumber(sharedMetrics.totalSessions) },
+                { label: 'Avg Fill', value: sharedMetrics.avgFill },
+                { label: 'New Clients', value: formatNumber(sharedMetrics.newClients) },
+                { label: 'Conversion', value: sharedMetrics.conversionRate },
+                { label: 'Late Cancels', value: formatNumber(sharedMetrics.lateCancels) },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex flex-col items-center justify-center bg-white/5 px-4 py-3 text-center">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-1">{label}</span>
+                  <span className="text-sm font-bold text-white tabular-nums">{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <AnimatePresence mode="wait">
           <motion.div
             key={studio}
@@ -4664,8 +4777,8 @@ const StudioPulse = memo(() => {
                           </tr>
                         </thead>
                         <tbody className="bg-white">
-                          {salesMetricsMatrix.metricRows.map((row) => (
-                            <tr key={row.label} className="h-[35px] bg-white">
+                          {salesMetricsMatrix.metricRows.map((row, rowIdx) => (
+                            <tr key={`${rowIdx}-${row.label}`} className="h-[35px] bg-white">
                               <td className="sticky left-0 z-10 min-w-[280px] border-b border-gray-200 bg-white px-4 py-2 font-medium leading-none text-slate-900 border-r border-gray-200">
                                 <div className="flex items-center justify-between gap-2">
                                   <button
@@ -5484,10 +5597,9 @@ const StudioPulse = memo(() => {
                           { label: 'Cls', key: 'sessions' },
                           { label: 'Empty', key: null },
                           { label: 'Active', key: 'nonEmpty' },
-                          { label: 'Pay', key: 'paid' },
+                          { label: 'Fill Rate', key: 'fillRate' },
                           { label: 'Avg Incl', key: 'customers' },
                           { label: 'Avg Excl', key: 'classAvg' },
-                          { label: 'Fill Rate', key: 'fillRate' },
                           { label: 'New', key: 'totalNew' },
                           { label: 'Conv', key: 'totalConverted' },
                           { label: 'Ret', key: 'totalRetained' },
@@ -7292,6 +7404,7 @@ const StudioPulse = memo(() => {
             </div>
           </motion.div>
         </AnimatePresence>
+        </>
         )}
       </div>
 
