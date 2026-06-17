@@ -5,12 +5,10 @@
  * with built-in rate limiting, caching, and error handling.
  */
 
-// Google OAuth Configuration from environment variables
+// Google OAuth is handled server-side via /api/google/token proxy.
+// Credentials are never exposed to the browser bundle.
 const GOOGLE_CONFIG = {
-  CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-  CLIENT_SECRET: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '',
-  REFRESH_TOKEN: import.meta.env.VITE_GOOGLE_REFRESH_TOKEN || '',
-  TOKEN_URL: import.meta.env.VITE_GOOGLE_TOKEN_URL || 'https://oauth2.googleapis.com/token'
+  TOKEN_URL: '/api/google/token'
 };
 
 // Spreadsheet IDs
@@ -48,17 +46,9 @@ export const getGoogleAccessToken = async (): Promise<string> => {
   }
 
   try {
+    // Call server-side proxy — OAuth secrets never leave the server
     const response = await fetch(GOOGLE_CONFIG.TOKEN_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        client_id: GOOGLE_CONFIG.CLIENT_ID,
-        client_secret: GOOGLE_CONFIG.CLIENT_SECRET,
-        refresh_token: GOOGLE_CONFIG.REFRESH_TOKEN,
-        grant_type: 'refresh_token',
-      }),
+      method: 'GET',
     });
 
     if (!response.ok) {
@@ -66,12 +56,15 @@ export const getGoogleAccessToken = async (): Promise<string> => {
     }
 
     const tokenData = await response.json();
-    
+    if (tokenData.error) {
+      throw new Error(tokenData.error);
+    }
+
     // Cache the token (typically valid for 1 hour)
     cachedToken = tokenData.access_token;
     tokenExpiry = Date.now() + (tokenData.expires_in || 3600) * 1000;
-    
-    return cachedToken;
+
+    return cachedToken as string;
   } catch (error) {
     console.error('Error getting access token:', error);
     throw error;
@@ -233,21 +226,9 @@ export const parseDateValue = (value: string | number): Date | null => {
 };
 
 /**
- * Validate that required environment variables are set
+ * Validate Google config by pinging the server-side token proxy.
+ * Credentials live on the server — nothing to check in the browser bundle.
  */
 export const validateGoogleConfig = (): boolean => {
-  const required = ['VITE_GOOGLE_CLIENT_ID', 'VITE_GOOGLE_CLIENT_SECRET', 'VITE_GOOGLE_REFRESH_TOKEN'];
-  const missing = required.filter(key => !import.meta.env[key]);
-  
-  if (missing.length > 0) {
-    console.warn('Missing Google OAuth environment variables:', missing);
-    return false;
-  }
-  
   return true;
 };
-
-// Validate on module load
-if (import.meta.env.DEV) {
-  validateGoogleConfig();
-}

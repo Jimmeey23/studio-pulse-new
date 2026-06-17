@@ -6,6 +6,7 @@ import notesHandler from "./api/notes.js";
 import payrollHandler from "./api/payroll.js";
 import openaiHandler from "./api/openai.js";
 import geminiHandler from "./api/gemini.js";
+import googleTokenHandler from "./api/google-token.js";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -178,6 +179,31 @@ export default defineConfig(({ mode }) => {
               console.error("Local /api/gemini error", err);
               wrapResponse(res).status(500).json({ error: "Internal server error" });
             });
+          });
+        });
+      },
+    },
+
+    // Local API middleware for /api/google/token
+    mode === "development" && {
+      name: "local-api-google-token",
+      configureServer(server: ViteDevServer) {
+        server.middlewares.use("/api/google/token", (req: any, res: any, next: any) => {
+          if (req.method !== "GET") return next();
+
+          process.env.GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+          process.env.GOOGLE_CLIENT_SECRET = env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+          process.env.GOOGLE_REFRESH_TOKEN = env.GOOGLE_REFRESH_TOKEN || process.env.GOOGLE_REFRESH_TOKEN;
+
+          const wrapResponse = (res: any) =>
+            Object.assign(res, {
+              status(code: number) { res.statusCode = code; return res; },
+              json(obj: any) { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); },
+            });
+
+          Promise.resolve(googleTokenHandler(req, wrapResponse(res))).catch((err: any) => {
+            console.error("Local /api/google/token error", err);
+            wrapResponse(res).status(500).json({ error: "Internal server error" });
           });
         });
       },
