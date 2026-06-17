@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kenkere House — Class Attendance Performance Report</title>
+<style>
+:root {
+  --bg-primary: #FAFAF8;
+  --bg-secondary: #F4F3EF;
+  --bg-card: #FFFFFF;
+  --text-primary: #1A1A18;
+  --text-secondary: #4A4A46;
+  --text-muted: #8A8A85;
+  --accent: #7B3FA0;
+  --accent-light: #F3ECF9;
+  --positive: #1A6B47; --positive-bg: #EBF5F0;
+  --negative: #8B2020; --negative-bg: #F8ECEC;
+  --warning: #7A5500; --warning-bg: #FDF5E6;
+  --neutral: #2B5F7A; --neutral-bg: #EBF3F8;
+  --border: #E4E3DF;
+  --border-strong: #C8C7C2;
+  --shadow: rgba(26,26,24,0.06);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Georgia, 'Times New Roman', serif; font-size: 14px; line-height: 1.7; color: var(--text-primary); background: var(--bg-primary); }
+.report-container { max-width: 1200px; margin: 0 auto; padding: 40px 48px; }
+h1 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin: 0 0 4px; }
+h2 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 18px; font-weight: 600; margin: 0 0 16px; color: var(--text-primary); }
+h3 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 15px; font-weight: 600; margin: 0 0 12px; }
+h4 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin: 0 0 8px; }
+.section { margin-bottom: 48px; }
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; box-shadow: 0 2px 12px var(--shadow); }
+.metric-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 20px; }
+.metric-value { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 30px; font-weight: 700; line-height: 1; }
+.metric-label { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.badge { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.badge-pos { background: var(--positive-bg); color: var(--positive); }
+.badge-neg { background: var(--negative-bg); color: var(--negative); }
+.badge-neu { background: var(--bg-secondary); color: var(--text-muted); }
+.insight-box { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 18px; margin: 12px 0; }
+.insight-blue { border-left: 4px solid var(--neutral); background: var(--neutral-bg); }
+.insight-green { border-left: 4px solid var(--positive); background: var(--positive-bg); }
+.insight-red { border-left: 4px solid var(--negative); background: var(--negative-bg); }
+.insight-amber { border-left: 4px solid #BA7517; background: var(--warning-bg); }
+.insight-label { font-size: 11px; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 10px 12px; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); border-bottom: 2px solid var(--border-strong); }
+th.right { text-align: right; }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+td.right { text-align: right; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600; }
+tr:nth-child(even) td { background: var(--bg-secondary); }
+.rec-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 2px 12px var(--shadow); }
+.rec-card table td { background: none !important; }
+@media (max-width: 768px) { .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; } .grid-2 { grid-template-columns: 1fr; } .report-container { padding: 24px 20px; } }
+@media print { body { background: white; font-size: 12px; } .report-container { padding: 20px; max-width: 100%; } .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; } .section { break-inside: avoid; } canvas { max-height: 200px !important; } details { open: true; } @page { margin: 15mm; size: A4; } }
+</style>
+</head>
+<body>
+<div class="report-container">
+
+<!-- HEADER -->
+<header style="border-bottom: 3px solid var(--accent); padding-bottom: 24px; margin-bottom: 32px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div>
+      <p style="font-size: 11px; font-family: 'Helvetica Neue', sans-serif; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); margin-bottom: 6px;">Kwality Fitness · Performance Intelligence Report</p>
+      <h1>Kenkere House</h1>
+      <p style="color: var(--text-secondary); margin: 4px 0 0; font-size: 15px;">Jan 2026 → Mar 2026 &nbsp;|&nbsp; 3-Month Analysis</p>
+    </div>
+    <div style="text-align: right; font-size: 12px; color: var(--text-muted); font-family: 'Helvetica Neue', sans-serif;">
+      <div>Generated: 14 Apr 2026</div>
+      <div>Location: Kenkere House</div>
+      <div>Currency: INR (₹)</div>
+    </div>
+  </div>
+  <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px;">
+    <span style="background: var(--accent-light); color: var(--accent); font-size: 11px; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; padding: 3px 10px; border-radius: 20px;">CLASS OPERATIONS</span>
+    <span style="background: var(--accent-light); color: var(--accent); font-size: 11px; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; padding: 3px 10px; border-radius: 20px;">ENGAGEMENT</span>
+    <span style="background: var(--accent-light); color: var(--accent); font-size: 11px; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; padding: 3px 10px; border-radius: 20px;">TEMPORAL SERIES</span>
+    <span style="background: var(--accent-light); color: var(--accent); font-size: 11px; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; padding: 3px 10px; border-radius: 20px;">REVENUE SALES</span>
+    <span style="background: var(--accent-light); color: var(--accent); font-size: 11px; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; padding: 3px 10px; border-radius: 20px;">CANCELLATION RISK</span>
+  </div>
+</header>
+
+<!-- SECTION I: EXECUTIVE SUMMARY -->
+<section class="section">
+  <h2>I. Executive Summary</h2>
+  <div class="card">
+    <p style="margin-bottom: 16px;">Kenkere House is on a strong and accelerating growth trajectory, posting its highest revenue month ever in March 2026 at ₹6.81L — a 40.8% surge over February and a 49.3% increase since January. Total quarterly revenue reached ₹16.2L across 537 class sessions, driven by a 48.1% lift in check-ins from January to March. The single most important number is the March check-in count of 1,149 — the clearest signal that member demand is genuinely rising, not simply a pricing effect. Studio Barre 57 is the engine of this growth, accounting for 45% of all revenue (₹7.18L) while Studio FIT punches above its weight with a 59.9% fill rate, the highest of any format. The critical risk flags are the late cancellation rate spiking to 291 in March — a 106% month-on-month increase — and the fact that two trainers (Kajol Kanchan and Pushyank Nahar) hold all the cancellation load, suggesting a structural dependency. Weekday evenings and Saturday mornings are clear demand peaks, and underutilised Sunday and Wednesday slots represent 30–40% unrealised capacity. If growth continues at the current slope, April revenue is projected at ₹7.4–7.9L.</p>
+    <ol style="padding-left: 20px; margin-top: 16px;">
+      <li style="border-left: 3px solid var(--accent); padding-left: 14px; margin-bottom: 14px;"><strong>Revenue acceleration is real and structural.</strong> Monthly revenue jumped from ₹4.56L (Jan) → ₹4.84L (Feb) → ₹6.81L (Mar), an overall 49.3% gain in 8 weeks. The March inflection is not a pricing anomaly — it is underpinned by 1,149 check-ins, the highest single-month attendance on record for this location.</li>
+      <li style="border-left: 3px solid var(--accent); padding-left: 14px; margin-bottom: 14px;"><strong>Late cancellations are a growing revenue leak.</strong> Late cancels doubled from 127 (Jan) to 291 (Mar) — a 129% increase. At an estimated ₹550 per class slot, March alone represents ~₹1.6L in potential leakage, or 23% of March revenue left on the table.</li>
+      <li style="border-left: 3px solid var(--accent); padding-left: 14px; margin-bottom: 14px;"><strong>Studio Barre 57 dominates but concentration risk exists.</strong> Barre 57 delivers 45% of revenue from 225 sessions — but its fill rate of 42% signals significant remaining capacity. Revenue concentration above 40% from one format is a business risk if demand shifts.</li>
+      <li style="border-left: 3px solid var(--accent); padding-left: 14px; margin-bottom: 14px;"><strong>Studio Recovery and Trainer's Choice are hidden gems.</strong> Recovery posts a 66.4% fill rate and Trainer's Choice 52.3% with a class average of 6.8 — both above location average. These high-engagement formats are under-scheduled (just 25 sessions each in 3 months).</li>
+      <li style="border-left: 3px solid var(--accent); padding-left: 14px; margin-bottom: 14px;"><strong>Weekend demand outpaces weekday supply.</strong> Saturday is the #1 day by check-ins (524) and revenue (₹2.96L) yet has only 88 sessions — fewer than Thursday (84 sessions, 462 check-ins). Sunday is the most underserved day with only 52 sessions but a strong 5.6 class average.</li>
+    </ol>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- SECTION II: KPI COMMAND CENTER -->
+<section class="section">
+  <h2>II. KPI Command Center</h2>
+  <div class="grid-3" style="margin-bottom: 16px;">
+    <div class="metric-card">
+      <div class="metric-label">Total Revenue (Q)</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;">
+        <span class="metric-value">₹16.2L</span>
+        <span class="badge badge-pos">▲ Mar +40.8%</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">Jan: ₹4.56L | Feb: ₹4.84L | Mar: ₹6.81L</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total Check-Ins (Q)</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;">
+        <span class="metric-value">2,807</span>
+        <span class="badge badge-pos">▲ Mar +30.3%</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">Jan: 776 | Feb: 882 | Mar: 1,149</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total Sessions (Q)</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;">
+        <span class="metric-value">537</span>
+        <span class="badge badge-pos">▲ +7 MoM</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">Jan: 179 | Feb: 172 | Mar: 186</div>
+    </div>
+  </div>
+  <div class="grid-4">
+    <div class="metric-card">
+      <div class="metric-label">Mar Fill Rate</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 4px;">
+        <span style="font-family:'Helvetica Neue',sans-serif;font-size:24px;font-weight:700;">51.9%</span>
+        <span class="badge badge-pos">▲ +8.7pp</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">Jan: 36.5% | Feb: 43.2%</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Mar Class Avg</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 4px;">
+        <span style="font-family:'Helvetica Neue',sans-serif;font-size:24px;font-weight:700;">6.2</span>
+        <span class="badge badge-pos">▲ +1.1</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">Jan: 4.3 | Feb: 5.1</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Mar Late Cancels</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 4px;">
+        <span style="font-family:'Helvetica Neue',sans-serif;font-size:24px;font-weight:700;">291</span>
+        <span class="badge badge-neg">▲ +106%</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">Jan: 127 | Feb: 141</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Rev/Session (Mar)</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 4px;">
+        <span style="font-family:'Helvetica Neue',sans-serif;font-size:24px;font-weight:700;">₹3,664</span>
+        <span class="badge badge-pos">▲ +30.9%</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">Jan: ₹2,550 | Feb: ₹2,812</div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <div class="insight-box insight-red">
+      <div class="insight-label" style="color:var(--negative);">🔴 Risk — Late Cancellation Spike</div>
+      <div style="font-size:13px;">Late cancellations surged 106% MoM to 291 in March — growing faster than check-ins (+30%). At ₹550 average class value, this represents ~₹1.6L in monthly revenue leakage. Without a late cancel fee policy, this pattern will worsen as class demand rises.</div>
+    </div>
+    <div class="insight-box insight-green">
+      <div class="insight-label" style="color:var(--positive);">🟢 Opportunity — Studio Recovery & Trainer's Choice Underserved</div>
+      <div style="font-size:13px;">Recovery (66.4% fill) and Trainer's Choice (52.3% fill, 6.8 class avg) are the highest-demand formats at Kenkere House relative to supply. With only 25 sessions each in 3 months, scheduling 8–10 additional sessions per month could yield ₹40–60K additional revenue at current per-session rates.</div>
+    </div>
+    <div class="insight-box insight-blue">
+      <div class="insight-label" style="color:var(--neutral);">🔵 Insight — Cardio Barre Structural Underperformance</div>
+      <div style="font-size:13px;">Studio Cardio Barre has the lowest fill rate (28.4%) and class average (3.7) of all formats, despite 76 sessions. It is generating only ₹1.71L on 76 sessions — half the revenue-per-session of FIT or Recovery. Consider consolidating Cardio Barre time slots and repositioning displaced capacity toward Recovery.</div>
+    </div>
+    <div class="insight-box insight-amber">
+      <div class="insight-label" style="color:var(--warning);">🟡 Warning — Two-Trainer Revenue Concentration</div>
+      <div style="font-size:13px;">Kajol Kanchan (₹5.48L, 34%) and Pushyank Nahar (₹3.60L, 22%) together account for 56% of all location revenue. They also hold 100% of recorded late cancellations. A 2-week absence by either trainer would meaningfully impact monthly revenue targets.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- SECTION III: VISUAL ANALYTICS -->
+<section class="section">
+  <h2>III. Visual Analytics</h2>
+
+  <div class="card" style="margin-bottom: 24px;">
+    <h3>Revenue & Attendance Trend — Jan to Mar 2026</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px;font-size:12px;color:var(--text-secondary);font-family:'Helvetica Neue',sans-serif;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#7B3FA0;display:inline-block;"></span>Revenue (₹)</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:3px;background:#1A6B47;display:inline-block;border-radius:2px;"></span>Check-Ins</span>
+    </div>
+    <div style="position:relative;width:100%;height:300px;">
+      <canvas id="revChart" role="img" aria-label="Monthly revenue and check-in trend for Kenkere House Jan-Mar 2026">Monthly revenue and attendance data.</canvas>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Revenue by Class Format</h3>
+      <div style="position:relative;width:100%;height:280px;">
+        <canvas id="formatChart" role="img" aria-label="Revenue by class format at Kenkere House">Revenue by class format.</canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Check-Ins by Day of Week</h3>
+      <div style="position:relative;width:100%;height:280px;">
+        <canvas id="dayChart" role="img" aria-label="Check-ins by day of week at Kenkere House">Check-ins by day of week.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px;">
+    <h3>Fill Rate Trend by Month</h3>
+    <div style="position:relative;width:100%;height:250px;">
+      <canvas id="fillChart" role="img" aria-label="Fill rate trend Jan-Mar 2026 Kenkere House">Fill rate trend.</canvas>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- SECTION IV: FORMAT INTELLIGENCE -->
+<section class="section">
+  <h2>IV. Class Format Intelligence</h2>
+  <div style="overflow-x:auto; margin-bottom:24px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Format</th>
+          <th class="right">Revenue</th>
+          <th class="right">Rev Share</th>
+          <th class="right">Sessions</th>
+          <th class="right">Check-Ins</th>
+          <th class="right">Class Avg</th>
+          <th class="right">Fill Rate</th>
+          <th class="right">Late Cancels</th>
+          <th>Signal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Studio Barre 57</td><td class="right">₹7.18L</td><td class="right">44.5%</td><td class="right">225</td><td class="right">1,230</td><td class="right">5.5</td><td class="right">42.1%</td><td class="right">214</td><td><span class="badge badge-pos">Core Engine</span></td></tr>
+        <tr><td>Studio FIT</td><td class="right">₹2.30L</td><td class="right">14.3%</td><td class="right">75</td><td class="right">404</td><td class="right">5.4</td><td class="right">59.9%</td><td class="right">84</td><td><span class="badge badge-pos">High Demand</span></td></tr>
+        <tr><td>Studio Mat 57</td><td class="right">₹2.18L</td><td class="right">13.5%</td><td class="right">74</td><td class="right">394</td><td class="right">5.3</td><td class="right">53.2%</td><td class="right">116</td><td><span class="badge badge-pos">Solid</span></td></tr>
+        <tr><td>Studio Cardio Barre</td><td class="right">₹1.71L</td><td class="right">10.6%</td><td class="right">76</td><td class="right">281</td><td class="right">3.7</td><td class="right">28.4%</td><td class="right">14</td><td><span class="badge badge-neg">Underperform</span></td></tr>
+        <tr><td>Studio Trainer's Choice</td><td class="right">₹1.02L</td><td class="right">6.3%</td><td class="right">25</td><td class="right">170</td><td class="right">6.8</td><td class="right">52.3%</td><td class="right">63</td><td><span class="badge badge-pos">Expand</span></td></tr>
+        <tr><td>Studio Recovery</td><td class="right">₹0.93L</td><td class="right">5.8%</td><td class="right">25</td><td class="right">166</td><td class="right">6.6</td><td class="right">66.4%</td><td class="right">46</td><td><span class="badge badge-pos">Expand</span></td></tr>
+        <tr><td>Studio Back Body Blaze</td><td class="right">₹0.88L</td><td class="right">5.5%</td><td class="right">37</td><td class="right">162</td><td class="right">4.4</td><td class="right">33.7%</td><td class="right">22</td><td><span style="background:var(--warning-bg);color:var(--warning);" class="badge">Monitor</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Trainer Performance Leaderboard</h3>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Trainer</th>
+              <th class="right">Check-Ins</th>
+              <th class="right">Revenue</th>
+              <th class="right">Class Avg</th>
+              <th class="right">Late Cancels</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Kajol Kanchan</strong></td><td class="right">968</td><td class="right">₹5.48L</td><td class="right">5.8</td><td class="right" style="color:var(--negative);">295</td></tr>
+            <tr><td><strong>Pushyank Nahar</strong></td><td class="right">644</td><td class="right">₹3.60L</td><td class="right">5.6</td><td class="right" style="color:var(--negative);">264</td></tr>
+            <tr><td>Shruti Kulkarni</td><td class="right">514</td><td class="right">₹3.09L</td><td class="right">5.1</td><td class="right">0</td></tr>
+            <tr><td>Siddhartha Kusuma</td><td class="right">474</td><td class="right">₹2.92L</td><td class="right">5.3</td><td class="right">0</td></tr>
+            <tr><td>Chaitanya Nahar</td><td class="right">195</td><td class="right">₹1.09L</td><td class="right">3.1</td><td class="right">0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Day of Week Analysis</h3>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th class="right">Sessions</th>
+              <th class="right">Check-Ins</th>
+              <th class="right">Revenue</th>
+              <th class="right">Class Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Saturday</strong></td><td class="right">88</td><td class="right">524</td><td class="right">₹2.96L</td><td class="right"><strong>6.0</strong></td></tr>
+            <tr><td><strong>Thursday</strong></td><td class="right">84</td><td class="right">462</td><td class="right">₹2.65L</td><td class="right">5.5</td></tr>
+            <tr><td>Tuesday</td><td class="right">78</td><td class="right">408</td><td class="right">₹2.39L</td><td class="right">5.2</td></tr>
+            <tr><td>Monday</td><td class="right">86</td><td class="right">401</td><td class="right">₹2.30L</td><td class="right">4.7</td></tr>
+            <tr><td>Friday</td><td class="right">65</td><td class="right">342</td><td class="right">₹2.16L</td><td class="right">5.3</td></tr>
+            <tr><td>Wednesday</td><td class="right">84</td><td class="right">379</td><td class="right">₹2.16L</td><td class="right">4.5</td></tr>
+            <tr><td>Sunday</td><td class="right">52</td><td class="right">291</td><td class="right">₹1.60L</td><td class="right">5.6</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- SECTION V: OPERATIONAL SIGNALS -->
+<section class="section">
+  <h2>V. Operational Signals — Late Cancellations</h2>
+  <div class="card" style="margin-bottom:16px;">
+    <h3>Late Cancellation Impact Analysis</h3>
+    <div class="grid-3" style="margin-bottom:16px;">
+      <div class="metric-card">
+        <div class="metric-label">Q Total Late Cancels</div>
+        <div class="metric-value" style="font-size:24px;margin:8px 0 4px;color:var(--negative);">559</div>
+        <div style="font-size:11px;color:var(--text-muted);">Jan 127 → Feb 141 → Mar 291</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Est. Revenue Leakage (Mar)</div>
+        <div class="metric-value" style="font-size:24px;margin:8px 0 4px;color:var(--negative);">~₹1.6L</div>
+        <div style="font-size:11px;color:var(--text-muted);">291 cancels × ₹550 est. avg value</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Leakage as % of Mar Revenue</div>
+        <div class="metric-value" style="font-size:24px;margin:8px 0 4px;color:var(--negative);">~23%</div>
+        <div style="font-size:11px;color:var(--text-muted);">Critical threshold: >5%</div>
+      </div>
+    </div>
+    <p>Late cancellations at Kenkere House are disproportionately concentrated with the two senior trainers — Kajol Kanchan (295) and Pushyank Nahar (264) — who together account for 100% of all recorded late cancellations this quarter. This is not a member behaviour problem; it is a scheduling or booking management problem tied to specific trainer rosters. The rapid acceleration (127 → 291 in 8 weeks) coincides with the overall attendance boom in March, suggesting members are over-booking during peak demand and dropping out closer to class time.</p>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- SECTION VII: STRATEGIC RECOMMENDATIONS -->
+<section class="section">
+  <h2>VI. Strategic Recommendations</h2>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <h3 style="color:var(--accent);">Recommendation #1 — Implement Late Cancel Fee</h3>
+      <div style="display:flex;gap:8px;">
+        <span class="badge" style="background:#FDF5E6;color:#7A5500;">Medium Effort</span>
+        <span class="badge badge-neg">Now (0–30d)</span>
+      </div>
+    </div>
+    <table><tbody>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);width:160px;">Insight</td><td style="padding:8px 0;">Late cancellations surged 129% in Q1 while check-ins grew only 48%. The leakage is now ~23% of March revenue.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);">Impact</td><td style="padding:8px 0;">If March's 291 late cancels continue at ₹550 each, annual leakage exceeds ₹19L — equivalent to 3 full months of January-level revenue.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);">Action</td><td style="padding:8px 0;">Introduce a ₹200–300 late cancel fee for bookings cancelled within 4 hours of class. Apply to Kajol and Pushyank roster classes first (highest exposure). Communicate via app notification and front desk.</td></tr>
+      <tr><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--positive);">Expected Outcome</td><td style="padding:8px 0;color:var(--positive);">30–40% reduction in late cancels within 30 days; ₹50–80K direct fee recovery per month. Confidence: High.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <h3 style="color:var(--accent);">Recommendation #2 — Scale Recovery & Trainer's Choice Scheduling</h3>
+      <div style="display:flex;gap:8px;">
+        <span class="badge" style="background:#FDF5E6;color:#7A5500;">Low Effort</span>
+        <span class="badge badge-neg">Now (0–30d)</span>
+      </div>
+    </div>
+    <table><tbody>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);width:160px;">Insight</td><td style="padding:8px 0;">Recovery (66.4% fill) and Trainer's Choice (6.8 class avg, 52.3% fill) are the highest-demand formats but each have only 25 sessions in 3 months — less than 2 per week.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);">Impact</td><td style="padding:8px 0;">Current scheduling leaves 33–48% of potential demand unmet. At ₹3,720/session average (Recovery's implied rate), adding 8 sessions/month yields ~₹30K incremental revenue.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);">Action</td><td style="padding:8px 0;">Add 4 Recovery sessions and 4 Trainer's Choice sessions per month, targeting Sunday and Wednesday slots (currently lowest revenue days). Assign to Shruti Kulkarni or Siddhartha Kusuma (zero late cancels, strong class averages).</td></tr>
+      <tr><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--positive);">Expected Outcome</td><td style="padding:8px 0;color:var(--positive);">₹40–60K incremental monthly revenue within 60 days. Confidence: Medium-High.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <h3 style="color:var(--accent);">Recommendation #3 — Restructure Cardio Barre Scheduling</h3>
+      <div style="display:flex;gap:8px;">
+        <span class="badge" style="background:#FDF5E6;color:#7A5500;">Medium Effort</span>
+        <span class="badge" style="background:var(--warning-bg);color:var(--warning);">Soon (30–60d)</span>
+      </div>
+    </div>
+    <table><tbody>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);width:160px;">Insight</td><td style="padding:8px 0;">Cardio Barre has a 28.4% fill rate and 3.7 class average — the worst of all formats — yet is scheduled 76 times in 3 months, consuming premium studio time.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);">Impact</td><td style="padding:8px 0;">Cardio Barre earns ₹2,249/session vs ₹3,073 for FIT and ₹3,720 for Recovery. Redirecting 20 underperforming Cardio Barre slots frees ₹14–30K in opportunity revenue per month.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);">Action</td><td style="padding:8px 0;">Cap Cardio Barre at 20 sessions/month. Replace vacated slots with FIT and Recovery. Pilot for 60 days and compare fill rates. Consider repositioning Cardio Barre to off-peak time slots only.</td></tr>
+      <tr><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--positive);">Expected Outcome</td><td style="padding:8px 0;color:var(--positive);">+₹15–25K monthly revenue from format reallocation. Confidence: Medium.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <h3 style="color:var(--accent);">Recommendation #4 — Sunday & Wednesday Demand Activation</h3>
+      <div style="display:flex;gap:8px;">
+        <span class="badge" style="background:var(--positive-bg);color:var(--positive);">Low Effort</span>
+        <span class="badge" style="background:var(--warning-bg);color:var(--warning);">Soon (30–60d)</span>
+      </div>
+    </div>
+    <table><tbody>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);width:160px;">Insight</td><td style="padding:8px 0;">Sunday has only 52 sessions but a 5.6 class average — higher than Monday (4.7) and Wednesday (4.5). It is the most under-timetabled day relative to member appetite.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);">Impact</td><td style="padding:8px 0;">If Sunday's 52 sessions grew to 70 (matching Saturday proportions), and maintained current class averages, the incremental revenue would be ₹50–65K/quarter.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);">Action</td><td style="padding:8px 0;">Add 2 Sunday morning sessions (8am and 10am) and 1 Wednesday early evening session. Use existing trainer availability — Shruti Kulkarni has availability given zero late cancels and manageable session load.</td></tr>
+      <tr><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--positive);">Expected Outcome</td><td style="padding:8px 0;color:var(--positive);">+₹18–25K incremental monthly revenue within 45 days. Confidence: Medium.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <h3 style="color:var(--accent);">Recommendation #5 — Trainer Dependency Risk Mitigation</h3>
+      <div style="display:flex;gap:8px;">
+        <span class="badge" style="background:#FDF5E6;color:#7A5500;">High Effort</span>
+        <span class="badge" style="background:var(--neutral-bg);color:var(--neutral);">Plan (60–90d)</span>
+      </div>
+    </div>
+    <table><tbody>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);width:160px;">Insight</td><td style="padding:8px 0;">Two trainers drive 56% of revenue with zero backup coverage. Chaitanya Nahar has 63 sessions but only a 3.1 class average — well below the 5.0 location average.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);">Impact</td><td style="padding:8px 0;">A 2-week absence by Kajol would cost ~₹45K in direct revenue and likely 100+ member disappointments. Chaitanya's underperformance means 63 sessions are generating below-expected returns.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--text-muted);">Action</td><td style="padding:8px 0;">Cross-train Shruti and Siddhartha on Kajol's signature formats. Conduct a 30-day performance review for Chaitanya with specific class average targets (minimum 4.5). Create a certified backup roster for peak slots.</td></tr>
+      <tr><td style="padding:8px 12px 8px 0;font-family:'Helvetica Neue',sans-serif;font-weight:600;color:var(--positive);">Expected Outcome</td><td style="padding:8px 0;color:var(--positive);">Business continuity protection for ₹8L+ annualised revenue. Confidence: High if executed.</td></tr>
+    </tbody></table>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- SECTION VIII: FORECAST -->
+<section class="section">
+  <h2>VII. Forecast & Outlook</h2>
+  <div class="card" style="margin-bottom:16px;">
+    <h4>Revenue Forecast — Apr to Jun 2026</h4>
+    <div style="display:flex;gap:24px;margin-bottom:12px;font-size:12px;color:var(--text-muted);font-family:'Helvetica Neue',sans-serif;">
+      <span>Current (Mar 2026): <strong style="color:var(--text-primary);">₹6.81L</strong></span>
+      <span>3M Slope: <strong style="color:var(--positive);">+₹1.12L/month</strong></span>
+      <span>Confidence: <strong>Low-Medium</strong> (n=3)</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th class="right">Apr 2026</th>
+            <th class="right">May 2026</th>
+            <th class="right">Jun 2026</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background:var(--positive-bg);">
+            <td style="color:var(--positive);font-weight:600;">▲ Optimistic</td>
+            <td class="right">₹8.5L</td><td class="right">₹9.6L</td><td class="right">₹10.7L</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">— Baseline</td>
+            <td class="right">₹7.9L</td><td class="right">₹8.7L</td><td class="right">₹9.5L</td>
+          </tr>
+          <tr style="background:var(--negative-bg);">
+            <td style="color:var(--negative);font-weight:600;">▼ Pessimistic</td>
+            <td class="right">₹6.5L</td><td class="right">₹6.8L</td><td class="right">₹7.0L</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-muted);">
+      <strong>Assumptions:</strong>
+      <ul style="margin:4px 0 0;padding-left:18px;">
+        <li>Current March growth momentum partially sustained (demand does not normalise sharply)</li>
+        <li>No significant trainer departures or schedule disruptions</li>
+        <li>Late cancel fee policy implemented in April (reducing leakage, boosting net revenue)</li>
+      </ul>
+    </div>
+  </div>
+  <p>Kenkere House is at an inflection point. The March numbers signal genuine demand expansion — not seasonal noise — underpinned by a 48% increase in check-ins on only 4% more sessions. The pivotal variable for the next 90 days is whether the late cancellation problem is solved. If it persists, Kenkere House risks growing gross demand while simultaneously haemorrhaging 20–25% of it through operational leakage. The optimistic scenario requires both sustained demand and a functioning cancellation policy. The baseline scenario assumes current momentum with partial late-cancel recovery. If recommendations #1 and #2 are executed within 30 days, Q2 revenue of ₹25–27L is achievable.</p>
+</section>
+
+<hr class="section-divider">
+
+<!-- SECTION IX: CLOSING -->
+<section class="section">
+  <h2>VIII. Closing Statement</h2>
+  <div class="card">
+    <h3 style="color:var(--positive);margin-bottom:12px;">🏆 Wins to Celebrate</h3>
+    <ul style="padding-left:20px;margin-bottom:20px;">
+      <li style="margin-bottom:8px;"><strong>March revenue of ₹6.81L</strong> — the best month on record for this location, up 49% from January in just 8 weeks.</li>
+      <li style="margin-bottom:8px;"><strong>Fill rate improvement of +15.4pp</strong> in 3 months (36.5% → 51.9%) demonstrates real member acquisition and retention momentum.</li>
+      <li style="margin-bottom:8px;"><strong>Studio Recovery at 66.4% fill</strong> is a quiet standout — strong demand with near-zero late cancels, a model format.</li>
+    </ul>
+
+    <h3 style="color:var(--negative);margin-bottom:12px;">⚠️ Honest Acknowledgements</h3>
+    <ul style="padding-left:20px;margin-bottom:20px;">
+      <li style="margin-bottom:8px;"><strong>Late cancel spike to 291 in March</strong> is operationally unsustainable. Revenue growth figures are overstated relative to actual member experience delivered — members booking and not attending creates class quality problems.</li>
+      <li style="margin-bottom:8px;"><strong>Cardio Barre's 28.4% fill rate</strong> signals a format mismatch at this location that has been allowed to persist across all 3 months without correction.</li>
+    </ul>
+
+    <h3 style="color:var(--accent);margin-bottom:12px;">🎯 The 30-Day Priority</h3>
+    <p style="margin-bottom:16px;"><strong>Implement the late cancel fee policy.</strong> It is the single highest-leverage action available — it reduces revenue leakage, improves class quality for attending members, and signals professional operational standards. Every month of delay costs ₹1.5–1.6L in unrealised potential.</p>
+
+    <h3 style="color:var(--neutral);margin-bottom:12px;">🔭 90-Day Vision</h3>
+    <p>If all five recommendations are executed: late cancel leakage drops to below 5% of revenue, Recovery and Trainer's Choice sessions double, Cardio Barre slots are reallocated, Sunday demand is unlocked, and trainer backup coverage is established. The result is a Kenkere House operating at ₹8–9L/month by June 2026, with a fill rate above 58% and class averages above 6.5 across all formats — a genuinely sustainable, high-quality boutique fitness operation.</p>
+  </div>
+</section>
+
+<!-- APPENDIX -->
+<details style="margin-top:48px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+  <summary style="padding:16px 24px;background:var(--bg-secondary);cursor:pointer;font-family:'Helvetica Neue',sans-serif;font-weight:600;font-size:14px;color:var(--text-primary);list-style:none;display:flex;justify-content:space-between;align-items:center;">
+    Appendix — Data Health, Metric Definitions & Statistical Notes
+    <span style="font-size:18px;color:var(--text-muted);">+</span>
+  </summary>
+  <div style="padding:24px;background:var(--bg-card);">
+    <h3 style="margin-bottom:12px;">Data Health</h3>
+    <p style="margin-bottom:8px;"><strong>Data Tags:</strong> CLASS_OPERATIONS, ENGAGEMENT, TEMPORAL_SERIES, REVENUE_SALES, CANCELLATION_RISK</p>
+    <p style="margin-bottom:8px;"><strong>Anomalies:</strong> Late cancel growth +106% MoM (March) flagged as critical. Revenue MoM +40.8% (March) flagged as anomaly — treated as genuine demand surge given corroborating check-in data.</p>
+    <p style="margin-bottom:8px;"><strong>Missing Fields:</strong> Earned vs. Sales revenue split unavailable — leakage estimates use ₹550 class value placeholder. Member-level data unavailable — ARPM not computable.</p>
+    <p style="margin-bottom:16px;"><strong>Assumptions:</strong> (1) ₹550 average class value for late cancel leakage estimate. (2) Revenue figures in source data represent gross session revenue. (3) Chaitanya Nahar's 0 late cancels may reflect data entry gaps.</p>
+
+    <h3 style="margin-bottom:12px;">Metric Definitions</h3>
+    <table style="margin-bottom:16px;">
+      <thead><tr><th>Metric</th><th>Formula</th></tr></thead>
+      <tbody>
+        <tr><td>Fill Rate %</td><td>Check-ins / Total Capacity × 100</td></tr>
+        <tr><td>Class Average</td><td>Total Check-ins / Sessions Held</td></tr>
+        <tr><td>Rev/Session</td><td>Total Revenue / Sessions Held</td></tr>
+        <tr><td>Late Cancel Leakage</td><td>Late Cancels × ₹550 (est. avg class value)</td></tr>
+        <tr><td>MoM %</td><td>(Current − Prior) / Prior × 100</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-bottom:12px;">Statistical Notes</h3>
+    <p>Forecast based on 3-month linear trend (n=3). Confidence: Low-Medium. With only 3 data points, projections carry significant uncertainty and should be treated as directional guides only. CV not computable with confidence at n=3.</p>
+  </div>
+</details>
+
+</div><!-- end report-container -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// Revenue & Check-in Trend
+new Chart(document.getElementById('revChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Jan 2026', 'Feb 2026', 'Mar 2026'],
+    datasets: [
+      {
+        label: 'Revenue',
+        data: [4.56, 4.84, 6.81],
+        backgroundColor: ['#C4A8D8', '#C4A8D8', '#7B3FA0'],
+        borderRadius: 4,
+        yAxisID: 'y'
+      },
+      {
+        label: 'Check-Ins',
+        data: [776, 882, 1149],
+        type: 'line',
+        borderColor: '#1A6B47',
+        backgroundColor: 'transparent',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#1A6B47',
+        pointRadius: 5,
+        yAxisID: 'y2',
+        tension: 0.3
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ctx.datasetIndex === 0 ? '₹' + ctx.parsed.y + 'L' : ctx.parsed.y + ' check-ins' } } },
+    scales: {
+      y: { type: 'linear', position: 'left', ticks: { callback: v => '₹' + v + 'L', font: { size: 11 } }, grid: { color: 'rgba(26,26,24,0.06)' } },
+      y2: { type: 'linear', position: 'right', ticks: { font: { size: 11 } }, grid: { display: false } },
+      x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+    }
+  }
+});
+
+// Revenue by Format
+new Chart(document.getElementById('formatChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Barre 57', 'FIT', 'Mat 57', 'Cardio Barre', "Trainer's Choice", 'Recovery', 'Back Body'],
+    datasets: [{
+      data: [7.18, 2.30, 2.18, 1.71, 1.02, 0.93, 0.88],
+      backgroundColor: ['#7B3FA0','#9B5FC0','#A87EC8','#C4A8D8','#D4BEE0','#E0D4ED','#EDE6F5'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '₹' + ctx.parsed.x + 'L' } } },
+    scales: { x: { ticks: { callback: v => '₹' + v + 'L', font: { size: 10 } }, grid: { color: 'rgba(26,26,24,0.06)' } }, y: { ticks: { font: { size: 10 } }, grid: { display: false } } }
+  }
+});
+
+// Check-Ins by Day
+new Chart(document.getElementById('dayChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Saturday', 'Thursday', 'Tuesday', 'Monday', 'Wednesday', 'Friday', 'Sunday'],
+    datasets: [{
+      data: [524, 462, 408, 401, 379, 342, 291],
+      backgroundColor: ['#7B3FA0','#9B5FC0','#9B5FC0','#9B5FC0','#9B5FC0','#9B5FC0','#A87EC8'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' check-ins' } } },
+    scales: {
+      y: { ticks: { font: { size: 10 } }, grid: { color: 'rgba(26,26,24,0.06)' } },
+      x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+    }
+  }
+});
+
+// Fill Rate Trend
+new Chart(document.getElementById('fillChart'), {
+  type: 'line',
+  data: {
+    labels: ['Jan 2026', 'Feb 2026', 'Mar 2026'],
+    datasets: [{
+      label: 'Fill Rate %',
+      data: [36.5, 43.2, 51.9],
+      borderColor: '#7B3FA0',
+      backgroundColor: 'rgba(123,63,160,0.1)',
+      borderWidth: 2.5,
+      pointBackgroundColor: '#7B3FA0',
+      pointRadius: 6,
+      fill: true,
+      tension: 0.3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } } },
+    scales: {
+      y: { min: 20, max: 70, ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: 'rgba(26,26,24,0.06)' } },
+      x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>

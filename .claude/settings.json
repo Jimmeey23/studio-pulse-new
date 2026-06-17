@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /Users/jimmeeygondaa/numbers-dark-main/src/main.js)",
+      "Read(//Users/jimmeeygondaa/numbers-dark-main/src/**)"
+    ]
+  }
+}

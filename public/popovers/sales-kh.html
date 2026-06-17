@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q1 2026 Performance Report — Kwality House, Kemps Corner</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f1923;
+    --gold: #c9933a;
+    --gold-light: #f5e6cc;
+    --cream: #faf8f4;
+    --white: #ffffff;
+    --muted: #6b7280;
+    --border: #e8e2d9;
+    --green: #2d6a4f;
+    --green-light: #d8f3dc;
+    --red: #9b2335;
+    --red-light: #fde8e8;
+    --blue: #1e3a5f;
+    --blue-light: #dbeafe;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); line-height: 1.6; }
+
+  .cover {
+    background: var(--ink);
+    min-height: 320px;
+    padding: 60px 72px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 420px; height: 420px;
+    border-radius: 50%;
+    border: 2px solid rgba(201,147,58,0.2);
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -120px; left: 40%;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,147,58,0.1);
+  }
+  .cover-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+  .cover-title { font-family: 'Playfair Display', serif; font-size: 42px; color: var(--white); line-height: 1.15; font-weight: 700; max-width: 600px; }
+  .cover-subtitle { margin-top: 16px; color: rgba(255,255,255,0.55); font-size: 14px; }
+  .cover-meta { margin-top: 40px; display: flex; gap: 40px; }
+  .cover-meta-item { color: rgba(255,255,255,0.7); font-size: 13px; }
+  .cover-meta-item strong { display: block; color: var(--gold); font-size: 16px; font-weight: 600; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 60px 40px; }
+
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .section-desc { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+
+  /* KPI Strip */
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 60px; }
+  .kpi-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--gold);
+  }
+  .kpi-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .kpi-value { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--ink); }
+  .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* Monthly table */
+  .monthly-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 60px; }
+  .month-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 24px;
+  }
+  .month-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 16px; }
+  .month-stat { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .month-stat:last-child { border-bottom: none; }
+  .month-stat-label { color: var(--muted); }
+  .month-stat-val { font-weight: 600; color: var(--ink); }
+
+  /* Bar chart rows */
+  .bar-section { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 32px; }
+  .bar-row { margin-bottom: 18px; }
+  .bar-meta { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .bar-label { color: var(--ink); font-weight: 500; }
+  .bar-amount { color: var(--muted); }
+  .bar-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--gold); border-radius: 4px; transition: width 0.6s ease; }
+  .bar-fill.green { background: var(--green); }
+  .bar-fill.blue { background: var(--blue); }
+
+  /* Two col */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 60px; }
+
+  /* Insight cards */
+  .insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 60px; }
+  .insight-card {
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .insight-card.positive { background: var(--green-light); border: 1px solid #95d5b2; }
+  .insight-card.opportunity { background: var(--gold-light); border: 1px solid #e0c07a; }
+  .insight-icon { font-size: 22px; flex-shrink: 0; }
+  .insight-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .insight-text { font-size: 13px; color: #374151; line-height: 1.6; }
+
+  /* Reco list */
+  .reco-list { list-style: none; }
+  .reco-list li {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 16px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .reco-list li:last-child { border-bottom: none; }
+  .reco-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--ink); color: var(--gold);
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .reco-text { color: var(--ink); line-height: 1.6; }
+  .reco-text strong { color: var(--gold); }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { text-align: left; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); padding: 10px 16px; border-bottom: 2px solid var(--border); }
+  .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--cream); }
+
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge.high { background: var(--green-light); color: var(--green); }
+  .badge.med { background: var(--gold-light); color: #92650a; }
+
+  .divider { height: 1px; background: var(--border); margin: 60px 0; }
+
+  .footer { background: var(--ink); padding: 40px 72px; display: flex; justify-content: space-between; align-items: center; }
+  .footer-brand { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--gold); }
+  .footer-info { font-size: 12px; color: rgba(255,255,255,0.4); text-align: right; }
+
+  .highlight-box { background: var(--ink); color: var(--white); border-radius: 12px; padding: 28px 32px; margin-bottom: 32px; }
+  .highlight-box h3 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--gold); margin-bottom: 8px; }
+  .highlight-box p { font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.7; }
+
+  @media (max-width: 768px) {
+    .kpi-strip { grid-template-columns: repeat(2,1fr); }
+    .monthly-grid { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .insight-grid { grid-template-columns: 1fr; }
+    .cover { padding: 40px 24px; }
+    .container { padding: 40px 20px; }
+    .cover-title { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-label">Q1 Performance Report · January – March 2026</div>
+  <div class="cover-title">Kwality House,<br>Kemps Corner</div>
+  <div class="cover-subtitle">Senior Management Analysis · Physique 57 India</div>
+  <div class="cover-meta">
+    <div class="cover-meta-item"><strong>₹63.27 L</strong>Total Q1 Revenue</div>
+    <div class="cover-meta-item"><strong>936</strong>Total Transactions</div>
+    <div class="cover-meta-item"><strong>407</strong>Unique Members</div>
+    <div class="cover-meta-item"><strong>₹6,759</strong>Avg Transaction Value</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- KPIs -->
+  <div style="margin-top: 0;">
+    <div class="section-label">Key Performance Indicators</div>
+    <div class="section-title">Q1 2026 At a Glance</div>
+    <div class="section-desc">Consolidated performance metrics across all revenue streams, January through March 2026.</div>
+  </div>
+
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value">₹63.27L</div>
+      <div class="kpi-sub">Across all categories</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Membership Revenue</div>
+      <div class="kpi-value">₹27.46L</div>
+      <div class="kpi-sub">43.4% of total revenue</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Class Packages</div>
+      <div class="kpi-value">₹22.55L</div>
+      <div class="kpi-sub">35.6% of total revenue</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Renewal Rate</div>
+      <div class="kpi-value">63.2%</div>
+      <div class="kpi-sub">592 of 936 transactions</div>
+    </div>
+  </div>
+
+  <!-- Monthly Breakdown -->
+  <div class="section-label">Monthly Breakdown</div>
+  <div class="section-title">Month-on-Month Performance</div>
+  <div class="section-desc">Revenue, transaction volumes, and member engagement tracked across the quarter.</div>
+
+  <div class="monthly-grid">
+    <div class="month-card">
+      <div class="month-name">January 2026</div>
+      <div class="month-stat"><span class="month-stat-label">Revenue</span><span class="month-stat-val">₹27,44,704</span></div>
+      <div class="month-stat"><span class="month-stat-label">Transactions</span><span class="month-stat-val">302</span></div>
+      <div class="month-stat"><span class="month-stat-label">Unique Members</span><span class="month-stat-val">190</span></div>
+      <div class="month-stat"><span class="month-stat-label">Avg. Txn Value</span><span class="month-stat-val">₹9,088</span></div>
+      <div class="month-stat"><span class="month-stat-label">Share of Q1</span><span class="month-stat-val">43.4%</span></div>
+    </div>
+    <div class="month-card">
+      <div class="month-name">February 2026</div>
+      <div class="month-stat"><span class="month-stat-label">Revenue</span><span class="month-stat-val">₹19,21,109</span></div>
+      <div class="month-stat"><span class="month-stat-label">Transactions</span><span class="month-stat-val">323</span></div>
+      <div class="month-stat"><span class="month-stat-label">Unique Members</span><span class="month-stat-val">190</span></div>
+      <div class="month-stat"><span class="month-stat-label">Avg. Txn Value</span><span class="month-stat-val">₹5,946</span></div>
+      <div class="month-stat"><span class="month-stat-label">Share of Q1</span><span class="month-stat-val">30.4%</span></div>
+    </div>
+    <div class="month-card">
+      <div class="month-name">March 2026</div>
+      <div class="month-stat"><span class="month-stat-label">Revenue</span><span class="month-stat-val">₹16,60,781</span></div>
+      <div class="month-stat"><span class="month-stat-label">Transactions</span><span class="month-stat-val">311</span></div>
+      <div class="month-stat"><span class="month-stat-label">Unique Members</span><span class="month-stat-val">172</span></div>
+      <div class="month-stat"><span class="month-stat-label">Avg. Txn Value</span><span class="month-stat-val">₹5,339</span></div>
+      <div class="month-stat"><span class="month-stat-label">Share of Q1</span><span class="month-stat-val">26.3%</span></div>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <h3>📊 Monthly Trend Note</h3>
+    <p>January delivered an outstanding start to Q1, contributing 43.4% of total quarterly revenue — indicative of strong post-New Year membership uptakes and renewals. February and March maintained healthy transaction volumes (323 and 311 respectively), and while average ticket values moderated, total member engagement remained consistent across the quarter. The stable transaction count through March signals resilient operational demand and ongoing member loyalty.</p>
+  </div>
+
+  <!-- Category Breakdown -->
+  <div class="section-label">Revenue by Category</div>
+  <div class="section-title">Category Performance</div>
+  <div class="section-desc">Contribution of each revenue stream to total Q1 earnings.</div>
+
+  <div class="two-col">
+    <div class="bar-section">
+      <h4 style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:24px;">Revenue Breakdown</h4>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Memberships</span><span class="bar-amount">₹27,46,064 · 43.4%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Class Packages</span><span class="bar-amount">₹22,55,061 · 35.6%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:82%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Sessions/Single Classes</span><span class="bar-amount">₹5,60,484 · 8.9%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:20%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Privates</span><span class="bar-amount">₹4,41,796 · 7.0%</span></div>
+        <div class="bar-track"><div class="bar-fill blue" style="width:16%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Retail</span><span class="bar-amount">₹2,11,300 · 3.3%</span></div>
+        <div class="bar-track"><div class="bar-fill green" style="width:7.7%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Newcomers Special</span><span class="bar-amount">₹73,500 · 1.2%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:2.7%;background:#e0a458"></div></div>
+      </div>
+    </div>
+
+    <div class="bar-section">
+      <h4 style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:24px;">Top 8 Products by Revenue</h4>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Studio 1 Month Unlimited</span><span class="bar-amount">₹10,88,738</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Studio 12 Class Package</span><span class="bar-amount">₹8,61,655</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:79%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Studio 3 Month Unlimited</span><span class="bar-amount">₹6,91,911</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:63%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Studio Annual Unlimited</span><span class="bar-amount">₹6,26,587</span></div>
+        <div class="bar-track"><div class="bar-fill blue" style="width:57%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Studio 8 Class Package</span><span class="bar-amount">₹4,05,881</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:37%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Studio Private Class</span><span class="bar-amount">₹3,67,699</span></div>
+        <div class="bar-track"><div class="bar-fill green" style="width:33%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Session</span><span class="bar-amount">₹2,89,293</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:26%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Studio Single Class</span><span class="bar-amount">₹2,71,190</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:24%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member & Sales Analysis -->
+  <div class="section-label">Member & Sales Analysis</div>
+  <div class="section-title">Purchase Behaviour & Sales Team</div>
+  <div class="section-desc">Understanding member loyalty, acquisition, and staff-attributed sales performance.</div>
+
+  <div class="two-col">
+    <div class="bar-section">
+      <h4 style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:8px;">Purchase Tags</h4>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Member journey classification for Q1 transactions</p>
+      <table class="data-table">
+        <thead><tr><th>Category</th><th>Transactions</th><th>Share</th></tr></thead>
+        <tbody>
+          <tr><td>Renewals</td><td>592</td><td><span class="badge high">63.2%</span></td></tr>
+          <tr><td>Retail Purchases</td><td>207</td><td><span class="badge med">22.1%</span></td></tr>
+          <tr><td>New Members</td><td>137</td><td><span class="badge med">14.6%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bar-section">
+      <h4 style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:8px;">Sales Team — Revenue Attributed</h4>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Top performers by total revenue contribution</p>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Akshay Rane</span><span class="bar-amount">₹18,22,333</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:94%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Tahira Sayyed</span><span class="bar-amount">₹17,39,731</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:89%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Zahur Shaikh</span><span class="bar-amount">₹3,84,806</span></div>
+        <div class="bar-track"><div class="bar-fill blue" style="width:20%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">Zaheer Agarbattiwala</span><span class="bar-amount">₹3,65,750</span></div>
+        <div class="bar-track"><div class="bar-fill blue" style="width:19%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Discount Analysis -->
+  <div class="bar-section" style="margin-bottom:60px;">
+    <h4 style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:8px;">Discount & Pricing Intelligence</h4>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Understanding the role of promotions in Q1 sales conversion</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+      <div style="text-align:center;padding:20px;background:var(--cream);border-radius:8px;">
+        <div style="font-family:'Playfair Display',serif;font-size:28px;color:var(--ink);font-weight:700;">21.1%</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Avg Discount on Discounted Transactions</div>
+      </div>
+      <div style="text-align:center;padding:20px;background:var(--cream);border-radius:8px;">
+        <div style="font-family:'Playfair Display',serif;font-size:28px;color:var(--ink);font-weight:700;">143</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Transactions with Discount Applied</div>
+      </div>
+      <div style="text-align:center;padding:20px;background:var(--cream);border-radius:8px;">
+        <div style="font-family:'Playfair Display',serif;font-size:28px;color:var(--ink);font-weight:700;">15.3%</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">% of All Transactions Discounted</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insights -->
+  <div class="section-label">Strategic Insights</div>
+  <div class="section-title">Key Findings & Opportunities</div>
+  <div class="section-desc">Data-driven observations to inform Q2 strategy and operational priorities.</div>
+
+  <div class="insight-grid">
+    <div class="insight-card positive">
+      <div class="insight-icon">🏆</div>
+      <div>
+        <div class="insight-title">Strong Membership Retention</div>
+        <div class="insight-text">With 63.2% of Q1 transactions classified as renewals, Kwality House demonstrates exceptional member loyalty. This recurring revenue base provides financial stability and validates the quality of the client experience.</div>
+      </div>
+    </div>
+    <div class="insight-card positive">
+      <div class="insight-icon">💎</div>
+      <div>
+        <div class="insight-title">Highest Revenue Location in Portfolio</div>
+        <div class="insight-text">At ₹63.27L, Kwality House leads the entire network in Q1 revenue — a testament to its premium positioning, strong brand recognition, and highly skilled team.</div>
+      </div>
+    </div>
+    <div class="insight-card positive">
+      <div class="insight-icon">📦</div>
+      <div>
+        <div class="insight-title">Class Packages Are a Growth Engine</div>
+        <div class="insight-text">Class packages contributed ₹22.55L (35.6%) making them the second-largest revenue category. With 174 package transactions, this segment shows strong client commitment beyond single sessions.</div>
+      </div>
+    </div>
+    <div class="insight-card opportunity">
+      <div class="insight-icon">🎯</div>
+      <div>
+        <div class="insight-title">Newcomer Conversion Opportunity</div>
+        <div class="insight-text">Only 137 new member transactions (14.6%) were recorded this quarter. With a robust renewal engine already in place, a structured newcomer funnel — trials, intro offers, onboarding journeys — can meaningfully grow the active base.</div>
+      </div>
+    </div>
+    <div class="insight-card positive">
+      <div class="insight-icon">💅</div>
+      <div>
+        <div class="insight-title">Private Classes Performing Well</div>
+        <div class="insight-text">₹4.42L generated from private classes across just 34 transactions — one of the highest average ticket values in the portfolio. This premium offering has untapped upside.</div>
+      </div>
+    </div>
+    <div class="insight-card opportunity">
+      <div class="insight-icon">🛍️</div>
+      <div>
+        <div class="insight-title">Retail Has Solid Volume, Room to Grow</div>
+        <div class="insight-text">207 retail transactions generated ₹2.11L — the highest retail transaction count across the portfolio. Bundling retail with membership renewals or seasonal merchandising campaigns could push this further.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Recommendations -->
+  <div class="section-label">Strategic Recommendations</div>
+  <div class="section-title">Q2 2026 Action Plan</div>
+  <div class="section-desc">Prioritised initiatives to sustain momentum and capture new growth opportunities at Kwality House.</div>
+
+  <div class="bar-section">
+    <ul class="reco-list">
+      <li>
+        <div class="reco-num">1</div>
+        <div class="reco-text"><strong>Launch a New Member Acquisition Campaign for Q2:</strong> Given that only 14.6% of Q1 transactions were new members, a targeted campaign — introductory class packs, referral incentives, or a "Bring-a-Friend" initiative — can meaningfully expand the active member base heading into Q2.</div>
+      </li>
+      <li>
+        <div class="reco-num">2</div>
+        <div class="reco-text"><strong>Protect and Deepen the Revenue Dip in Feb–March:</strong> January's strong performance (43.4% of Q1 revenue) sets a high baseline. Implementing mid-quarter campaigns in February — such as Valentine's Day packages or Women's Day promotions — can sustain higher revenue momentum across the full quarter.</div>
+      </li>
+      <li>
+        <div class="reco-num">3</div>
+        <div class="reco-text"><strong>Scale Private Class Bookings:</strong> With ₹4.42L earned from just 34 private transactions (avg ₹13,000+), there is compelling upside in promoting this segment. Dedicated email campaigns targeting long-term members or corporate wellness partnerships could double private class volume in Q2.</div>
+      </li>
+      <li>
+        <div class="reco-num">4</div>
+        <div class="reco-text"><strong>Formalise a Retail Upsell Programme:</strong> The 207 retail transactions prove consistent client interest. Introducing seasonal collections, merch bundles with membership renewals, or a loyalty points system for retail spend can increase average basket size and purchase frequency.</div>
+      </li>
+      <li>
+        <div class="reco-num">5</div>
+        <div class="reco-text"><strong>Recognise & Develop Top Sales Performers:</strong> Akshay Rane and Tahira Sayyed together drove over ₹35.6L — 56.3% of location revenue. Celebrate their contributions and deploy structured mentorship or incentive programmes to elevate the broader team's performance to a similar level.</div>
+      </li>
+      <li>
+        <div class="reco-num">6</div>
+        <div class="reco-text"><strong>Review Discount Strategy for Margin Protection:</strong> 143 transactions carried an average discount of 21.1%. A discount governance framework — tiered discount approvals, strategic-only discount codes, and campaign-linked promotions — will preserve margin while retaining promotional flexibility.</div>
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-brand">Physique 57 India</div>
+  <div class="footer-info">Kwality House, Kemps Corner · Q1 2026 Performance Report<br>Confidential — Senior Management Use Only</div>
+</div>
+
+</body>
+</html>

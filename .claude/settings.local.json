@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s https://api.github.com/repos/Jimmeey23/class-intelligence/contents/src)",
+      "Bash(curl -s https://api.github.com/repos/Jimmeey23/class-intelligence/contents/src/components)",
+      "--dangerously-skip-permissions",
+      "Bash(grep -o 'eyebrow\\\\|strong\\\\|label\\\\|metric\\\\|insight' /Users/jimmeeygondaa/out/dpl_DSP7vt88WLvsxDZZdisctVAGD1eV/source/P57_Executive_Studio_Performance_April2026.html | head -100)",
+      "Read(//Users/jimmeeygondaa/out/dpl_DSP7vt88WLvsxDZZdisctVAGD1eV/source/**)",
+      "Bash(wc -l /Users/jimmeeygondaa/out/dpl_DSP7vt88WLvsxDZZdisctVAGD1eV/source/P57_Executive_Studio_Performance_April2026.html)",
+      "Bash(python3)"
+    ]
+  }
+}

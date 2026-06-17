@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Formats Analytics — Multi-Location Report</title>
+<style>
+:root {
+  --bg-primary: #FAFAF8;
+  --bg-secondary: #F4F3EF;
+  --bg-card: #FFFFFF;
+  --text-primary: #1A1A18;
+  --text-secondary: #4A4A46;
+  --text-muted: #8A8A85;
+  --accent: #1B4F8A;
+  --accent-light: #E8EFF7;
+  --positive: #1A6B47; --positive-bg: #EBF5F0;
+  --negative: #8B2020; --negative-bg: #F8ECEC;
+  --warning: #7A5500; --warning-bg: #FDF5E6;
+  --neutral: #2B5F7A; --neutral-bg: #EBF3F8;
+  --border: #E4E3DF;
+  --border-strong: #C8C7C2;
+  --shadow: rgba(26,26,24,0.06);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+}
+.report-container { max-width: 1200px; margin: 0 auto; padding: 40px 48px; }
+.section { margin-bottom: 48px; }
+hr.section-divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.metric-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+}
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+h1 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin: 0 0 4px; }
+h2 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 18px; font-weight: 600; margin: 0 0 16px; }
+h3 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 15px; font-weight: 600; margin: 0 0 12px; }
+h4 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin: 0 0 8px; }
+.metric-value { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 30px; font-weight: 700; line-height: 1; }
+.metric-label { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+.badge-pos { background: var(--positive-bg); color: var(--positive); font-size: 12px; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.badge-neg { background: var(--negative-bg); color: var(--negative); font-size: 12px; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.badge-warn { background: var(--warning-bg); color: var(--warning); font-size: 12px; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.badge-neutral { background: var(--neutral-bg); color: var(--neutral); font-size: 12px; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.callout { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 18px; margin: 12px 0; }
+.callout-insight { border-left: 4px solid var(--neutral); background: var(--neutral-bg); }
+.callout-opportunity { border-left: 4px solid var(--positive); background: var(--positive-bg); }
+.callout-risk { border-left: 4px solid var(--negative); background: var(--negative-bg); }
+.callout-warning { border-left: 4px solid var(--warning); background: var(--warning-bg); }
+.callout-label { font-size: 11px; font-family: 'Helvetica Neue', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.callout-insight .callout-label { color: var(--neutral); }
+.callout-opportunity .callout-label { color: var(--positive); }
+.callout-risk .callout-label { color: var(--negative); }
+.callout-warning .callout-label { color: var(--warning); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { border-bottom: 2px solid var(--border-strong); }
+th { text-align: left; padding: 10px 12px; font-family: 'Helvetica Neue', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+tr:nth-child(even) td { background: var(--bg-secondary); }
+.tr { text-align: right; }
+.num { font-family: 'Helvetica Neue', sans-serif; font-weight: 600; }
+.rec-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; background: var(--bg-card); box-shadow: 0 2px 12px var(--shadow); }
+.rec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rec-table td { padding: 8px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.rec-table td:first-child { font-family: 'Helvetica Neue', sans-serif; font-weight: 600; color: var(--text-muted); width: 150px; white-space: nowrap; padding-right: 16px; }
+.tag { background: var(--accent-light); color: var(--accent); font-size: 11px; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; padding: 3px 10px; border-radius: 20px; display: inline-block; }
+@media (max-width: 768px) {
+  .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .report-container { padding: 24px 20px; }
+}
+@media print {
+  body { background: white; font-size: 12px; }
+  .report-container { padding: 20px; max-width: 100%; }
+  .card, .rec-card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+  .section { break-inside: avoid; }
+  canvas { max-height: 200px !important; }
+  details[open] summary::after { content: ''; }
+  @page { margin: 15mm; size: A4; }
+}
+</style>
+</head>
+<body>
+<div class="report-container">
+
+<!-- HEADER -->
+<header style="border-bottom: 2px solid var(--accent); padding-bottom: 24px; margin-bottom: 32px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div>
+      <p style="font-size: 11px; font-family: 'Helvetica Neue', sans-serif; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); margin: 0 0 6px;">Performance Intelligence Report</p>
+      <h1>Class Formats Analytics — Multi-Location</h1>
+      <p style="color: var(--text-secondary); margin: 4px 0 0; font-size: 15px;">Supreme HQ (Bandra) &nbsp;·&nbsp; Kenkere House (Bengaluru) &nbsp;·&nbsp; Kwality House (Kemps Corner)</p>
+    </div>
+    <div style="text-align: right; font-size: 12px; color: var(--text-muted); font-family: 'Helvetica Neue', sans-serif;">
+      <div>Generated: 13 April 2026</div>
+      <div>3 Locations | Cross-Studio</div>
+      <div>Currency: INR (₹)</div>
+    </div>
+  </div>
+  <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px;">
+    <span class="tag">CLASS_OPERATIONS</span>
+    <span class="tag">MULTI_LOCATION</span>
+    <span class="tag">ENGAGEMENT</span>
+    <span class="tag">PRODUCT_MIX</span>
+    <span class="tag">CANCELLATION_RISK</span>
+    <span class="tag">PRICING_SIGNALS</span>
+    <span class="tag">INSTRUCTOR_ANALYTICS</span>
+  </div>
+</header>
+
+<!-- SECTION I: EXECUTIVE SUMMARY -->
+<div class="section">
+  <h2>Section I — Executive Summary</h2>
+  <div class="card">
+    <p>Across three studio locations — Supreme HQ in Bandra, Kenkere House in Bengaluru, and Kwality House at Kemps Corner — this report analyses class format performance spanning instructor productivity, time-slot fill rates, day-of-week demand patterns, and operational risk signals. The combined portfolio generates an estimated ₹24.5L+ in class revenues across the three studios, with Kwality Kemps Corner emerging as the clear revenue leader at ₹12.5L, followed by Kenkere at ₹7.8L and Supreme at ₹4.2L.</p>
+    <p style="margin-top: 12px;">The single most important finding is a structural late-cancellation crisis: Kenkere's two highest-volume instructors (Kajol Kanchan and Pushyank Nahar) together carry 29–32% late cancel rates, and Supreme's Raunak Khemuka has an alarming 53.8% rate, representing direct revenue leakage and operational waste at every studio. The biggest positive signal is Kwality's demonstrated model of high-density, high-quality classes — its instructors average 6–11 attendees per session with strong show-up rates (87–93%), proving a scalable template. The primary risk is overconcentration of attendance in specific instructor-time combinations that, if disrupted, could significantly dent studio revenue.</p>
+    <div style="margin-top: 20px;">
+      <h4>Top 5 Takeaways</h4>
+      <ol style="padding-left: 20px; margin-top: 8px;">
+        <li style="margin-bottom: 12px; padding-left: 8px;"><strong>Kwality is the benchmark studio.</strong> With ₹12.5L in revenue from 188 sessions and 1,528 attendees, Kwality's ₹818 avg revenue/attendee is the network's operational ceiling. Its Monday class at 7.9 avg/session and ₹6,500/class revenue per session shows what disciplined scheduling delivers.</li>
+        <li style="margin-bottom: 12px; padding-left: 8px;"><strong>Late cancellations are the #1 revenue leakage risk.</strong> Across all three studios, late cancellation rates on booked-but-not-attending spots range from 10–54%. At ₹600–₹900 estimated per spot, Kenkere alone bleeds an estimated ₹30–45K per month in leakage from Kajol and Pushyank's classes.</li>
+        <li style="margin-bottom: 12px; padding-left: 8px;"><strong>Supreme HQ has underutilised slots on Monday and Friday.</strong> Monday generates only ₹56.9K from 20 sessions (₹2,845/session) while Tuesday — with fewer sessions — earns ₹88.9K (₹9,900/session). Monday scheduling restructuring could unlock ₹25–35K additional monthly revenue.</li>
+        <li style="margin-bottom: 12px; padding-left: 8px;"><strong>The 07:15 time slot is disproportionately valuable at Kenkere.</strong> The 07:15 slot runs 22 sessions, 158 attendees and generates ₹1.1L in revenue — the single highest-revenue time slot at ₹5,000/class. Early morning demand is clearly underserved; a second slot at 07:30 or 06:45 could add ₹40–60K monthly.</li>
+        <li style="margin-bottom: 12px; padding-left: 8px;"><strong>Instructor fill rates reveal a talent concentration problem at Supreme.</strong> The top 2 instructors (Cauveri Vikrant and Vivaran Dhasmana) account for 50% of Supreme's revenue. If either reduces hours, Supreme faces a ≥₹80K/month revenue exposure with no bench depth demonstrated.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION II: KPI COMMAND CENTER -->
+<div class="section">
+  <h2>Section II — KPI Command Center</h2>
+
+  <!-- Location comparison row -->
+  <div class="grid-3" style="margin-bottom: 20px;">
+    <div class="metric-card">
+      <div class="metric-label">Kwality House — Kemps Corner</div>
+      <div style="display: flex; align-items: baseline; gap: 10px; margin: 8px 0 6px;">
+        <span class="metric-value">₹12.5L</span>
+        <span class="badge-pos">▲ #1 Studio</span>
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted);">1,528 attendees &nbsp;|&nbsp; 188 sessions &nbsp;|&nbsp; ₹818 avg/att</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Kenkere House — Bengaluru</div>
+      <div style="display: flex; align-items: baseline; gap: 10px; margin: 8px 0 6px;">
+        <span class="metric-value">₹7.8L</span>
+        <span class="badge-neutral">— #2 Studio</span>
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted);">1,229 attendees &nbsp;|&nbsp; 196 sessions &nbsp;|&nbsp; ₹633 avg/att</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Supreme HQ — Bandra</div>
+      <div style="display: flex; align-items: baseline; gap: 10px; margin: 8px 0 6px;">
+        <span class="metric-value">₹4.2L</span>
+        <span class="badge-warn">▼ #3 Studio</span>
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted);">494 attendees &nbsp;|&nbsp; 88 sessions &nbsp;|&nbsp; ₹856 avg/att</div>
+    </div>
+  </div>
+
+  <!-- Secondary KPIs -->
+  <div class="grid-4" style="margin-bottom: 20px;">
+    <div class="metric-card">
+      <div class="metric-label">Network Rev/Session</div>
+      <div style="display: flex; align-items: baseline; gap: 10px; margin: 8px 0 6px;">
+        <span class="metric-value" style="font-size:22px;">₹5,100</span>
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted);">Kwality best: ₹6,800 | Supreme worst: ₹4,800</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Best Fill Rate (Any Slot)</div>
+      <div style="display: flex; align-items: baseline; gap: 10px; margin: 8px 0 6px;">
+        <span class="metric-value" style="font-size:22px;">103%</span>
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted);">Kenkere 12:30 slot (overbooking confirmed)</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Critical Late Cancel Rate</div>
+      <div style="display: flex; align-items: baseline; gap: 10px; margin: 8px 0 6px;">
+        <span class="metric-value" style="font-size:22px; color: var(--negative);">53.8%</span>
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted);">Supreme Raunak Khemuka — needs immediate action</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Top Class Avg/Session</div>
+      <div style="display: flex; align-items: baseline; gap: 10px; margin: 8px 0 6px;">
+        <span class="metric-value" style="font-size:22px;">11.6</span>
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted);">Supreme Rohan Dahima — power instructor signal</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="callout callout-insight">
+      <div class="callout-label">🔵 Insight</div>
+      <div style="font-size: 13px;">Supreme HQ has the network's highest revenue-per-attendee at ₹856 despite being the lowest-volume studio. This confirms a premium pricing positioning, not a demand problem — Supreme members pay more, they just have fewer of them.</div>
+    </div>
+    <div class="callout callout-risk">
+      <div class="callout-label">🔴 Risk — Late Cancel Leakage</div>
+      <div style="font-size: 13px;">Kenkere's Kajol Kanchan (29.4% late cancel on 602 bookings) and Pushyank Nahar (32.2% on 416 bookings) together represent ~310 lost spots. At ₹600 estimated avg value, this is ≈₹1.86L in recurring leakage per period.</div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-top: 12px;">
+    <div class="callout callout-opportunity">
+      <div class="callout-label">🟢 Opportunity — Time Slot Expansion</div>
+      <div style="font-size: 13px;">Kenkere's 07:15 slot (158 attendees, 62% fill, ₹5,000/class) and 19:30 slot (76% fill) are operating above average fill. Both have strong demand and minimal empty seats — prime candidates for adding 1–2 sessions/week each.</div>
+    </div>
+    <div class="callout callout-warning">
+      <div class="callout-label">🟡 Warning — Instructor Dependency</div>
+      <div style="font-size: 13px;">At Supreme, Cauveri Vikrant + Vivaran Dhasmana = 50% of revenue. At Kenkere, Kajol + Pushyank = 54% of revenue. All four instructors carry above-average late cancel rates — a scheduling disruption or departure would be acutely felt.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION III: VISUAL ANALYTICS -->
+<div class="section">
+  <h2>Section III — Visual Analytics</h2>
+
+  <!-- Chart 1: Revenue by Location + Class Average -->
+  <div class="card" style="margin-bottom: 24px;">
+    <h3>Revenue by Studio Location</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 10px; font-size: 12px; color: var(--text-secondary); font-family: 'Helvetica Neue', sans-serif;">
+      <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; border-radius: 2px; background: #1B4F8A; display: inline-block;"></span>Revenue (₹L)</span>
+      <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 3px; background: #1A6B47; display: inline-block; border-radius: 2px;"></span>Rev/Attendee (₹)</span>
+    </div>
+    <div style="position: relative; width: 100%; height: 280px;">
+      <canvas id="locationChart" role="img" aria-label="Bar chart comparing revenue across three studio locations.">Revenue comparison: Kwality ₹12.5L, Kenkere ₹7.8L, Supreme ₹4.2L</canvas>
+    </div>
+  </div>
+
+  <!-- Chart 2: Instructor Revenue Comparison (Kwality) -->
+  <div class="card" style="margin-bottom: 24px;">
+    <h3>Instructor Performance — Kwality House (All Instructors by Revenue)</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 10px; font-size: 12px; color: var(--text-secondary); font-family: 'Helvetica Neue', sans-serif;">
+      <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; border-radius: 2px; background: #1B4F8A; display: inline-block;"></span>Total Revenue</span>
+      <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; border-radius: 2px; background: #5B8EC4; display: inline-block;"></span>Rev/Class</span>
+    </div>
+    <div style="position: relative; width: 100%; height: 320px;">
+      <canvas id="kwalityInstructorChart" role="img" aria-label="Horizontal bar chart of Kwality instructor revenue.">Kwality instructor revenues by person.</canvas>
+    </div>
+  </div>
+
+  <!-- Chart 3: Day of Week Performance (all 3 locations) -->
+  <div class="card" style="margin-bottom: 24px;">
+    <h3>Day-of-Week Revenue — All Locations</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 10px; font-size: 12px; color: var(--text-secondary); font-family: 'Helvetica Neue', sans-serif;">
+      <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; border-radius: 2px; background: #1B4F8A; display: inline-block;"></span>Kwality</span>
+      <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; border-radius: 2px; background: #5B8EC4; display: inline-block;"></span>Kenkere</span>
+      <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; border-radius: 2px; background: #A8C4E0; display: inline-block;"></span>Supreme</span>
+    </div>
+    <div style="position: relative; width: 100%; height: 300px;">
+      <canvas id="dayRevChart" role="img" aria-label="Grouped bar chart showing day-of-week revenue across three studios.">Day of week revenue data across three studios.</canvas>
+    </div>
+  </div>
+
+  <!-- Chart 4: Late Cancel Rate by Instructor (flagged) -->
+  <div class="card">
+    <h3>Late Cancellation Rate — Top Instructors (All Locations)</h3>
+    <p style="font-size: 12px; color: var(--text-muted); font-family: 'Helvetica Neue', sans-serif; margin-bottom: 12px;">Benchmark threshold: 15% (red line). Above 15% = action zone.</p>
+    <div style="position: relative; width: 100%; height: 300px;">
+      <canvas id="lateCancelChart" role="img" aria-label="Bar chart showing late cancellation rates for top instructors across locations.">Late cancel rate chart.</canvas>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION IV: INSTRUCTOR / SEGMENT INTELLIGENCE -->
+<div class="section">
+  <h2>Section IV — Instructor &amp; Slot Intelligence</h2>
+
+  <h3 style="margin-bottom: 16px;">Top Performers by Revenue — Cross-Location</h3>
+  <div style="overflow-x: auto; margin-bottom: 24px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th><th>Instructor</th><th>Studio</th><th>Sessions</th><th>Attendance</th><th class="tr">Revenue</th><th class="tr">Rev/Class</th><th class="tr">Avg/Class</th><th class="tr">Late Cancel %</th><th>Signal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">1</td><td>Rohan Dahima</td><td>Kwality</td><td>22</td><td>213</td><td class="tr num">₹1.9L</td><td class="tr num">₹8,800</td><td class="tr num">9.7</td><td class="tr"><span class="badge-pos">6.6%</span></td><td><span class="badge-pos">★ Power</span></td></tr>
+        <tr><td class="num">2</td><td>Reshma Sharma</td><td>Kwality</td><td>16</td><td>173</td><td class="tr num">₹1.3L</td><td class="tr num">₹8,200</td><td class="tr num">10.8</td><td class="tr"><span class="badge-pos">7.5%</span></td><td><span class="badge-pos">★ Power</span></td></tr>
+        <tr><td class="num">3</td><td>Pranjali Jain</td><td>Kwality</td><td>18</td><td>167</td><td class="tr num">₹1.5L</td><td class="tr num">₹8,300</td><td class="tr num">9.3</td><td class="tr"><span class="badge-pos">9.7%</span></td><td><span class="badge-pos">Rising</span></td></tr>
+        <tr><td class="num">4</td><td>Kajol Kanchan</td><td>Kenkere</td><td>60</td><td>425</td><td class="tr num">₹2.5L</td><td class="tr num">₹4,100</td><td class="tr num">7.1</td><td class="tr"><span class="badge-neg">29.4%</span></td><td><span class="badge-warn">High Volume / Risk</span></td></tr>
+        <tr><td class="num">5</td><td>Mrigakshi Jaiswal</td><td>Kwality</td><td>20</td><td>185</td><td class="tr num">₹1.3L</td><td class="tr num">₹6,600</td><td class="tr num">9.3</td><td class="tr"><span class="badge-pos">8.8%</span></td><td><span class="badge-pos">Consistent</span></td></tr>
+        <tr><td class="num">6</td><td>Cauveri Vikrant</td><td>Kwality</td><td>25</td><td>174</td><td class="tr num">₹1.5L</td><td class="tr num">₹6,100</td><td class="tr num">7.0</td><td class="tr"><span class="badge-warn">14.7%</span></td><td><span class="badge-neutral">Watch</span></td></tr>
+        <tr><td class="num">7</td><td>Pushyank Nahar</td><td>Kenkere</td><td>42</td><td>282</td><td class="tr num">₹1.7L</td><td class="tr num">₹4,000</td><td class="tr num">6.7</td><td class="tr"><span class="badge-neg">32.2%</span></td><td><span class="badge-neg">High Risk</span></td></tr>
+        <tr><td class="num">8</td><td>Cauveri Vikrant</td><td>Supreme</td><td>17</td><td>112</td><td class="tr num">₹85.3K</td><td class="tr num">₹5,000</td><td class="tr num">6.6</td><td class="tr"><span class="badge-pos">13.2%</span></td><td><span class="badge-neutral">Stable</span></td></tr>
+        <tr><td class="num">9</td><td>Vivaran Dhasmana</td><td>Supreme</td><td>14</td><td>98</td><td class="tr num">₹82.4K</td><td class="tr num">₹5,900</td><td class="tr num">7.0</td><td class="tr"><span class="badge-warn">16.2%</span></td><td><span class="badge-neutral">Watch</span></td></tr>
+        <tr><td class="num">10</td><td>Rohan Dahima</td><td>Supreme</td><td>5</td><td>58</td><td class="tr num">₹46.8K</td><td class="tr num">₹9,400</td><td class="tr num">11.6</td><td class="tr"><span class="badge-pos">6.5%</span></td><td><span class="badge-pos">★ Highest/Class</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin-bottom: 16px;">At-Risk / Underperforming Instructors</h3>
+  <div style="overflow-x: auto; margin-bottom: 24px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Instructor</th><th>Studio</th><th>Sessions</th><th class="tr">Revenue</th><th class="tr">Avg/Class</th><th class="tr">Fill %</th><th class="tr">Late Cancel %</th><th>Risk Factor</th><th>Recommended Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Raunak Khemuka</td><td>Supreme</td><td>6</td><td class="tr num">₹5,400</td><td class="tr num">1.0</td><td class="tr">8.0%</td><td class="tr"><span class="badge-neg">53.8%</span></td><td>Critical</td><td>Immediate schedule review</td></tr>
+        <tr><td>Pushyank Nahar</td><td>Kenkere</td><td>42</td><td class="tr num">₹1.7L</td><td class="tr num">6.7</td><td class="tr">59.2%</td><td class="tr"><span class="badge-neg">32.2%</span></td><td>Late Cancel High</td><td>Cancellation policy enforcement</td></tr>
+        <tr><td>Kajol Kanchan</td><td>Kenkere</td><td>60</td><td class="tr num">₹2.5L</td><td class="tr num">7.1</td><td class="tr">61.0%</td><td class="tr"><span class="badge-neg">29.4%</span></td><td>Late Cancel High</td><td>Waitlist + penalty upgrade</td></tr>
+        <tr><td>Bret Saldanha</td><td>Supreme</td><td>12</td><td class="tr num">₹27.9K</td><td class="tr num">2.9</td><td class="tr">24.3%</td><td class="tr"><span class="badge-pos">10.3%</span></td><td>Low Demand</td><td>Re-slot or reduce frequency</td></tr>
+        <tr><td>Chaitanya Nahar</td><td>Kenkere</td><td>23</td><td class="tr num">₹68.5K</td><td class="tr num">3.6</td><td class="tr">27.8%</td><td class="tr"><span class="badge-pos">0.0%</span></td><td>Low Fill</td><td>Time slot change / promotion</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin-bottom: 12px;">Instructor Deep-Dives</h3>
+
+  <div class="card" style="margin-bottom: 16px;">
+    <h3 style="color: var(--accent);">Kajol Kanchan — Kenkere House ★ Highest Volume</h3>
+    <p>Kajol is Kenkere's single highest-revenue and highest-attendance instructor at ₹2.5L across 60 sessions and 425 actual attendees — a productivity rate of ₹4,167/session. However, the 29.4% late cancel rate on 602 bookings means that 177 confirmed bookings evaporated pre-class, representing ₹1.06L in theoretically recoverable revenue if cancellation policies were tightened. At a 61% fill rate and average of 7.1 attendees per class, demand is strong but reliability is compromised. The strategic implication is clear: Kajol's audience is willing to book but not always willing to show, suggesting either a high-commitment audience mismatch or a booking-without-intent culture enabled by a lenient cancellation window. A 4-hour late cancellation fee implementation targeting Kajol's classes specifically would likely recover ₹20–35K per month in penalty revenue or force genuine bookings.</p>
+  </div>
+
+  <div class="card" style="margin-bottom: 16px;">
+    <h3 style="color: var(--accent);">Rohan Dahima — Kwality House ★ Highest Rev/Session</h3>
+    <p>Rohan is the network's standout instructor by revenue-per-session at ₹8,800/class across Kwality's main dataset, with 9.7 avg attendees per session and an exceptional 93.4% show-up rate. With only a 6.6% late cancel rate, Rohan's audience is not only booking but attending — this is a power instructor by every operational metric. At Kwality's dataset, Rohan generates ₹1.9L from just 22 sessions; at Supreme, Rohan demonstrates even higher intensity at 11.6 avg/class. The strategic implication is that Rohan's format and scheduling should be studied and replicated. Shifting Rohan to 3–4 additional sessions/week across either Kwality or a cross-studio format could yield ₹35–52K in additional revenue monthly with minimal leakage risk given his track record.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="color: var(--negative);">Raunak Khemuka — Supreme HQ ⚠ Critical Concern</h3>
+    <p>Raunak represents Supreme's most acute operational failure: 6 sessions, only 6 actual attendees, 13 bookings, 8% fill rate, and a staggering 53.8% late cancellation rate. Revenue is ₹5,400 total — less than a single strong Rohan Dahima session. This is not a demand problem per se; bookings (13) exceed attendance (6) nearly by double, meaning people are expressing intent but consistently cancelling. At ₹900/attendee in Rev/Attendee, the format itself is not the issue — the late cancel rate is. Continuing to hold 6 sessions/month for this performance level costs the studio scheduling capacity that could be assigned to Cauveri Vikrant or Vivaran Dhasmana, who generate 15–20x more revenue per session. Recommendation: suspend Raunak's current format for 30 days and restructure the slot assignment entirely.</p>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION VI: OPERATIONAL SIGNALS -->
+<div class="section">
+  <h2>Section VI — Operational Signals</h2>
+
+  <h3 style="margin-bottom: 16px;">Fill Rate Analysis by Time Slot — Kenkere House</h3>
+  <div style="overflow-x: auto; margin-bottom: 24px;">
+    <table>
+      <thead>
+        <tr><th>Time Slot</th><th>Sessions</th><th>Attendance</th><th class="tr">Fill Rate</th><th class="tr">Booking %</th><th class="tr">Show-up %</th><th class="tr">Late Cancel %</th><th class="tr">Revenue</th><th class="tr">Rev/Class</th><th>Assessment</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>07:15</td><td>22</td><td>158</td><td class="tr"><strong>62.0%</strong></td><td class="tr">82.7%</td><td class="tr">74.9%</td><td class="tr">25.1%</td><td class="tr num">₹1.1L</td><td class="tr num">₹5.0K</td><td><span class="badge-pos">Top Revenue Slot</span></td></tr>
+        <tr><td>11:00</td><td>22</td><td>128</td><td class="tr">50.4%</td><td class="tr">57.9%</td><td class="tr">87.1%</td><td class="tr">12.9%</td><td class="tr num">₹97.6K</td><td class="tr num">₹4.4K</td><td><span class="badge-pos">High Reliability</span></td></tr>
+        <tr><td>09:00</td><td>23</td><td>137</td><td class="tr">47.2%</td><td class="tr">52.4%</td><td class="tr">90.1%</td><td class="tr">9.9%</td><td class="tr num">₹94.0K</td><td class="tr num">₹4.1K</td><td><span class="badge-pos">Best Show-up</span></td></tr>
+        <tr><td>18:15</td><td>22</td><td>150</td><td class="tr">55.4%</td><td class="tr">79.7%</td><td class="tr">69.4%</td><td class="tr"><span class="badge-neg">30.6%</span></td><td class="tr num">₹88.5K</td><td class="tr num">₹4.0K</td><td><span class="badge-warn">Late Cancel Risk</span></td></tr>
+        <tr><td>17:00</td><td>22</td><td>112</td><td class="tr">44.1%</td><td class="tr">67.3%</td><td class="tr">65.5%</td><td class="tr"><span class="badge-neg">34.5%</span></td><td class="tr num">₹72.3K</td><td class="tr num">₹3.3K</td><td><span class="badge-neg">Critical Leakage</span></td></tr>
+        <tr><td>19:30</td><td>14</td><td>114</td><td class="tr"><strong>76.0%</strong></td><td class="tr">92.7%</td><td class="tr">82.0%</td><td class="tr">18.0%</td><td class="tr num">₹63.9K</td><td class="tr num">₹4.6K</td><td><span class="badge-pos">High Demand</span></td></tr>
+        <tr><td>12:30</td><td>3</td><td>31</td><td class="tr" style="color: var(--negative);"><strong>103.3%</strong></td><td class="tr">106.7%</td><td class="tr">96.9%</td><td class="tr">3.1%</td><td class="tr">₹0</td><td class="tr">₹0</td><td><span class="badge-warn">Overcrowded / No Rev</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-risk" style="margin-bottom: 16px;">
+    <div class="callout-label">🔴 Risk — 12:30 Slot at Kenkere: Overcrowded with Zero Revenue</div>
+    <div style="font-size: 13px;">The 12:30 slot at Kenkere shows 103.3% fill rate and a 96.9% show-up rate — yet generates ₹0 in revenue across 3 sessions. This is either a complimentary/trial class or a data reporting gap. If complimentary: at 31 attendees generating ₹0, the studio is absorbing ≈₹18–25K in lost revenue per period that should be captured or converted. Investigate immediately and either monetise or reclassify.</div>
+  </div>
+
+  <h3 style="margin-bottom: 12px;">Day-of-Week Patterns — Supreme HQ Bandra</h3>
+  <div style="overflow-x: auto; margin-bottom: 24px;">
+    <table>
+      <thead>
+        <tr><th>Day</th><th>Sessions</th><th>Attendance</th><th class="tr">Fill Rate</th><th class="tr">Avg/Class</th><th class="tr">Revenue</th><th class="tr">Rev/Session</th><th class="tr">Late Cancel %</th><th>Verdict</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Tuesday</strong></td><td>9</td><td>102</td><td class="tr"><strong>87.2%</strong></td><td class="tr num">11.3</td><td class="tr num">₹88.9K</td><td class="tr num">₹9,900</td><td class="tr">15.7%</td><td><span class="badge-pos">★ Best Day</span></td></tr>
+        <tr><td>Sunday</td><td>16</td><td>99</td><td class="tr">47.6%</td><td class="tr">6.2</td><td class="tr">₹74.9K</td><td class="tr">₹4,700</td><td class="tr">13.9%</td><td><span class="badge-neutral">Moderate</span></td></tr>
+        <tr><td>Saturday</td><td>11</td><td>80</td><td class="tr">55.9%</td><td class="tr">7.3</td><td class="tr">₹69.0K</td><td class="tr">₹6,300</td><td class="tr">9.1%</td><td><span class="badge-pos">Good</span></td></tr>
+        <tr><td>Thursday</td><td>12</td><td>76</td><td class="tr">48.7%</td><td class="tr">6.3</td><td class="tr">₹65.8K</td><td class="tr">₹5,500</td><td class="tr">14.6%</td><td><span class="badge-neutral">Moderate</span></td></tr>
+        <tr><td>Monday</td><td>20</td><td>67</td><td class="tr"><span style="color:var(--negative);">27.3%</span></td><td class="tr">3.4</td><td class="tr">₹56.9K</td><td class="tr"><span style="color:var(--negative);">₹2,845</span></td><td class="tr"><span class="badge-warn">17.3%</span></td><td><span class="badge-neg">Overloaded / Underperforming</span></td></tr>
+        <tr><td>Wednesday</td><td>8</td><td>31</td><td class="tr">29.8%</td><td class="tr">3.9</td><td class="tr">₹34.1K</td><td class="tr">₹4,263</td><td class="tr">13.9%</td><td><span class="badge-warn">Low Fill</span></td></tr>
+        <tr><td>Friday</td><td>12</td><td>39</td><td class="tr">25.0%</td><td class="tr">3.3</td><td class="tr">₹33.4K</td><td class="tr"><span style="color:var(--negative);">₹2,783</span></td><td class="tr"><span class="badge-neg">27.8%</span></td><td><span class="badge-neg">Worst Day</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-insight">
+    <div class="callout-label">🔵 Insight — Tuesday vs Monday Gap at Supreme</div>
+    <div style="font-size: 13px;">Tuesday's ₹9,900 revenue-per-session vs Monday's ₹2,845 is a 3.5x productivity gap within the same studio. Monday runs 20 sessions — more than any other day — yet produces far less revenue. This is a scheduling inefficiency: the studio is running its highest class volume on its lowest-demand day. Reducing Monday from 20 to 12 sessions and redistributing 6–8 to Tuesday or Saturday would materially improve studio utilisation and instructor earnings.</div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION VII: STRATEGIC RECOMMENDATIONS -->
+<div class="section">
+  <h2>Section VII — Strategic Recommendations</h2>
+
+  <div class="rec-card">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+      <h3 style="margin: 0; color: var(--accent);">Recommendation #1 — Enforce Late Cancellation Policy Network-Wide</h3>
+      <div style="display: flex; gap: 8px; flex-shrink: 0;">
+        <span class="badge-warn">High Effort</span>
+        <span class="badge-neg" style="font-size:11px; font-family:'Helvetica Neue',sans-serif; font-weight:600; padding:3px 10px; border-radius:4px;">Now (0–30d)</span>
+      </div>
+    </div>
+    <table class="rec-table">
+      <tr><td>Insight</td><td>Across Kenkere and Supreme, late cancel rates range from 13–54% on booked slots, with Kenkere's two top instructors losing ~177 slots combined per period to confirmed-then-cancelled bookings.</td></tr>
+      <tr><td>Impact</td><td>If unaddressed, the studio absorbs ₹1.5–2.5L in recoverable lost revenue per reporting period. Late cancellers also block waitlisted genuine attendees, suppressing actual fill rates.</td></tr>
+      <tr><td>Action</td><td>Implement a 4-hour late cancellation fee (₹200–400) for all Kenkere and Kenkere-shared instructors. For Raunak Khemuka at Supreme, suspend current scheduling and rebuild his slot allocation from zero. Implement waitlist-fill for all slots with &gt;80% booking rates.</td></tr>
+      <tr><td style="color: var(--positive); font-weight: 600;">Expected Outcome</td><td style="color: var(--positive);">Reduce network late cancel rate from an average ~18% to under 10% within 60 days. Estimated ₹80–1.2L in monthly revenue recovery or penalty revenue. Confidence: High.</td></tr>
+    </table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+      <h3 style="margin: 0; color: var(--accent);">Recommendation #2 — Reallocate Supreme Monday Sessions to Tuesday/Saturday</h3>
+      <div style="display: flex; gap: 8px; flex-shrink: 0;">
+        <span class="badge-neutral">Low Effort</span>
+        <span class="badge-neg" style="font-size:11px; font-family:'Helvetica Neue',sans-serif; font-weight:600; padding:3px 10px; border-radius:4px;">Now (0–30d)</span>
+      </div>
+    </div>
+    <table class="rec-table">
+      <tr><td>Insight</td><td>Supreme HQ runs 20 sessions on Monday — its worst-performing day at ₹2,845/session — while Tuesday generates ₹9,900/session from only 9 sessions.</td></tr>
+      <tr><td>Impact</td><td>Maintaining 20 Monday sessions at current performance costs the studio ₹140K in opportunity cost vs. shifting those slots to Tuesday/Saturday where demand is 3–4x higher.</td></tr>
+      <tr><td>Action</td><td>Reduce Monday sessions from 20 to 12. Add 4 sessions to Tuesday and 4 to Saturday. Assign displaced Monday instructors (Bret Saldanha, Reshma Sharma) to new time slots after demand-match analysis.</td></tr>
+      <tr><td style="color: var(--positive); font-weight: 600;">Expected Outcome</td><td style="color: var(--positive);">₹25–40K improvement in Supreme monthly revenue within 45 days from same instructor count. Confidence: Medium-High (based on Tuesday demand signals).</td></tr>
+    </table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+      <h3 style="margin: 0; color: var(--accent);">Recommendation #3 — Monetise or Convert Kenkere's 12:30 Slot</h3>
+      <div style="display: flex; gap: 8px; flex-shrink: 0;">
+        <span class="badge-pos">Low Effort</span>
+        <span class="badge-neg" style="font-size:11px; font-family:'Helvetica Neue',sans-serif; font-weight:600; padding:3px 10px; border-radius:4px;">Now (0–30d)</span>
+      </div>
+    </div>
+    <table class="rec-table">
+      <tr><td>Insight</td><td>Kenkere's 12:30 slot has 103% fill rate, 97% show-up, and ₹0 revenue across 3 sessions and 31 attendees — the most efficient class in the studio that generates no income.</td></tr>
+      <tr><td>Impact</td><td>At network average ₹600/attendee, 31 attendees represents ₹18.6K in uncaptured revenue per period. Over 6 periods, this is ₹1.1L in foregone revenue.</td></tr>
+      <tr><td>Action</td><td>Investigate classification: if trial/promo, implement a conversion CTA within the class itself. If a data entry error, correct and capture billing. If intentional complimentary, set a 2-session cap with conversion offer on the 3rd visit.</td></tr>
+      <tr><td style="color: var(--positive); font-weight: 600;">Expected Outcome</td><td style="color: var(--positive);">₹15–20K immediate monthly revenue capture if converted to paid class. Conversion rate if trial: target 30%+ from this cohort given 97% show-up engagement. Confidence: Medium.</td></tr>
+    </table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+      <h3 style="margin: 0; color: var(--accent);">Recommendation #4 — Expand Rohan Dahima's Schedule at Kwality</h3>
+      <div style="display: flex; gap: 8px; flex-shrink: 0;">
+        <span class="badge-neutral">Medium Effort</span>
+        <span style="background: var(--warning-bg); color: var(--warning); font-size:11px; font-family:'Helvetica Neue',sans-serif; font-weight:600; padding:3px 10px; border-radius:4px;">Soon (30–60d)</span>
+      </div>
+    </div>
+    <table class="rec-table">
+      <tr><td>Insight</td><td>Rohan Dahima at Kwality generates ₹8,800/session with 9.7 avg attendees and a 6.6% late cancel rate — the network's strongest instructor-efficiency ratio by every metric.</td></tr>
+      <tr><td>Impact</td><td>Rohan currently runs 22 sessions. Adding 4 sessions/week at his current productivity rate would generate approximately ₹35–40K in additional monthly revenue with minimal incremental cost.</td></tr>
+      <tr><td>Action</td><td>Identify 3–4 time slots at Kwality with current sub-50% fill by non-Rohan instructors. Pilot reassignment of those slots to Rohan for a 6-week test period with occupancy tracking.</td></tr>
+      <tr><td style="color: var(--positive); font-weight: 600;">Expected Outcome</td><td style="color: var(--positive);">₹35–50K additional monthly revenue from Kwality within 60 days. Rohan's baseline show-up rate of 93% provides high confidence in occupancy delivery. Confidence: High.</td></tr>
+    </table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+      <h3 style="margin: 0; color: var(--accent);">Recommendation #5 — Add Early Morning Session at Kenkere (07:00–07:15)</h3>
+      <div style="display: flex; gap: 8px; flex-shrink: 0;">
+        <span class="badge-neutral">Medium Effort</span>
+        <span style="background: var(--warning-bg); color: var(--warning); font-size:11px; font-family:'Helvetica Neue',sans-serif; font-weight:600; padding:3px 10px; border-radius:4px;">Soon (30–60d)</span>
+      </div>
+    </div>
+    <table class="rec-table">
+      <tr><td>Insight</td><td>Kenkere's 07:15 slot is the studio's top revenue-generating time slot at ₹5,000/class across 22 sessions. The slot is 62% filled with 158 attendees — it's high demand but not overcrowded, meaning 1–2 additional early morning sessions would likely fill well.</td></tr>
+      <tr><td>Impact</td><td>Adding one 07:00 session/week for 4 weeks would generate approximately ₹20K at current per-session rates. Demand spillover from 07:15 bookings that can't be accommodated would fill it quickly.</td></tr>
+      <tr><td>Action</td><td>Trial a single 07:00 slot on Tuesday (highest demand day) for 4 weeks. Assign to Siddhartha Kusuma (100% show-up rate, zero late cancels) for operational reliability. Monitor fill rate weekly.</td></tr>
+      <tr><td style="color: var(--positive); font-weight: 600;">Expected Outcome</td><td style="color: var(--positive);">₹18–22K additional monthly revenue from one new slot per week within 6 weeks. If fill rate exceeds 60% after 4 weeks, add a second slot. Confidence: Medium-High.</td></tr>
+    </table>
+  </div>
+
+  <!-- Quick Win Playbook -->
+  <div class="card" style="margin-top: 24px; margin-bottom: 24px;">
+    <h3>Quick-Win Playbook</h3>
+    <div style="overflow-x: auto;">
+      <table>
+        <thead><tr><th>#</th><th>Action</th><th>Owner</th><th>Timeline</th><th class="tr">Expected Revenue Impact (₹)</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Suspend Raunak Khemuka's Supreme schedule</td><td>Studio Manager</td><td>This week</td><td class="tr num">+₹15–20K/mo (freed slot)</td></tr>
+          <tr><td>2</td><td>Add late cancel fee at Kenkere (4hr window)</td><td>Ops / Tech</td><td>2 weeks</td><td class="tr num">+₹50–80K/mo recovered</td></tr>
+          <tr><td>3</td><td>Investigate 12:30 ₹0 slot at Kenkere</td><td>Studio Manager</td><td>This week</td><td class="tr num">+₹15–20K/mo if converted</td></tr>
+          <tr><td>4</td><td>Move 8 Supreme Monday sessions to Tue/Sat</td><td>Scheduling</td><td>2–3 weeks</td><td class="tr num">+₹25–35K/mo</td></tr>
+          <tr><td>5</td><td>Add 1 Rohan Dahima session at Kwality/week</td><td>Instructor + Mgmt</td><td>4 weeks</td><td class="tr num">+₹35–45K/mo</td></tr>
+          <tr><td>6</td><td>Add 07:00 slot at Kenkere on Tuesday</td><td>Scheduling</td><td>4–6 weeks</td><td class="tr num">+₹18–22K/mo</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2x2 Risk/Opportunity Matrix -->
+  <div class="card">
+    <h3>Risks &amp; Opportunities Matrix</h3>
+    <div class="grid-2" style="gap: 12px; margin-top: 12px;">
+      <div style="border: 1px solid var(--negative); border-radius: var(--radius-sm); padding: 16px; background: var(--negative-bg);">
+        <div style="font-size: 11px; font-family:'Helvetica Neue',sans-serif; font-weight:700; text-transform:uppercase; color:var(--negative); margin-bottom:8px;">🔴 High Impact / High Likelihood</div>
+        <p style="font-size:13px;"><strong>Instructor late-cancel culture solidifying.</strong> If the 29–54% late cancel rates at Kenkere and Supreme are not addressed within 30 days, the pattern will become normalised and harder to reverse. Estimated sustained revenue leak: ₹1.5–2L/period.</p>
+      </div>
+      <div style="border: 1px solid var(--positive); border-radius: var(--radius-sm); padding: 16px; background: var(--positive-bg);">
+        <div style="font-size: 11px; font-family:'Helvetica Neue',sans-serif; font-weight:700; text-transform:uppercase; color:var(--positive); margin-bottom:8px;">🟢 High Impact / High Likelihood</div>
+        <p style="font-size:13px;"><strong>Kwality model replication across network.</strong> Kwality's instructor quality (8–11 avg/class, 87–93% show-up) is demonstrably superior. Transferring its scheduling discipline and instructor mix principles to Kenkere could yield ₹50–80K monthly uplift.</p>
+      </div>
+      <div style="border: 1px solid var(--warning); border-radius: var(--radius-sm); padding: 16px; background: var(--warning-bg);">
+        <div style="font-size: 11px; font-family:'Helvetica Neue',sans-serif; font-weight:700; text-transform:uppercase; color:var(--warning); margin-bottom:8px;">🟡 High Impact / Lower Likelihood</div>
+        <p style="font-size:13px;"><strong>Key instructor departure at Kenkere.</strong> Kajol Kanchan (₹2.5L, 60 sessions) or Pushyank Nahar (₹1.7L, 42 sessions) leaving would remove 54% of Kenkere's revenue with no obvious successor. Succession planning is urgent.</p>
+      </div>
+      <div style="border: 1px solid var(--neutral); border-radius: var(--radius-sm); padding: 16px; background: var(--neutral-bg);">
+        <div style="font-size: 11px; font-family:'Helvetica Neue',sans-serif; font-weight:700; text-transform:uppercase; color:var(--neutral); margin-bottom:8px;">🔵 Lower Impact / High Likelihood</div>
+        <p style="font-size:13px;"><strong>Supreme underperforming relative to premium positioning.</strong> At ₹856 avg Rev/Attendee, Supreme has the network's highest per-person revenue — but volume (494 attendees) is far behind. Targeted member acquisition for 3–4 key instructors could close this gap within a quarter.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION VIII: FORECAST & OUTLOOK -->
+<div class="section">
+  <h2>Section VIII — Forecast &amp; Outlook</h2>
+  <p style="font-size: 13px; color: var(--text-muted); font-family: 'Helvetica Neue', sans-serif; margin-bottom: 16px;">⚠ Single-period data only. Directional estimates; confidence is Low. Forecasts based on current operational rates with recommendation execution assumptions.</p>
+
+  <div class="card" style="margin-bottom: 16px;">
+    <h4>Network Total Revenue</h4>
+    <div style="display: flex; gap: 24px; margin-bottom: 12px; font-size: 12px; color: var(--text-muted); font-family: 'Helvetica Neue', sans-serif;">
+      <span>Current: <strong style="color: var(--text-primary);">₹24.5L</strong> (combined estimate)</span>
+      <span>Confidence: <strong>Low</strong> (n=1 period)</span>
+    </div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <thead><tr style="border-bottom: 2px solid var(--border-strong);">
+        <th style="text-align:left;padding:8px 12px;font-family:'Helvetica Neue',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);">Scenario</th>
+        <th style="text-align:right;padding:8px 12px;font-family:'Helvetica Neue',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);">Next Period</th>
+        <th style="text-align:right;padding:8px 12px;font-family:'Helvetica Neue',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);">+2 Periods</th>
+      </tr></thead>
+      <tbody>
+        <tr style="background: var(--positive-bg);"><td style="padding:8px 12px;color:var(--positive);font-weight:600;">▲ Optimistic (recs executed)</td><td style="padding:8px 12px;text-align:right;">₹28–30L</td><td style="padding:8px 12px;text-align:right;">₹32–35L</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">— Baseline (no changes)</td><td style="padding:8px 12px;text-align:right;">₹24–25L</td><td style="padding:8px 12px;text-align:right;">₹24–26L</td></tr>
+        <tr style="background: var(--negative-bg);"><td style="padding:8px 12px;color:var(--negative);font-weight:600;">▼ Pessimistic (instructor turnover)</td><td style="padding:8px 12px;text-align:right;">₹18–20L</td><td style="padding:8px 12px;text-align:right;">₹16–19L</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">
+      <strong>Assumptions:</strong>
+      <ul style="margin: 4px 0 0; padding-left: 18px;">
+        <li>Optimistic: Late cancel policy implemented, Monday rebalancing done, Rohan schedule expanded</li>
+        <li>Baseline: No structural changes, instructor set remains stable</li>
+        <li>Pessimistic: One senior Kenkere instructor (Kajol or Pushyank) reduces to part-time or departs</li>
+      </ul>
+    </div>
+  </div>
+
+  <p style="font-size: 14px; margin-top: 16px;">The network's immediate trajectory hinges on two variables: whether late-cancellation behaviour is operationally corrected in the next 30 days, and whether Kwality's high-performance instructor model is protected and expanded. The optimistic scenario is entirely achievable without capital expenditure — it requires only scheduling discipline, policy enforcement, and targeted instructor hour allocation. The pessimistic scenario, conversely, requires no unusual events: it simply reflects the natural attrition risk of any studio that has allowed revenue concentration without succession planning. The pivotal 90-day variable is Kenkere's late-cancel culture, which single-handedly determines whether the studio's underlying strong demand translates into proportionate revenue.</p>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION IX: CLOSING STATEMENT -->
+<div class="section">
+  <h2>Section IX — Closing Statement</h2>
+  <div class="card">
+    <h3>Wins to Celebrate</h3>
+    <ul style="padding-left: 20px; margin-bottom: 16px;">
+      <li style="margin-bottom: 8px;"><strong>Kwality House is a model studio.</strong> With ₹12.5L in revenue, 1,528 attendees, and instructors averaging 7–11 attendees at 87–93% show-up rates, Kwality has demonstrated the highest per-session efficiency in the network. Reshma Sharma's 10.8 avg/class and Rohan Dahima's ₹8,800/session benchmark what disciplined scheduling can achieve.</li>
+      <li style="margin-bottom: 8px;"><strong>Supreme's premium positioning is working.</strong> At ₹856 Rev/Attendee, Supreme commands the network's highest per-person revenue — a validation that the Bandra member is willing to pay more, and that quality is being delivered.</li>
+      <li><strong>Kenkere generates enormous volume from a tight instructor roster.</strong> Five instructors across 196 sessions and 1,229 attendees producing ₹7.8L is operationally lean and impressive — though with commensurate concentration risk.</li>
+    </ul>
+
+    <h3>Honest Acknowledgment</h3>
+    <ul style="padding-left: 20px; margin-bottom: 16px;">
+      <li style="margin-bottom: 8px;"><strong>Late cancellation is a systemic failure, not an isolated data point.</strong> The pattern across Kenkere (29–32%) and Supreme (53.8% for one instructor) reflects either a policy gap or a culture that permits casual booking. This is costing the network an estimated ₹1.5–2L per period in real revenue. It will not self-correct.</li>
+      <li><strong>Supreme's Monday schedule is misallocated.</strong> Twenty sessions on the studio's weakest day, generating ₹2,845/session against Tuesday's ₹9,900, is a scheduling decision that should have been caught and corrected in a prior cycle.</li>
+    </ul>
+
+    <h3>The Singular Focus for the Next 30 Days</h3>
+    <p><strong>Implement and enforce a late cancellation policy at Kenkere House</strong> — specifically targeting classes with &gt;70% booking rates where late cancel exceeds 20%. This single intervention will generate more incremental revenue than any new slot addition or instructor expansion, because it recaptures demand already confirmed by the market. The 12:30 zero-revenue slot investigation should be parallelised.</p>
+
+    <h3 style="margin-top: 16px;">The 90-Day Vision</h3>
+    <p>If the six quick-win actions in Section VII are executed in sequence, the network should reach ₹28–30L in combined revenue within 90 days — an estimated 15–20% uplift without a single new class format, new instructor hire, or capital outlay. The levers are already in place: the demand exists, the instructors are in the studio, and the scheduling data makes the changes obvious. The work is purely operational.</p>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION X: APPENDIX -->
+<details style="margin-top: 48px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
+  <summary style="padding: 16px 24px; background: var(--bg-secondary); cursor: pointer; font-family: 'Helvetica Neue', sans-serif; font-weight: 600; font-size: 14px; color: var(--text-primary); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+    Appendix — Data Health, Metric Definitions &amp; Statistical Notes
+    <span style="font-size: 18px; color: var(--text-muted);">+</span>
+  </summary>
+  <div style="padding: 24px; background: var(--bg-card);">
+    <h4 style="margin-bottom: 12px;">1. Data Health Report</h4>
+    <p style="font-size: 13px; margin-bottom: 8px;"><strong>Detected Tags:</strong> CLASS_OPERATIONS ✓, MULTI_LOCATION ✓, ENGAGEMENT ✓, PRODUCT_MIX ✓, CANCELLATION_RISK ✓, PRICING_SIGNALS ✓ — No temporal series detected (single period only); MoM/YoY not available.</p>
+    <p style="font-size: 13px; margin-bottom: 8px;"><strong>Data Anomalies:</strong></p>
+    <ul style="font-size: 13px; padding-left: 20px; margin-bottom: 12px;">
+      <li>Kenkere 12:30 slot: 103.3% fill, 97% show-up, ₹0 revenue — probable complimentary class or reporting gap</li>
+      <li>Supreme Tuesday booking rate 103.4% — overbooking confirmed; studio appears to allow waitlist overflow</li>
+      <li>Kenkere and Supreme share identical instructor names (Kajol Kanchan, Pushyank Nahar, Shruti Kulkarni, Siddhartha Kusuma, Chaitanya Nahar) — data from the same instructor pool teaching across both locations</li>
+      <li>Kenkere file shows only 1 section in Summary tab vs Supreme's 12 sections — Kenkere file may be a subset export</li>
+    </ul>
+    <p style="font-size: 13px; margin-bottom: 12px;"><strong>Key Assumptions:</strong> (1) Revenue figures represent earned revenue for the period shown. (2) Fill % based on studio capacity benchmarks embedded in source data. (3) Kwality D-2 instructor data and D-8 day-of-week data represent the same period; D-1 (current period) was used for current analysis. (4) Supreme's "current period" is the first detailed instructor sheet.</p>
+
+    <h4 style="margin-top: 20px; margin-bottom: 12px;">2. Metric Definitions</h4>
+    <table style="font-size: 12px;">
+      <thead><tr><th>Metric</th><th>Formula</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Fill Rate %</td><td>Attendance / Capacity × 100</td><td>Capacity derived from source data</td></tr>
+        <tr><td>Late Cancel %</td><td>Late Cancels / Booked × 100</td><td>Bookings that cancelled within penalty window</td></tr>
+        <tr><td>Show-up %</td><td>Attended / Booked × 100</td><td>Excludes late cancels from denominator</td></tr>
+        <tr><td>Avg/Class</td><td>Total Attendance / Sessions</td><td>Average attendees per session</td></tr>
+        <tr><td>Rev/Class</td><td>Total Revenue / Sessions</td><td>Average revenue generated per session</td></tr>
+        <tr><td>Rev/Attendee</td><td>Total Revenue / Attendance</td><td>Average revenue per person who attended</td></tr>
+        <tr><td>ARPS</td><td>Rev/Class (same)</td><td>Average Revenue Per Session</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="margin-top: 20px; margin-bottom: 12px;">3. Statistical Notes</h4>
+    <p style="font-size: 13px;">No forecasting model was applied due to single-period data (minimum 3 periods required per methodology). Revenue CV not calculable. All forecast ranges are directional estimates based on current operational rates and stated assumptions. No Pearson correlation analysis was run due to insufficient time-series depth. n=1 for all period-level calculations.</p>
+
+    <h4 style="margin-top: 20px; margin-bottom: 12px;">4. Aggregated Summary — All Locations</h4>
+    <div style="overflow-x: auto;">
+      <table style="font-size: 12px;">
+        <thead><tr><th>Location</th><th>Instructors</th><th>Sessions</th><th>Attendance</th><th class="tr">Est. Revenue</th><th class="tr">Rev/Session</th><th class="tr">Rev/Att</th><th class="tr">Avg Late Cancel</th></tr></thead>
+        <tbody>
+          <tr><td>Kwality House</td><td>12</td><td>188</td><td>1,528</td><td class="tr">₹12.5L</td><td class="tr">₹6,649</td><td class="tr">₹818</td><td class="tr">10.8%</td></tr>
+          <tr><td>Kenkere House</td><td>5</td><td>196</td><td>1,229</td><td class="tr">₹7.8L</td><td class="tr">₹3,980</td><td class="tr">₹633</td><td class="tr">~18% avg</td></tr>
+          <tr><td>Supreme HQ</td><td>11</td><td>88</td><td>494</td><td class="tr">₹4.2L</td><td class="tr">₹4,804</td><td class="tr">₹856</td><td class="tr">~16% avg</td></tr>
+          <tr style="font-weight:bold;"><td>Network Total</td><td>28 unique</td><td>472</td><td>3,251</td><td class="tr">₹24.5L</td><td class="tr">₹5,191</td><td class="tr">₹754</td><td class="tr">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</details>
+
+</div><!-- /report-container -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const C = {
+  primary: '#1B4F8A', secondary: '#5B8EC4', tertiary: '#A8C4E0',
+  positive: '#1A6B47', negative: '#8B2020', warning: '#BA7517',
+  gray: '#8A8A85', grid: 'rgba(26,26,24,0.06)'
+};
+
+// Chart 1: Location Revenue
+new Chart(document.getElementById('locationChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Kwality House (Kemps Corner)', 'Kenkere House (Bengaluru)', 'Supreme HQ (Bandra)'],
+    datasets: [{
+      label: 'Revenue (₹L)',
+      data: [12.5, 7.8, 4.2],
+      backgroundColor: [C.primary, C.secondary, C.tertiary],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (ctx) => '₹' + ctx.parsed.y.toFixed(1) + 'L' }}
+    },
+    scales: {
+      x: { ticks: { font: { size: 11 } }, grid: { display: false } },
+      y: { ticks: { callback: (v) => '₹' + v + 'L', font: { size: 11 } }, grid: { color: C.grid } }
+    }
+  }
+});
+
+// Chart 2: Kwality Instructor Revenue
+const kInstructors = ['Rohan Dahima', 'Pranjali Jain', 'Cauveri Vikrant', 'Reshma Sharma', 'Mrigakshi Jaiswal', 'Simonelle De Vitre', 'Atulan Purohit', 'Simran Dutt', 'Vivaran Dhasmana', 'Anisha Shah', 'Richard D\'Costa', 'Karan Bhatia'];
+const kRevenue = [19, 15, 15, 13, 13, 14, 7.34, 8.16, 6.23, 6.02, 4.17, 4.30];
+const kRevClass = [8.8, 8.3, 6.1, 8.2, 6.6, 5.9, 6.7, 6.8, 5.2, 5.5, 4.6, 4.8];
+new Chart(document.getElementById('kwalityInstructorChart'), {
+  type: 'bar',
+  data: {
+    labels: kInstructors,
+    datasets: [
+      { label: 'Revenue (₹K)', data: kRevenue, backgroundColor: C.primary, borderRadius: 4 },
+      { label: 'Rev/Class (₹K)', data: kRevClass, backgroundColor: C.tertiary, borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (ctx) => '₹' + ctx.parsed.x.toFixed(1) + 'K — ' + ctx.dataset.label }}
+    },
+    scales: {
+      x: { ticks: { callback: (v) => '₹' + v + 'K', font: { size: 10 } }, grid: { color: C.grid } },
+      y: { ticks: { font: { size: 11 } }, grid: { display: false } }
+    }
+  }
+});
+
+// Chart 3: Day of Week Revenue
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const kwalityDay = [23, 19, 19, 15, 15, 19, 15];
+const kenkereDay = [13, 11, 9.82, 12, 10, 13, 7.93];
+const supremeDay = [5.69, 8.89, 3.41, 6.58, 3.34, 6.90, 7.49];
+new Chart(document.getElementById('dayRevChart'), {
+  type: 'bar',
+  data: {
+    labels: days,
+    datasets: [
+      { label: 'Kwality', data: kwalityDay, backgroundColor: C.primary, borderRadius: 4 },
+      { label: 'Kenkere', data: kenkereDay, backgroundColor: C.secondary, borderRadius: 4 },
+      { label: 'Supreme', data: supremeDay, backgroundColor: C.tertiary, borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ₹' + ctx.parsed.y.toFixed(1) + 'L' }}
+    },
+    scales: {
+      x: { ticks: { font: { size: 11 } }, grid: { display: false } },
+      y: { ticks: { callback: (v) => '₹' + v + 'L', font: { size: 11 } }, grid: { color: C.grid } }
+    }
+  }
+});
+
+// Chart 4: Late Cancel Rates
+const lcNames = ['Raunak Khemuka\n(Supreme)', 'Pushyank Nahar\n(Kenkere)', 'Kajol Kanchan\n(Kenkere)', 'Simonelle De Vitre\n(Supreme)', 'Vivaran Dhasmana\n(Supreme)', 'Reshma Sharma\n(Supreme)', 'Cauveri Vikrant\n(Kwality)', 'Anmol Sharma\n(Supreme)', 'Karan Bhatia\n(Supreme)', 'Rohan Dahima\n(Kwality)'];
+const lcRates = [53.8, 32.2, 29.4, 20.8, 16.2, 15.4, 14.7, 13.5, 23.8, 6.6];
+const lcColors = lcRates.map(r => r > 20 ? C.negative : r > 14 ? '#BA7517' : C.positive);
+new Chart(document.getElementById('lateCancelChart'), {
+  type: 'bar',
+  data: {
+    labels: lcNames.map(n => n.replace('\n', ' ')),
+    datasets: [{
+      label: 'Late Cancel %',
+      data: lcRates,
+      backgroundColor: lcColors,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (ctx) => ctx.parsed.x.toFixed(1) + '% late cancel rate' }},
+      annotation: {}
+    },
+    scales: {
+      x: {
+        ticks: { callback: (v) => v + '%', font: { size: 11 } },
+        grid: { color: C.grid },
+        max: 60
+      },
+      y: { ticks: { font: { size: 11 } }, grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>

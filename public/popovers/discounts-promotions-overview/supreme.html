@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supreme HQ Commercial Discipline Report - Dec 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e293b;
+            --secondary: #334155;
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #0f172a;
+            --insight-bg: #ffffff;
+            --border: #e2e8f0;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #334155;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 30px 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 0;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 40px 50px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        header > div:first-child {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            color: white;
+            margin: 0 0 8px 0;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        header > div > div:first-of-type {
+            font-size: 18px;
+            color: #a78bfa;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .meta-data {
+            text-align: right;
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        .meta-data strong {
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+
+        .content-wrapper {
+            padding: 40px 50px 50px;
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin: 50px 0 30px 0;
+            font-size: 26px;
+            font-weight: 800;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 32px;
+            background: var(--gradient-1);
+            border-radius: 3px;
+        }
+
+        h2:first-of-type {
+            margin-top: 0;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 50px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, currentColor, transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .metric-card:hover::before {
+            opacity: 1;
+        }
+
+        .metric-card[style*="border-bottom: 4px solid var(--danger)"] {
+            border-color: #fee2e2;
+            color: var(--danger);
+        }
+
+        .metric-card[style*="border-bottom: 4px solid var(--warning)"] {
+            border-color: #fef3c7;
+            color: var(--warning);
+        }
+
+        .metric-card[style*="border-bottom: 4px solid var(--success)"] {
+            border-color: #d1fae5;
+            color: var(--success);
+        }
+        
+        .metric-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        
+        .metric-sub {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .metric-card > div:last-child {
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .insight-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+        }
+        
+        .insight-card {
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .insight-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: currentColor;
+        }
+        
+        .insight-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: currentColor;
+        }
+        
+        .type-win { color: var(--success); }
+        .type-alert { color: var(--danger); }
+        .type-hidden { color: var(--accent); }
+        .type-opportunity { color: #3b82f6; }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+        
+        .bg-win { background: #d1fae5; color: #065f46; }
+        .bg-alert { background: #fee2e2; color: #991b1b; }
+        .bg-hidden { background: #ede9fe; color: #6b21a8; }
+        .bg-opp { background: #dbeafe; color: #1e40af; }
+        
+        .insight-title {
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--primary);
+            font-size: 17px;
+            line-height: 1.4;
+        }
+
+        .insight-card p {
+            color: #475569;
+            line-height: 1.7;
+            font-size: 14.5px;
+        }
+        
+        .data-point {
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            background: #f1f5f9;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: var(--danger);
+            font-weight: 700;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Executive Summary Styling */
+        .content-wrapper > div:first-child {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+            padding: 35px 40px !important;
+            border-radius: 16px !important;
+            margin-bottom: 50px !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-wrapper > div:first-child h3 {
+            margin-top: 0 !important;
+            color: white !important;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .content-wrapper > div:first-child p {
+            margin-bottom: 0 !important;
+            line-height: 1.8;
+            color: #e2e8f0;
+            font-size: 15px;
+        }
+
+        .content-wrapper > div:first-child strong {
+            color: #a78bfa;
+            font-weight: 700;
+        }
+
+        /* Governance Section */
+        .content-wrapper > div:last-of-type {
+            background: #f8fafc !important;
+            border: 2px solid var(--border) !important;
+            border-radius: 16px !important;
+            padding: 32px !important;
+            margin-top: 40px !important;
+        }
+
+        .content-wrapper > div:last-of-type ol {
+            margin: 0 !important;
+            padding-left: 24px !important;
+        }
+
+        .content-wrapper > div:last-of-type li {
+            margin-bottom: 20px !important;
+            color: #475569;
+            line-height: 1.7;
+        }
+
+        .content-wrapper > div:last-of-type li strong {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .content-wrapper > div:last-of-type li:last-child {
+            margin-bottom: 0 !important;
+        }
+        
+        footer {
+            margin-top: 60px;
+            padding: 25px 50px;
+            background: #f8fafc;
+            font-size: 12px;
+            color: #64748b;
+            text-align: center;
+            border-top: 2px solid var(--border);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 15px;
+            }
+
+            .container {
+                border-radius: 12px;
+            }
+
+            header, .content-wrapper, footer {
+                padding-left: 25px;
+                padding-right: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            .dashboard-grid,
+            .insight-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Commercial Discipline & Discounts Report</h1>
+            <div>Supreme HQ Location</div>
+        </div>
+        <div class="meta-data">
+            <strong>Analysis Period:</strong> 01 Dec 2025 - 31 Dec 2025<br>
+            <strong>Generated:</strong> 06 Jan 2026<br>
+            <strong>Status:</strong> Final Data Set
+        </div>
+    </header>
+
+    <div class="content-wrapper">
+    <!-- Executive Summary -->
+    <div>
+        <h3>Executive Summary</h3>
+        <p>
+            December's discount strategy was characterized by <strong>high-value liquidity capture</strong> at the expense of significant margin. A total of <strong>₹53,900+</strong> was conceded in discounts, primarily driven by a single aggressive 23.8% promo on an Annual Membership. While this successfully secured long-term revenue, the data reveals concerning inconsistencies in "Staff Discretion" discounts on Class Packages, with variance between 10.6% and 16.8% for identical products. Standardizing these tiers is critical to prevent client-side arbitrage and margin leakage in Q1 2026.
+        </p>
+    </div>
+
+    <!-- Metrics Dashboard -->
+    <div class="dashboard-grid">
+        <div class="metric-card" style="border-bottom: 4px solid var(--danger);">
+            <div class="metric-title">Total Margin Conceded</div>
+            <div class="metric-value">₹53,900+</div>
+            <div class="metric-sub">Total Dec Discounts</div>
+            <div style="margin-top:10px; font-size: 12px; color: #c0392b;">▲ Highest in Q4 2025</div>
+        </div>
+        <div class="metric-card" style="border-bottom: 4px solid var(--warning);">
+            <div class="metric-title">Max Discount Rate</div>
+            <div class="metric-value">23.8%</div>
+            <div class="metric-sub">Kanchaan Kaicker (Annual)</div>
+            <div style="margin-top:10px; font-size: 12px; color: #e67e22;">⚠ Automated System Offer</div>
+        </div>
+        <div class="metric-card" style="border-bottom: 4px solid var(--success);">
+            <div class="metric-title">Zero-Discount Volume</div>
+            <div class="metric-value">High</div>
+            <div class="metric-sub">Ushma Nichani & Others</div>
+            <div style="margin-top:10px; font-size: 12px; color: green;">▲ Strong Price Integrity</div>
+        </div>
+    </div>
+
+    <h2>Yield Management & Pricing Insights</h2>
+    <div class="insight-section">
+
+        <!-- INSIGHT 1 -->
+        <div class="insight-card type-win">
+            <span class="badge bg-win">Cash Flow Strategy</span>
+            <div class="insight-title">The Liquidity Trade-off</div>
+            <p>The system executed a <span class="data-point">23.8% discount (-₹38.5K)</span> to close Kanchaan Kaicker's Annual Membership. While this is a massive hit to margin, it secured <strong>₹1.6 Lakhs</strong> in upfront cash. In a month typically slow for collections, "buying" this liquidity was a sound strategic move, effectively trading margin for 12 months of secured retention.</p>
+        </div>
+
+        <!-- INSIGHT 2 -->
+        <div class="insight-card type-alert">
+            <span class="badge bg-alert">Governance Alert</span>
+            <div class="insight-title">Pricing Inconsistency on 12-Packs</div>
+            <p>We have a direct pricing conflict:
+            <br>• Dev Goel: 12 Class Package @ <span class="data-point">16.8% Off</span> (-₹2.3K)
+            <br>• Aavanti Chopra: 12 Class Package @ <span class="data-point">10.6% Off</span> (-₹1.5K)
+            <br>This 6.2% variance on the exact same product creates operational risk. If these clients communicate, the brand's pricing integrity is compromised.</p>
+        </div>
+
+        <!-- INSIGHT 3 -->
+        <div class="insight-card type-hidden">
+            <span class="badge bg-hidden">Hidden Pattern</span>
+            <div class="insight-title">Staff vs. System Discounting</div>
+            <p>The "Online/System" user is responsible for the deepest discounts (23.8% on Annuals). In contrast, staff members like Shipra and Imran are more conservative, generally keeping discretionary discounts below 11%. The automated system is currently more "desperate" for the sale than the human sales team.</p>
+        </div>
+
+        <!-- INSIGHT 4 -->
+        <div class="insight-card type-win">
+            <span class="badge bg-win">Price Integrity</span>
+            <div class="insight-title">The "Price-Insensitive" Whale</div>
+            <p>Ushma Nichani represents the ideal revenue profile. She purchased <strong>two</strong> 10-Class Packages plus credits in a single day (Dec 30) with <strong>0% discount</strong>. This behavior confirms that high-value volume buyers do not always need incentives. Discounting her in the future would be pure margin wastage.</p>
+        </div>
+
+        <!-- INSIGHT 5 -->
+        <div class="insight-card type-opportunity">
+            <span class="badge bg-opp">Yield Optimization</span>
+            <div class="insight-title">Eliminating "Retail" Discounts</div>
+            <p>Zero discounts were recorded for retail products (MRP ₹136-₹784). This is correct. The margins on these low-ticket items are too thin to support any discounting. Staff correctly identified that retail purchases are impulse buys where price sensitivity is non-existent.</p>
+        </div>
+
+        <!-- INSIGHT 6 -->
+        <div class="insight-card type-hidden">
+            <span class="badge bg-hidden">Churn Prevention</span>
+            <div class="insight-title">Product Mix Shift</div>
+            <p>Comparing MoM data, discount allocation has shifted from "1 Month Unlimited" (Sep/Nov) to "Annual" and "3 Month" (Dec). This indicates a strategic pivot: we are no longer paying to acquire short-term trialists; we are paying to lock in long-term capital. This improves Lifetime Value (LTV) despite the upfront discount cost.</p>
+        </div>
+
+        <!-- INSIGHT 7 -->
+        <div class="insight-card type-alert">
+            <span class="badge bg-alert">Operational Alert</span>
+            <div class="insight-title">Money Credits Obscurity</div>
+            <p>Transactions for "Money Credits" (e.g., ₹1,800 to Ushma Nichani) appear with 0% discount. However, if these credits are used to buy discounted packs later, we risk "double discounting." Credit usage needs to be tracked to ensure they aren't applied to already-discounted promotional rates.</p>
+        </div>
+
+        <!-- INSIGHT 8 -->
+        <div class="insight-card type-opportunity">
+            <span class="badge bg-opp">Sales Hygiene</span>
+            <div class="insight-title">The "Newcomer" Funnel Integrity</div>
+            <p>Multiple "Studio Newcomers 2 For 1" packages were sold at full price (₹1.6K). This is excellent discipline. The "deal" is the package itself (2 classes for price of 1); adding a monetary discount on top of this would be redundant. The team has maintained discipline here.</p>
+        </div>
+
+        <!-- INSIGHT 9 -->
+        <div class="insight-card type-hidden">
+            <span class="badge bg-hidden">Sales Behavior</span>
+            <div class="insight-title">Imran Shaikh's Discount Profile</div>
+            <p>Imran Shaikh processed the 16.8% discount for Dev Goel. This is the highest "human-authorized" discount in the dataset (excluding the System's Annual). Management should review if this specific discount was pre-approved or if Imran is using aggressive pricing to hit personal month-end targets.</p>
+        </div>
+
+        <!-- INSIGHT 10 -->
+        <div class="insight-card type-opportunity">
+            <span class="badge bg-opp">Revenue Optimization</span>
+            <div class="insight-title">Single Class Pricing Power</div>
+            <p>Numerous single classes (Tvisha, Nidhi, Parashie) were sold at full MRP (₹1,600). This proves the "drop-in" price point is resilient. There is no need to bundle or discount single sessions. The market accepts ₹1,600 as the standard entry price.</p>
+        </div>
+
+        <!-- INSIGHT 11 -->
+        <div class="insight-card type-alert">
+            <span class="badge bg-alert">System Configuration</span>
+            <div class="insight-title">The 23.8% Oddity</div>
+            <p>The discount percentage of 23.8% is mathematically odd. It likely represents a fixed flat amount (e.g., ₹38,500) rather than a percentage. If the MRP changes, this fixed deduction might result in unintended discount percentages. We should switch to percentage-based rules to maintain margin consistency.</p>
+        </div>
+
+        <!-- INSIGHT 12 -->
+        <div class="insight-card type-hidden">
+            <span class="badge bg-hidden">Strategic Pattern</span>
+            <div class="insight-title">Zero Private Class Promotions</div>
+            <p>Private Classes show zero discount activity. While protecting margin is good, the lack of <em>any</em> promotional activity here suggests we aren't using "Introduction to Private Training" offers to migrate wealthy group class members into the higher-margin Private tier.</p>
+        </div>
+
+        <!-- INSIGHT 13 -->
+        <div class="insight-card type-opportunity">
+            <span class="badge bg-opp">Forecast & Prediction</span>
+            <div class="insight-title">January Discount Hangover</div>
+            <p>The aggressive discounting in late December (Annuals, 3-Months, 12-Packs) means January revenue will be "hollow." We have pulled demand forward. To hit Jan revenue targets, we cannot rely on renewals (since we just renewed everyone); we must focus entirely on <strong>New Acquisition</strong>.</p>
+        </div>
+
+        <!-- INSIGHT 14 -->
+        <div class="insight-card type-win">
+            <span class="badge bg-win">Operational Efficiency</span>
+            <div class="insight-title">Online System Efficiency</div>
+            <p>The "Online/System" channel handled the high-friction, high-value Annual transaction. This proves the automated email/app flows are working for renewals. This frees up the human sales team (Shipra/Deesha) to focus on the more complex "Newcomer to Member" conversion conversations.</p>
+        </div>
+
+        <!-- INSIGHT 15 -->
+        <div class="insight-card type-opportunity">
+            <span class="badge bg-opp">Margin Protection</span>
+            <div class="insight-title">Package Size vs. Discount Correlation</div>
+            <p>We gave 16.8% off a 12-pack (Dev Goel) but 0% off two 10-packs (Ushma Nichani). Logically, the larger volume (Ushma) should warrant the discount, not the smaller one. Our discount logic is inverted: we are discounting smaller commitments while charging full price for larger ones (lucky, but unsustainable).</p>
+        </div>
+
+    </div>
+
+    <h2>Recommended Pricing Governance</h2>
+    <div>
+        <ol>
+            <li><strong>Implement Discount Bands:</strong> Establish strict bands to eliminate the 10.6% vs 16.8% variance.
+                <br>• <strong>Tier 1 (Staff):</strong> Max 10% (For closing objections)
+                <br>• <strong>Tier 2 (Manager):</strong> Max 15% (For recovery/renewals)
+                <br>• <strong>Tier 3 (Owner):</strong> 20%+ (Strategic VIPs only)</li>
+            <li><strong>VIP Flagging Protocol:</strong> Accounts like Ushma Nichani (High volume, 0% discount) must be flagged as "Do Not Discount." Offering them a promo code in the future devalues the service they are already happy to pay for.</li>
+            <li><strong>Audit "System" Rules:</strong> Review the automated rule generating the 23.8% discount on Annuals. Ensure it is a limited-time offer and not a permanent loophole, as this erodes significant value over time.</li>
+            <li><strong>Double-Dipping Block:</strong> Configure the POS to prevent "Money Credits" from being applied to "Discounted Packages." Credits should only be valid for Full MRP purchases to prevent margin stacking.</li>
+        </ol>
+    </div>
+    </div>
+
+    <footer>
+        <p>CONFIDENTIAL ANALYSIS | Supreme HQ Data | Generated for Executive Review</p>
+    </footer>
+</div>
+
+</body>
+</html>
