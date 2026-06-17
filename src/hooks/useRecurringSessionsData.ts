@@ -60,8 +60,8 @@ export const useRecurringSessionsData = () => {
       // Fetch both sheets using batch fetch
       const results = await batchFetchGoogleSheet(SPREADSHEET_ID, ['Recurring', 'Teacher Recurring']);
       
-      const recurringRows = results[0];
-      const teacherRows = results[1];
+      const recurringRows = results.get('Recurring') || [];
+      const teacherRows = results.get('Teacher Recurring') || [];
       
       // Process Recurring data
       if (recurringRows.length > 1) {

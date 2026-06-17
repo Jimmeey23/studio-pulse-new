@@ -93,10 +93,14 @@ export default defineConfig(({ mode }) => {
           if (req.method !== "GET") return next();
 
           // Ensure environment variables are available to the API handler from loaded env
-          process.env.GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID || env.VITE_GOOGLE_CLIENT_ID;
-          process.env.GOOGLE_CLIENT_SECRET = env.GOOGLE_CLIENT_SECRET || env.VITE_GOOGLE_CLIENT_SECRET;
-          process.env.GOOGLE_REFRESH_TOKEN = env.GOOGLE_REFRESH_TOKEN || env.VITE_GOOGLE_REFRESH_TOKEN;
-          process.env.GOOGLE_SHEETS_SPREADSHEET_ID = env.GOOGLE_SHEETS_SPREADSHEET_ID || env.VITE_PAYROLL_SPREADSHEET_ID;
+          const _gcid2 = env.GOOGLE_CLIENT_ID || env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+          const _gcs2  = env.GOOGLE_CLIENT_SECRET || env.VITE_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+          const _grt2  = env.GOOGLE_REFRESH_TOKEN || env.VITE_GOOGLE_REFRESH_TOKEN || process.env.GOOGLE_REFRESH_TOKEN;
+          const _gssi  = env.GOOGLE_SHEETS_SPREADSHEET_ID || env.VITE_PAYROLL_SPREADSHEET_ID;
+          if (_gcid2) process.env.GOOGLE_CLIENT_ID = _gcid2;
+          if (_gcs2)  process.env.GOOGLE_CLIENT_SECRET = _gcs2;
+          if (_grt2)  process.env.GOOGLE_REFRESH_TOKEN = _grt2;
+          if (_gssi)  process.env.GOOGLE_SHEETS_SPREADSHEET_ID = _gssi;
 
           try {
             const url = new URL(req.url || "", "http://localhost");
