@@ -33,6 +33,7 @@ import {
   exportToText, 
   exportToJSON, 
   exportToExcel,
+  exportToHTML,
   ExportFormat 
 } from '@/services/exportService';
 import { PAGE_REGISTRY, ExtractedData } from '@/services/dataExtraction';
@@ -46,7 +47,7 @@ export const DataExportTool: React.FC<DataExportToolProps> = ({ dataSources }) =
   const [isExporting, setIsExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState<ExportFormat>('csv');
   const [selectedPages, setSelectedPages] = useState<string[]>(Object.keys(PAGE_REGISTRY));
-  const [selectedLocations, setSelectedLocations] = useState<string[]>(['All Locations', 'Kwality House, Kemps Corner', 'Supreme HQ, Bandra', 'Kenkere House, Bengaluru', 'Pop-up']);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(['All Locations']);
   const [includeTables, setIncludeTables] = useState(true);
   const [includeMetrics, setIncludeMetrics] = useState(true);
   const [previewData, setPreviewData] = useState<ExtractedData | null>(null);
@@ -179,6 +180,9 @@ export const DataExportTool: React.FC<DataExportToolProps> = ({ dataSources }) =
         case 'excel':
           exportToExcel(previewData, filename);
           break;
+        case 'html':
+          exportToHTML(previewData, filename);
+          break;
       }
 
       toast({
@@ -205,6 +209,7 @@ export const DataExportTool: React.FC<DataExportToolProps> = ({ dataSources }) =
     txt: <FileText className="w-4 h-4" />,
     json: <FileJson className="w-4 h-4" />,
     excel: <FileSpreadsheet className="w-4 h-4" />,
+    html: <FileText className="w-4 h-4" />,
   };
 
   return (
@@ -226,7 +231,7 @@ export const DataExportTool: React.FC<DataExportToolProps> = ({ dataSources }) =
         <div className="space-y-3">
           <Label className="text-base font-semibold">Export Format</Label>
           <RadioGroup value={exportFormat} onValueChange={(value) => setExportFormat(value as ExportFormat)}>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
                 <RadioGroupItem value="csv" id="csv" />
                 <Label htmlFor="csv" className="flex items-center gap-2 cursor-pointer">
@@ -249,10 +254,10 @@ export const DataExportTool: React.FC<DataExportToolProps> = ({ dataSources }) =
                 </Label>
               </div>
               <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
-                <RadioGroupItem value="txt" id="txt" />
-                <Label htmlFor="txt" className="flex items-center gap-2 cursor-pointer">
-                  {formatIcons.txt}
-                  Text
+                <RadioGroupItem value="html" id="html" />
+                <Label htmlFor="html" className="flex items-center gap-2 cursor-pointer">
+                  {formatIcons.html}
+                  HTML
                 </Label>
               </div>
               <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
@@ -260,6 +265,13 @@ export const DataExportTool: React.FC<DataExportToolProps> = ({ dataSources }) =
                 <Label htmlFor="json" className="flex items-center gap-2 cursor-pointer">
                   {formatIcons.json}
                   JSON
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
+                <RadioGroupItem value="txt" id="txt" />
+                <Label htmlFor="txt" className="flex items-center gap-2 cursor-pointer">
+                  {formatIcons.txt}
+                  Text
                 </Label>
               </div>
             </div>

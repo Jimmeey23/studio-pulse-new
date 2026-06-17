@@ -8,7 +8,7 @@ import { formatCurrency, formatNumber, formatPercentage } from '@/utils/formatte
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
-export type ExportFormat = 'pdf' | 'csv' | 'txt' | 'json' | 'excel';
+export type ExportFormat = 'pdf' | 'csv' | 'txt' | 'json' | 'excel' | 'html';
 
 /**
  * Format value based on its content and type
@@ -401,8 +401,9 @@ export function exportToPDF(data: ExtractedData, filename: string = 'analytics-e
     doc.setFont('helvetica', 'normal');
     const badges: string[] = [];
     if (table.location) badges.push(`📍 ${table.location}`);
-    if (table.tab) badges.push(`📂 ${table.tab}`);
     if (table.metadata?.page) badges.push(`📄 ${table.metadata.page}`);
+    if (table.tab) badges.push(`📂 Tab: ${table.tab}`);
+    if (table.subTab) badges.push(`📑 Sub-tab: ${table.subTab}`);
     badges.push(`📊 ${formatNumber(table.rows.length)} ${table.rows.length === 1 ? 'row' : 'rows'}`);
     
     doc.setTextColor(...colors.textLight);
@@ -665,11 +666,205 @@ export function exportToText(data: ExtractedData, filename: string = 'analytics-
 }
 
 /**
- * Export data to JSON format
+ * Export data to JSON format — structured output with metadata
  */
 export function exportToJSON(data: ExtractedData, filename: string = 'analytics-export') {
-  const jsonContent = JSON.stringify(data, null, 2);
-  downloadFile(jsonContent, `${filename}.json`, 'application/json;charset=utf-8;');
+  const structured = {
+    exportInfo: {
+      generatedAt: new Date(data.summary.timestamp).toISOString(),
+      generatedBy: 'Physique57 Analytics Hub',
+      totalTables: data.summary.totalTables,
+      totalMetrics: data.summary.totalMetrics,
+      pages: data.summary.pages,
+      locations: data.summary.locations,
+    },
+    metrics: data.metrics.map(m => ({
+      category: m.category,
+      title: m.title,
+      value: m.value,
+      change: m.change ?? null,
+      location: m.location ?? null,
+      tab: m.tab ?? null,
+      page: m.metadata?.page ?? null,
+    })),
+    tables: data.tables.map(t => ({
+      id: t.id,
+      title: t.title,
+      page: t.metadata?.page ?? null,
+      tab: t.tab ?? null,
+      subTab: t.subTab ?? null,
+      location: t.location ?? null,
+      tags: t.tags,
+      recordCount: t.rows.length,
+      headers: t.headers,
+      rows: t.rows.map(row => {
+        const obj: Record<string, any> = {};
+        t.headers.forEach((h, i) => { obj[h] = row[i]; });
+        return obj;
+      }),
+    })),
+  };
+  downloadFile(JSON.stringify(structured, null, 2), `${filename}.json`, 'application/json;charset=utf-8;');
+}
+
+/**
+ * Export data to HTML format — full styled report viewable in any browser
+ */
+export function exportToHTML(data: ExtractedData, filename: string = 'analytics-export') {
+  const timestamp = new Date(data.summary.timestamp).toLocaleString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+
+  const groupedByPage: Record<string, typeof data.tables> = {};
+  data.tables.forEach(t => {
+    const page = t.metadata?.page || 'Other';
+    if (!groupedByPage[page]) groupedByPage[page] = [];
+    groupedByPage[page].push(t);
+  });
+
+  const groupedMetrics: Record<string, typeof data.metrics> = {};
+  data.metrics.forEach(m => {
+    const cat = m.category || 'General';
+    if (!groupedMetrics[cat]) groupedMetrics[cat] = [];
+    groupedMetrics[cat].push(m);
+  });
+
+  const metricCardsHTML = Object.entries(groupedMetrics).map(([category, metrics]) => `
+    <div class="metric-group">
+      <h4>${escHtml(category)}</h4>
+      <div class="metric-cards">
+        ${metrics.map(m => `
+          <div class="metric-card">
+            <div class="metric-title">${escHtml(m.title)}</div>
+            <div class="metric-value">${escHtml(String(m.value))}</div>
+            ${m.change ? `<div class="metric-change">${escHtml(String(m.change))}</div>` : ''}
+            ${m.location ? `<span class="badge badge-loc">${escHtml(m.location)}</span>` : ''}
+            ${m.tab ? `<span class="badge badge-tab">${escHtml(m.tab)}</span>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  const tablesSectionHTML = Object.entries(groupedByPage).map(([page, tables]) => `
+    <section class="page-section">
+      <h2 class="page-heading">${escHtml(page)}</h2>
+      ${tables.map(table => `
+        <div class="table-block">
+          <div class="table-header">
+            <h3 class="table-title">${escHtml(table.title)}</h3>
+            <div class="table-meta">
+              ${table.location ? `<span class="badge badge-loc">📍 ${escHtml(table.location)}</span>` : ''}
+              ${table.tab ? `<span class="badge badge-tab">📂 ${escHtml(table.tab)}</span>` : ''}
+              ${table.subTab ? `<span class="badge badge-subtab">📑 ${escHtml(table.subTab)}</span>` : ''}
+              <span class="badge badge-count">${table.rows.length} rows</span>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>${table.headers.map(h => `<th>${escHtml(h)}</th>`).join('')}</tr>
+              </thead>
+              <tbody>
+                ${table.rows.map((row, ri) => `
+                  <tr class="${ri % 2 === 0 ? '' : 'alt'}">
+                    ${row.map((cell, ci) => `<td>${escHtml(formatCellValue(String(cell ?? ''), table.headers[ci]))}</td>`).join('')}
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `).join('')}
+    </section>
+  `).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physique57 Analytics Export — ${timestamp}</title>
+  <style>
+    :root {
+      --primary: #29629b;
+      --secondary: #34495e;
+      --success: #2e7d32;
+      --light: #f5f7fa;
+      --border: #e0e0e0;
+      --text: #212121;
+      --text-light: #616161;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: var(--text); background: #f9fafb; }
+    .report-header { background: var(--primary); color: #fff; padding: 28px 40px; }
+    .report-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+    .report-header p { opacity: .8; font-size: 13px; }
+    .summary-bar { display: flex; gap: 20px; flex-wrap: wrap; padding: 20px 40px; background: #fff; border-bottom: 1px solid var(--border); }
+    .summary-item { background: var(--light); border-radius: 8px; padding: 14px 20px; flex: 1; min-width: 140px; text-align: center; }
+    .summary-item .val { font-size: 28px; font-weight: 700; color: var(--primary); }
+    .summary-item .lbl { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; }
+    main { max-width: 1400px; margin: 0 auto; padding: 30px 40px; }
+    .section-title { font-size: 20px; font-weight: 700; color: var(--secondary); margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); }
+    .metric-group h4 { font-size: 14px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: .5px; margin: 16px 0 10px; }
+    .metric-cards { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+    .metric-card { background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--success); border-radius: 8px; padding: 14px 18px; min-width: 180px; flex: 1; }
+    .metric-title { font-size: 12px; color: var(--text-light); margin-bottom: 6px; }
+    .metric-value { font-size: 22px; font-weight: 700; color: var(--primary); }
+    .metric-change { font-size: 12px; color: var(--success); margin-top: 4px; }
+    .page-section { margin-bottom: 40px; }
+    .page-heading { font-size: 22px; font-weight: 700; color: var(--primary); margin: 32px 0 16px; padding: 10px 16px; background: #e8f0fe; border-radius: 8px; }
+    .table-block { background: #fff; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .table-header { padding: 14px 20px; background: var(--light); border-bottom: 1px solid var(--border); display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .table-title { font-size: 15px; font-weight: 700; color: var(--secondary); flex: 1; }
+    .table-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 500; }
+    .badge-loc { background: #e3f2fd; color: #1565c0; }
+    .badge-tab { background: #f3e5f5; color: #6a1b9a; }
+    .badge-subtab { background: #fff3e0; color: #e65100; }
+    .badge-count { background: #e8f5e9; color: #1b5e20; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: var(--secondary); color: #fff; }
+    th { padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    td { padding: 8px 14px; border-bottom: 1px solid #f0f0f0; color: var(--text); }
+    tr.alt td { background: #f9fafb; }
+    tr:hover td { background: #f0f4ff; }
+    .footer { text-align: center; color: var(--text-light); font-size: 12px; padding: 24px 40px; border-top: 1px solid var(--border); margin-top: 40px; }
+    @media print { body { background: #fff; } .report-header { -webkit-print-color-adjust: exact; } }
+  </style>
+</head>
+<body>
+  <div class="report-header">
+    <h1>Physique57 Analytics Export</h1>
+    <p>Generated: ${timestamp} &nbsp;|&nbsp; ${data.summary.pages.length} pages &nbsp;|&nbsp; ${data.summary.locations.join(', ')}</p>
+  </div>
+  <div class="summary-bar">
+    <div class="summary-item"><div class="val">${data.summary.totalTables}</div><div class="lbl">Tables</div></div>
+    <div class="summary-item"><div class="val">${data.summary.totalMetrics}</div><div class="lbl">Metrics</div></div>
+    <div class="summary-item"><div class="val">${data.summary.pages.length}</div><div class="lbl">Pages</div></div>
+    <div class="summary-item"><div class="val">${data.summary.locations.length}</div><div class="lbl">Locations</div></div>
+  </div>
+  <main>
+    ${data.metrics.length > 0 ? `<h2 class="section-title">📈 Key Metrics</h2>${metricCardsHTML}` : ''}
+    ${data.tables.length > 0 ? `<h2 class="section-title">📊 Data Tables</h2>${tablesSectionHTML}` : ''}
+  </main>
+  <div class="footer">Physique57 Analytics Hub &nbsp;|&nbsp; Confidential &nbsp;|&nbsp; ${timestamp}</div>
+</body>
+</html>`;
+
+  const ts = new Date().toISOString().slice(0, 10);
+  downloadFile(html, `${filename}_${ts}.html`, 'text/html;charset=utf-8;');
+}
+
+function escHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /**

@@ -88,11 +88,22 @@ export async function crawlAllData(
       }
     }
 
+    // Filter out empty tables (no rows) — they would produce blank sections in exports
+    const nonEmptyTables = extractedTables.filter(t => t.rows.length > 0);
+
+    // Deduplicate tables by id — same location crawled multiple times can produce duplicates
+    const seenIds = new Set<string>();
+    const deduplicatedTables = nonEmptyTables.filter(t => {
+      if (seenIds.has(t.id)) return false;
+      seenIds.add(t.id);
+      return true;
+    });
+
     const result = {
-      tables: extractedTables,
+      tables: deduplicatedTables,
       metrics: extractedMetrics,
       summary: {
-        totalTables: extractedTables.length,
+        totalTables: deduplicatedTables.length,
         totalMetrics: extractedMetrics.length,
         pages: Array.from(processedPages),
         locations,
@@ -436,29 +447,53 @@ function crawlTrainerPerformance(
   const metrics: ExtractedMetric[] = [];
 
   const { payrollData = [], checkinsData = [] } = dataSources;
-  const filteredPayroll = location === 'All Locations' ? payrollData : payrollData.filter(p => 
-    checkinsData.some(c => c.trainerName === p.teacherName && (c.location === location || c.calculatedLocation === location))
-  );
+
+  // Filter payroll by location
+  const filteredPayroll = location === 'All Locations'
+    ? payrollData
+    : payrollData.filter(p =>
+        filterByLocation([p], location).length > 0
+      );
 
   if (options.includeTables) {
-    tables.push(extractTableFromData('Trainer Payroll', filteredPayroll.slice(0, options.maxRowsPerTable), {
-      location,
-      page: 'Trainer Performance',
-    }));
+    if (filteredPayroll.length > 0) {
+      tables.push(extractTableFromData('Trainer Payroll', filteredPayroll.slice(0, options.maxRowsPerTable), {
+        location,
+        page: 'Trainer Performance',
+        tab: 'Payroll',
+      }));
+    }
 
-    const trainerStats = filteredPayroll.map(trainer => {
-      const trainerClasses = checkinsData.filter(c => c.trainerName === trainer.teacherName);
-      return {
-        ...trainer,
-        totalClasses: trainerClasses.length,
-        avgAttendance: trainerClasses.reduce((sum, c) => sum + (c.attendance || 0), 0) / (trainerClasses.length || 1),
-      };
+    // Build per-trainer stats using checkins data (field is teacherName, not trainerName)
+    const trainerStatsMap: Record<string, {
+      teacherName: string; totalSessions: number; totalAttendance: number; avgAttendance: number;
+    }> = {};
+
+    const filteredCheckins = filterByLocation(checkinsData, location);
+    filteredCheckins.forEach(c => {
+      const name = (c as any).teacherName || '';
+      if (!name) return;
+      if (!trainerStatsMap[name]) {
+        trainerStatsMap[name] = { teacherName: name, totalSessions: 0, totalAttendance: 0, avgAttendance: 0 };
+      }
+      trainerStatsMap[name].totalSessions += 1;
+      if ((c as any).checkedIn) trainerStatsMap[name].totalAttendance += 1;
     });
 
-    tables.push(extractTableFromData('Trainer Statistics', trainerStats, {
-      location,
-      page: 'Trainer Performance',
-    }));
+    const trainerStats = Object.values(trainerStatsMap).map(t => ({
+      ...t,
+      avgAttendance: t.totalSessions > 0
+        ? Math.round((t.totalAttendance / t.totalSessions) * 10) / 10
+        : 0,
+    })).sort((a, b) => b.totalSessions - a.totalSessions);
+
+    if (trainerStats.length > 0) {
+      tables.push(extractTableFromData('Trainer Attendance Stats', trainerStats, {
+        location,
+        page: 'Trainer Performance',
+        tab: 'Attendance',
+      }));
+    }
   }
 
   return { tables, metrics };
@@ -466,6 +501,8 @@ function crawlTrainerPerformance(
 
 /**
  * Crawl Class Attendance page
+ * CheckinData fields: teacherName (not trainerName), cleanedClass (not classFormat),
+ * checkedIn: boolean (not attendance number)
  */
 function crawlClassAttendance(
   dataSources: DataSources,
@@ -475,16 +512,19 @@ function crawlClassAttendance(
   const tables: ExtractedTable[] = [];
   const metrics: ExtractedMetric[] = [];
 
-  const { checkinsData = [], sessionsData = [] } = dataSources;
+  const { checkinsData = [] } = dataSources;
   const filteredCheckins = filterByLocation(checkinsData, location);
 
-  if (options.includeMetrics) {
-    const totalAttendance = filteredCheckins.reduce((sum, c) => sum + (c.attendance || 0), 0);
-    const avgAttendance = totalAttendance / (filteredCheckins.length || 1);
+  // Derive counts from per-booking checkin rows
+  const uniqueSessionIds = new Set(filteredCheckins.map((c: any) => c.sessionId).filter(Boolean));
+  const totalClasses = uniqueSessionIds.size || filteredCheckins.length;
+  const totalAttendance = filteredCheckins.filter((c: any) => c.checkedIn === true || c.checkedIn === 'TRUE' || c.checkedIn === 'true').length;
+  const avgAttendancePerSession = totalClasses > 0 ? totalAttendance / totalClasses : 0;
 
+  if (options.includeMetrics) {
     metrics.push({
-      title: 'Total Classes',
-      value: filteredCheckins.length,
+      title: 'Total Sessions',
+      value: totalClasses,
       category: 'Attendance',
       location,
       tab: 'Overview',
@@ -492,7 +532,7 @@ function crawlClassAttendance(
     });
 
     metrics.push({
-      title: 'Total Attendance',
+      title: 'Total Check-ins',
       value: totalAttendance,
       category: 'Attendance',
       location,
@@ -501,8 +541,8 @@ function crawlClassAttendance(
     });
 
     metrics.push({
-      title: 'Average Attendance',
-      value: avgAttendance.toFixed(1),
+      title: 'Avg Check-ins Per Session',
+      value: avgAttendancePerSession.toFixed(1),
       category: 'Attendance',
       location,
       tab: 'Overview',
@@ -511,35 +551,77 @@ function crawlClassAttendance(
   }
 
   if (options.includeTables) {
-    // By class format
-    const formatGroups = groupBy(filteredCheckins, 'classFormat');
-    const formatStats = Object.entries(formatGroups).map(([format, classes]) => ({
-      format,
-      totalClasses: classes.length,
-      totalAttendance: classes.reduce((sum, c) => sum + (c.attendance || 0), 0),
-      avgAttendance: classes.reduce((sum, c) => sum + (c.attendance || 0), 0) / classes.length,
-    }));
+    // By class format — correct field is cleanedClass
+    const formatGroups = groupBy(filteredCheckins, 'cleanedClass' as any);
+    const formatStats = Object.entries(formatGroups).map(([format, bookings]) => {
+      const uniqueSess = new Set(bookings.map((c: any) => c.sessionId).filter(Boolean)).size || bookings.length;
+      const attended = bookings.filter((c: any) => c.checkedIn === true || c.checkedIn === 'TRUE' || c.checkedIn === 'true').length;
+      return {
+        classFormat: format || 'Unknown',
+        totalSessions: uniqueSess,
+        totalCheckIns: attended,
+        avgCheckInsPerSession: uniqueSess > 0 ? Math.round((attended / uniqueSess) * 10) / 10 : 0,
+      };
+    }).sort((a, b) => b.totalCheckIns - a.totalCheckIns);
 
-    tables.push(extractTableFromData('Attendance by Class Format', formatStats, {
-      location,
-      tab: 'Class Formats',
-      page: 'Class Attendance',
-    }));
+    if (formatStats.length > 0) {
+      tables.push(extractTableFromData('Attendance by Class Format', formatStats, {
+        location,
+        tab: 'Class Formats',
+        page: 'Class Attendance',
+        tableType: 'attendance',
+        additionalTags: ['attendance', 'class-format'],
+      }));
+    }
 
-    // By trainer
-    const trainerGroups = groupBy(filteredCheckins, 'trainerName');
-    const trainerStats = Object.entries(trainerGroups).map(([trainer, classes]) => ({
-      trainer,
-      totalClasses: classes.length,
-      totalAttendance: classes.reduce((sum, c) => sum + (c.attendance || 0), 0),
-      avgAttendance: classes.reduce((sum, c) => sum + (c.attendance || 0), 0) / classes.length,
-    }));
+    // By trainer — correct field is teacherName
+    const trainerGroups = groupBy(filteredCheckins, 'teacherName' as any);
+    const trainerStats = Object.entries(trainerGroups).map(([trainer, bookings]) => {
+      const uniqueSess = new Set(bookings.map((c: any) => c.sessionId).filter(Boolean)).size || bookings.length;
+      const attended = bookings.filter((c: any) => c.checkedIn === true || c.checkedIn === 'TRUE' || c.checkedIn === 'true').length;
+      return {
+        teacherName: trainer || 'Unknown',
+        totalSessions: uniqueSess,
+        totalCheckIns: attended,
+        avgCheckInsPerSession: uniqueSess > 0 ? Math.round((attended / uniqueSess) * 10) / 10 : 0,
+      };
+    }).sort((a, b) => b.totalSessions - a.totalSessions);
 
-    tables.push(extractTableFromData('Attendance by Trainer', trainerStats, {
-      location,
-      tab: 'By Trainer',
-      page: 'Class Attendance',
-    }));
+    if (trainerStats.length > 0) {
+      tables.push(extractTableFromData('Attendance by Trainer', trainerStats, {
+        location,
+        tab: 'By Trainer',
+        page: 'Class Attendance',
+        tableType: 'attendance',
+        additionalTags: ['attendance', 'trainer'],
+      }));
+    }
+
+    // By day of week
+    const dayGroups = groupBy(filteredCheckins, 'dayOfWeek' as any);
+    const dayStats = Object.entries(dayGroups).map(([day, bookings]) => {
+      const uniqueSess = new Set(bookings.map((c: any) => c.sessionId).filter(Boolean)).size || bookings.length;
+      const attended = bookings.filter((c: any) => c.checkedIn === true || c.checkedIn === 'TRUE' || c.checkedIn === 'true').length;
+      return {
+        dayOfWeek: day || 'Unknown',
+        totalSessions: uniqueSess,
+        totalCheckIns: attended,
+        avgCheckInsPerSession: uniqueSess > 0 ? Math.round((attended / uniqueSess) * 10) / 10 : 0,
+      };
+    });
+
+    const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    dayStats.sort((a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek));
+
+    if (dayStats.length > 0) {
+      tables.push(extractTableFromData('Attendance by Day of Week', dayStats, {
+        location,
+        tab: 'Time Analysis',
+        page: 'Class Attendance',
+        tableType: 'attendance',
+        additionalTags: ['attendance', 'day-of-week'],
+      }));
+    }
   }
 
   return { tables, metrics };
@@ -547,6 +629,7 @@ function crawlClassAttendance(
 
 /**
  * Crawl Class Formats Comparison page
+ * CheckinData fields: cleanedClass (not classFormat), capacity (number), checkedIn (boolean)
  */
 function crawlClassFormats(
   dataSources: DataSources,
@@ -560,20 +643,74 @@ function crawlClassFormats(
   const filteredCheckins = filterByLocation(checkinsData, location);
 
   if (options.includeTables) {
-    const formatGroups = groupBy(filteredCheckins, 'classFormat');
-    const formatComparison = Object.entries(formatGroups).map(([format, classes]) => ({
-      format,
-      classes: classes.length,
-      attendance: classes.reduce((sum, c) => sum + (c.attendance || 0), 0),
-      avgAttendance: (classes.reduce((sum, c) => sum + (c.attendance || 0), 0) / classes.length).toFixed(1),
-      capacity: classes.reduce((sum, c) => sum + (c.capacity || 0), 0),
-      utilizationRate: `${((classes.reduce((sum, c) => sum + (c.attendance || 0), 0) / classes.reduce((sum, c) => sum + (c.capacity || 1), 0)) * 100).toFixed(1)}%`,
-    }));
+    // Use cleanedClass (correct field name) instead of classFormat
+    const formatGroups = groupBy(filteredCheckins, 'cleanedClass' as any);
+    const formatComparison = Object.entries(formatGroups).map(([format, bookings]) => {
+      const uniqueSess = new Set(bookings.map((c: any) => c.sessionId).filter(Boolean)).size || bookings.length;
+      const totalAttended = bookings.filter((c: any) =>
+        c.checkedIn === true || c.checkedIn === 'TRUE' || c.checkedIn === 'true'
+      ).length;
+      const totalCapacity = bookings.reduce((sum: number, c: any) => sum + (Number(c.capacity) || 0), 0);
+      const utilizationRate = totalCapacity > 0
+        ? `${((totalAttended / totalCapacity) * 100).toFixed(1)}%`
+        : 'N/A';
 
-    tables.push(extractTableFromData('Class Formats Comparison', formatComparison, {
-      location,
-      page: 'Class Formats Comparison',
-    }));
+      return {
+        classFormat: format || 'Unknown',
+        totalSessions: uniqueSess,
+        totalCheckIns: totalAttended,
+        avgCheckInsPerSession: uniqueSess > 0 ? Math.round((totalAttended / uniqueSess) * 10) / 10 : 0,
+        totalCapacity,
+        utilizationRate,
+      };
+    }).sort((a, b) => b.totalCheckIns - a.totalCheckIns);
+
+    if (formatComparison.length > 0) {
+      tables.push(extractTableFromData('Class Formats Comparison', formatComparison, {
+        location,
+        page: 'Class Formats Comparison',
+        tab: 'Overview',
+        tableType: 'attendance',
+        additionalTags: ['class-format', 'comparison'],
+      }));
+    }
+
+    // Sub-tab: By trainer per format
+    const trainerFormatGroups: Record<string, Record<string, any[]>> = {};
+    filteredCheckins.forEach((c: any) => {
+      const fmt = c.cleanedClass || 'Unknown';
+      const tName = c.teacherName || 'Unknown';
+      if (!trainerFormatGroups[fmt]) trainerFormatGroups[fmt] = {};
+      if (!trainerFormatGroups[fmt][tName]) trainerFormatGroups[fmt][tName] = [];
+      trainerFormatGroups[fmt][tName].push(c);
+    });
+
+    const trainerFormatStats = Object.entries(trainerFormatGroups).flatMap(([fmt, trainers]) =>
+      Object.entries(trainers).map(([tName, bookings]) => {
+        const uniqueSess = new Set(bookings.map((c: any) => c.sessionId).filter(Boolean)).size || bookings.length;
+        const attended = bookings.filter((c: any) =>
+          c.checkedIn === true || c.checkedIn === 'TRUE' || c.checkedIn === 'true'
+        ).length;
+        return {
+          classFormat: fmt,
+          teacherName: tName,
+          totalSessions: uniqueSess,
+          totalCheckIns: attended,
+          avgCheckInsPerSession: uniqueSess > 0 ? Math.round((attended / uniqueSess) * 10) / 10 : 0,
+        };
+      })
+    ).sort((a, b) => b.totalSessions - a.totalSessions);
+
+    if (trainerFormatStats.length > 0) {
+      tables.push(extractTableFromData('Trainer Performance by Class Format', trainerFormatStats, {
+        location,
+        page: 'Class Formats Comparison',
+        tab: 'By Trainer',
+        subTab: 'Trainer × Format',
+        tableType: 'attendance',
+        additionalTags: ['class-format', 'trainer'],
+      }));
+    }
   }
 
   return { tables, metrics };
