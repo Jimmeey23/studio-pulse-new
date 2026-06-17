@@ -335,6 +335,16 @@ interface MembershipPurchasesTableProps {
   onRowClick?: (row: any) => void;
 }
 
+// Member type label derived from isNew field
+function memberTypeLabel(isNew: string | undefined | null): string {
+  const v = (isNew || '').trim();
+  if (!v || v === 'false' || v.toLowerCase() === 'existing') return 'Existing Member';
+  if (/trial/i.test(v)) return 'New (Trial)';
+  if (/walk.?in|walkin/i.test(v)) return 'New (Walk-in)';
+  if (/new/i.test(v)) return 'New Member';
+  return v;
+}
+
 export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTableProps> = ({ data, onRowClick }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const registry = useMetricsTablesRegistry();
@@ -345,6 +355,7 @@ export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTabl
 
   const rows = useMemo(() => {
     type Bucket = {
+      memberType: string;
       members: Set<string>;
       totalLtv: number;
       totalUnits: number;
@@ -357,32 +368,38 @@ export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTabl
     const grouped: Record<string, Bucket> = {};
 
     convertedMembers.forEach((c) => {
-      // Group by First Purchase Post Trial item name
-      const key = (c.firstPurchaseItem || c.membershipsBoughtPostTrial || 'Unknown').trim() || 'Unknown';
-      if (!grouped[key]) grouped[key] = { members: new Set(), totalLtv: 0, totalUnits: 0, totalPurchaseCount: 0, totalConvSpan: 0, convSpanCount: 0, totalVisits: 0, visitCount: 0 };
+      const memberType = memberTypeLabel((c as any).isNew);
+      const membership = (c.firstPurchaseItem || c.membershipsBoughtPostTrial || 'Unknown').trim() || 'Unknown';
+      // Composite key: memberType + membership
+      const key = `${memberType}|||${membership}`;
+      if (!grouped[key]) grouped[key] = { memberType, members: new Set(), totalLtv: 0, totalUnits: 0, totalPurchaseCount: 0, totalConvSpan: 0, convSpanCount: 0, totalVisits: 0, visitCount: 0 };
       const g = grouped[key];
       const memberId = c.memberId || c.email || String(Math.random());
       g.members.add(memberId);
       g.totalLtv += Number(c.ltv) || 0;
-      g.totalUnits += 1; // one sale event per converted member
+      g.totalUnits += 1;
       g.totalPurchaseCount += Number(c.purchaseCountPostTrial) || 1;
       if ((c.conversionSpan || 0) > 0) { g.totalConvSpan += c.conversionSpan; g.convSpanCount += 1; }
       if ((c.visitsPostTrial || 0) > 0) { g.totalVisits += c.visitsPostTrial; g.visitCount += 1; }
     });
 
     return Object.entries(grouped)
-      .map(([name, g]) => {
+      .map(([key, g]) => {
+        const [memberType, membership] = key.split('|||');
         const uniqueMembers = g.members.size;
         const totalLtv = g.totalLtv;
         const unitsSold = g.totalUnits;
-        const atv = unitsSold > 0 ? totalLtv / unitsSold : 0; // avg transaction value
-        const auv = uniqueMembers > 0 ? totalLtv / uniqueMembers : 0; // avg unit value per member
+        const atv = unitsSold > 0 ? totalLtv / unitsSold : 0;
+        const auv = uniqueMembers > 0 ? totalLtv / uniqueMembers : 0;
         const purchaseFreq = uniqueMembers > 0 ? g.totalPurchaseCount / uniqueMembers : 0;
         const avgConvDays = g.convSpanCount > 0 ? g.totalConvSpan / g.convSpanCount : null;
         const avgVisits = g.visitCount > 0 ? g.totalVisits / g.visitCount : 0;
-        return { name, uniqueMembers, unitsSold, totalLtv, atv, auv, purchaseFreq, avgConvDays, avgVisits, _clients: g.members };
+        return { key, memberType, membership, uniqueMembers, unitsSold, totalLtv, atv, auv, purchaseFreq, avgConvDays, avgVisits };
       })
-      .sort((a, b) => b.uniqueMembers - a.uniqueMembers);
+      .sort((a, b) => {
+        if (a.memberType !== b.memberType) return a.memberType.localeCompare(b.memberType);
+        return b.uniqueMembers - a.uniqueMembers;
+      });
   }, [convertedMembers]);
 
   const totals = useMemo(() => {
@@ -399,6 +416,15 @@ export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTabl
     const avgVisits = avgVisitsRows.length > 0 ? avgVisitsRows.reduce((s, r) => s + r.avgVisits, 0) / avgVisitsRows.length : 0;
     return { uniqueMembers, unitsSold, totalLtv, atv, auv, purchaseFreq, avgConvDays, avgVisits };
   }, [rows, convertedMembers]);
+
+  // Group rows by member type for visual grouping
+  const memberTypes = useMemo(() => Array.from(new Set(rows.map((r) => r.memberType))), [rows]);
+  const MEMBER_TYPE_COLORS: Record<string, string> = {
+    'New (Trial)': 'bg-emerald-50 text-emerald-800',
+    'New (Walk-in)': 'bg-sky-50 text-sky-800',
+    'New Member': 'bg-violet-50 text-violet-800',
+    'Existing Member': 'bg-slate-50 text-slate-700',
+  };
 
   useEffect(() => {
     if (!registry || !containerRef.current) return;
@@ -428,19 +454,22 @@ export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTabl
             </svg>
             <span className="text-[15px] font-bold text-white">New Client Membership Purchases</span>
             <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-white/80">{totals.uniqueMembers} Converted Members</span>
-            <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-white/80">{rows.length} Purchase Types</span>
+            <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-white/80">{memberTypes.length} Member Types</span>
           </div>
-          <p className="mt-1 text-[12px] text-slate-400">First purchases made by converted members — grouped by payment type.</p>
+          <p className="mt-1 text-[12px] text-slate-400">First purchases by converted members — grouped by member type and membership purchased.</p>
         </div>
       </div>
 
       {/* Table */}
-      <div className="max-h-[480px] overflow-auto">
+      <div className="max-h-[520px] overflow-auto">
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-slate-950">
             <TableRow className="border-slate-800 hover:bg-slate-950">
-              <TableHead className="sticky left-0 z-30 min-w-[200px] bg-slate-950 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-white">
-                First Purchase
+              <TableHead className="sticky left-0 z-30 min-w-[150px] bg-slate-950 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-white">
+                Member Type
+              </TableHead>
+              <TableHead className="sticky left-[150px] z-30 min-w-[200px] bg-slate-950 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-white">
+                Membership Purchased
               </TableHead>
               <TableHead className="bg-slate-950 py-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-white">Members</TableHead>
               <TableHead className="bg-slate-950 py-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-white">Units Sold</TableHead>
@@ -453,27 +482,40 @@ export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTabl
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((row, i) => (
-              <TableRow
-                key={row.name}
-                className={`cursor-pointer border-b border-slate-100 transition-colors hover:bg-slate-50 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
-                onClick={() => onRowClick?.(row)}
-              >
-                <TableCell className={`sticky left-0 z-10 px-5 py-3 text-[13px] font-medium text-slate-900 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}>{row.name}</TableCell>
-                <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.uniqueMembers)}</TableCell>
-                <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.unitsSold)}</TableCell>
-                <TableCell className="py-3 text-right text-[13px] font-medium text-slate-800">{formatCurrency(row.totalLtv)}</TableCell>
-                <TableCell className="py-3 text-right text-[13px] font-medium text-slate-800">{formatCurrency(row.atv)}</TableCell>
-                <TableCell className="py-3 text-right text-[13px] font-medium text-slate-800">{formatCurrency(row.auv)}</TableCell>
-                <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{row.purchaseFreq.toFixed(1)}×</TableCell>
-                <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{row.avgConvDays !== null ? `${row.avgConvDays.toFixed(0)}d` : '—'}</TableCell>
-                <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{row.avgVisits.toFixed(1)}</TableCell>
-              </TableRow>
-            ))}
+            {memberTypes.map((mt) => {
+              const typeRows = rows.filter((r) => r.memberType === mt);
+              const badge = MEMBER_TYPE_COLORS[mt] ?? 'bg-slate-100 text-slate-700';
+              return typeRows.map((row, j) => (
+                <TableRow
+                  key={row.key}
+                  className={`cursor-pointer border-b border-slate-100 transition-colors hover:bg-slate-50 ${j % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
+                  onClick={() => onRowClick?.(row)}
+                >
+                  {/* Member type — only shown on first row of each group */}
+                  {j === 0 ? (
+                    <TableCell
+                      className={`sticky left-0 z-10 min-w-[150px] px-4 py-3 align-top font-semibold text-[12px] ${j % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
+                      rowSpan={typeRows.length}
+                    >
+                      <span className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-bold leading-tight ${badge}`}>{mt}</span>
+                    </TableCell>
+                  ) : null}
+                  <TableCell className={`sticky left-[150px] z-10 min-w-[200px] px-4 py-3 text-[13px] font-medium text-slate-900 ${j % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}>{row.membership}</TableCell>
+                  <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.uniqueMembers)}</TableCell>
+                  <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.unitsSold)}</TableCell>
+                  <TableCell className="py-3 text-right text-[13px] font-medium text-slate-800">{formatCurrency(row.totalLtv)}</TableCell>
+                  <TableCell className="py-3 text-right text-[13px] font-medium text-slate-800">{formatCurrency(row.atv)}</TableCell>
+                  <TableCell className="py-3 text-right text-[13px] font-medium text-slate-800">{formatCurrency(row.auv)}</TableCell>
+                  <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{row.purchaseFreq.toFixed(1)}×</TableCell>
+                  <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{row.avgConvDays !== null ? `${row.avgConvDays.toFixed(0)}d` : '—'}</TableCell>
+                  <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{row.avgVisits.toFixed(1)}</TableCell>
+                </TableRow>
+              ));
+            })}
 
             {/* Totals */}
             <TableRow className="sticky bottom-0 z-10 border-t-2 border-slate-800 bg-slate-900 hover:bg-slate-800">
-              <TableCell className="sticky left-0 z-20 bg-slate-900 px-5 py-3 text-xs font-bold uppercase tracking-widest text-white">Total</TableCell>
+              <TableCell className="sticky left-0 z-20 bg-slate-900 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white" colSpan={2}>Total</TableCell>
               <TableCell className="py-3 text-center text-[13px] font-bold text-white">{formatNumber(totals.uniqueMembers)}</TableCell>
               <TableCell className="py-3 text-center text-[13px] font-bold text-white">{formatNumber(totals.unitsSold)}</TableCell>
               <TableCell className="py-3 text-right text-[13px] font-bold text-white">{formatCurrency(totals.totalLtv)}</TableCell>

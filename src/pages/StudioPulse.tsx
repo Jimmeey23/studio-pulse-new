@@ -83,6 +83,7 @@ import InsightDetailDialog from '@/components/dashboard/InsightDetailDialog';
 import { UniversalDrillDownModal } from '@/components/dashboard/UniversalDrillDownModal';
 import { MonthOnMonthTableNew } from '@/components/dashboard/MonthOnMonthTableNew';
 import { ClientConversionMonthOnMonthByTypeTable, NewClientMembershipPurchasesTable } from '@/components/dashboard/ClientConversionMonthOnMonthByTypeTableEnhanced';
+import { FloatingAISectionPanel } from '@/components/dashboard/FloatingAISectionPanel';
 import { UnifiedTopBottomSellers } from '@/components/dashboard/UnifiedTopBottomSellers';
 import DetailedComparisonView from '@/components/dashboard/DetailedComparisonView';
 import LocationReport from '@/pages/LocationReport';
@@ -416,8 +417,9 @@ const AnimatedSectionCard: React.FC<{
   sectionNumber?: number;
   className?: string;
   action?: React.ReactNode;
+  onAIPanel?: () => void;
   children: React.ReactNode;
-}> = ({ title, subtitle, icon: Icon, iconGradient, iconColor = '#6366f1', sectionNumber, className, action, children }) => {
+}> = ({ title, subtitle, icon: Icon, iconGradient, iconColor = '#6366f1', sectionNumber, className, action, onAIPanel, children }) => {
   const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
   const roman = sectionNumber !== undefined ? ROMAN[sectionNumber - 1] : null;
   return (
@@ -458,7 +460,19 @@ const AnimatedSectionCard: React.FC<{
             {subtitle && <p className="mt-0.5 text-[12px] font-medium text-slate-400">{subtitle}</p>}
           </div>
         </div>
-        {action}
+        <div className="flex items-center gap-2">
+          {action}
+          {onAIPanel && (
+            <button
+              type="button"
+              title="Open AI Insights panel"
+              onClick={onAIPanel}
+              className="group flex h-8 w-8 items-center justify-center rounded-xl border border-violet-200 bg-white text-violet-500 shadow-sm transition-all duration-150 hover:border-violet-400 hover:bg-violet-50 hover:shadow-md hover:text-violet-700"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
       <div className="p-7">
         {children}
@@ -724,7 +738,7 @@ function FormatComparisonSection({ sessions, trainerTabOnly, activeTab: activeTa
   const activeTab = activeTabProp ?? localTab;
   const setActiveTab = (tab: FormatCompTab) => { setLocalTab(tab); onTabChange?.(tab); };
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'classAvg' | 'fillRate' | 'revenue' | 'sessions'>('classAvg');
+  const [sortBy, setSortBy] = useState<'classAvg' | 'fillRate' | 'revenue' | 'sessions' | 'emptyClasses' | 'cancellationRate' | 'lateCancels' | 'revPerSession' | 'consistency'>('classAvg');
 
   const formatMetrics = useMemo<FormatMetrics[]>(() => {
     const grouped: Record<string, typeof sessions> = {};
@@ -809,7 +823,7 @@ function FormatComparisonSection({ sessions, trainerTabOnly, activeTab: activeTa
           ))}
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">Sort by</span>
+          <span className="text-xs font-semibold text-slate-500">Rank by</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
@@ -819,6 +833,11 @@ function FormatComparisonSection({ sessions, trainerTabOnly, activeTab: activeTa
             <option value="fillRate">Fill Rate</option>
             <option value="revenue">Revenue</option>
             <option value="sessions">Sessions</option>
+            <option value="emptyClasses">Empty Classes</option>
+            <option value="cancellationRate">Cancellation Rate</option>
+            <option value="lateCancels">Late Cancels</option>
+            <option value="revPerSession">Rev / Session</option>
+            <option value="consistency">Consistency</option>
           </select>
         </div>
       </div>}
@@ -869,16 +888,37 @@ function FormatComparisonSection({ sessions, trainerTabOnly, activeTab: activeTa
           rows.forEach((s) => { const raw = s.startTime || s.time || ''; const m = raw.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i); if (m) tc[m[1]] = (tc[m[1]] || 0) + 1; });
           const topTiming = Object.entries(tc).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
 
-          return { fmt, sessionsCount: rows.length, visits, capacity, revenue, lateCancels, classAvg, fillRate, emptyClasses, nonEmptyClasses: rows.length - emptyClasses, topTrainer, topClass, topTiming };
-        }).filter(Boolean) as { fmt: string; sessionsCount: number; visits: number; capacity: number; revenue: number; lateCancels: number; classAvg: number; fillRate: number; emptyClasses: number; nonEmptyClasses: number; topTrainer: string; topClass: string; topTiming: string }[];
+          const cancellationRate = visits + lateCancels > 0 ? (lateCancels / (visits + lateCancels)) * 100 : 0;
+          const revPerSession = rows.length ? revenue / rows.length : 0;
+          const avgCapacity = rows.length ? capacity / rows.length : 0;
+          const mean = classAvg;
+          const variance = rows.length > 0 ? rows.reduce((sv, r) => { const d = (Number(r.checkedInCount) || 0) - mean; return sv + d * d; }, 0) / rows.length : 0;
+          const consistency = mean > 0 ? Math.max(0, Math.round(100 - (Math.sqrt(variance) / mean) * 100)) : 0;
+
+          return { fmt, sessionsCount: rows.length, visits, capacity, revenue, lateCancels, classAvg, fillRate, emptyClasses, nonEmptyClasses: rows.length - emptyClasses, topTrainer, topClass, topTiming, cancellationRate, revPerSession, avgCapacity, consistency };
+        }).filter(Boolean) as { fmt: string; sessionsCount: number; visits: number; capacity: number; revenue: number; lateCancels: number; classAvg: number; fillRate: number; emptyClasses: number; nonEmptyClasses: number; topTrainer: string; topClass: string; topTiming: string; cancellationRate: number; revPerSession: number; avgCapacity: number; consistency: number }[];
+
+        // Sort cards by selected metric (lower is better for emptyClasses/cancellationRate/lateCancels)
+        const lowIsBetter = ['emptyClasses', 'cancellationRate', 'lateCancels'].includes(sortBy);
+        const sortedCards = [...cards].sort((a, b) => {
+          const av = (a as any)[sortBy] as number ?? 0;
+          const bv = (b as any)[sortBy] as number ?? 0;
+          return lowIsBetter ? av - bv : bv - av;
+        });
 
         const fmtCur = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0, notation: 'compact' });
+        const RANK_LABELS = ['#1', '#2', '#3'];
+        const RANK_BG: Record<number, string> = { 0: 'bg-yellow-400/90 text-yellow-900', 1: 'bg-slate-300/80 text-slate-700', 2: 'bg-amber-700/80 text-amber-100' };
 
         return (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {cards.map((card) => (
+            {sortedCards.map((card, rankIdx) => (
               <div key={card.fmt} className={cn('relative overflow-hidden rounded-2xl bg-gradient-to-br text-white shadow-lg', FMT_GRAD[card.fmt])}>
                 <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+                {/* Rank badge */}
+                <div className={cn('absolute top-3 right-3 z-20 rounded-full px-2 py-0.5 text-[10px] font-black tracking-wide shadow', RANK_BG[rankIdx] ?? 'bg-white/20 text-white/70')}>
+                  {RANK_LABELS[rankIdx] ?? `#${rankIdx + 1}`}
+                </div>
                 <div className="relative z-10 flex flex-col p-5 gap-4">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-white/60 mb-0.5">Class Format</p>
@@ -888,8 +928,10 @@ function FormatComparisonSection({ sessions, trainerTabOnly, activeTab: activeTa
                     {[
                       { label: 'Total Sessions', value: card.sessionsCount.toLocaleString() },
                       { label: 'Revenue', value: fmtCur.format(card.revenue) },
-                      { label: 'Avg Capacity', value: (card.capacity / (card.sessionsCount || 1)).toFixed(0) },
                       { label: 'Fill Rate', value: `${card.fillRate.toFixed(1)}%` },
+                      { label: 'Class Avg', value: card.classAvg.toFixed(1) },
+                      { label: 'Rev / Session', value: fmtCur.format(card.revPerSession) },
+                      { label: 'Avg Capacity', value: card.avgCapacity.toFixed(0) },
                     ].map(({ label, value }) => (
                       <div key={label} className={cn('rounded-xl px-3 py-2.5', FMT_ACCENT[card.fmt])}>
                         <p className="text-[10px] font-medium uppercase tracking-wider opacity-75 leading-none mb-1">{label}</p>
@@ -897,15 +939,32 @@ function FormatComparisonSection({ sessions, trainerTabOnly, activeTab: activeTa
                       </div>
                     ))}
                   </div>
-                  <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden">
-                    <div className={cn('h-1.5 rounded-full', FMT_BAR[card.fmt])} style={{ width: `${Math.min(card.fillRate, 100)}%` }} />
+                  {/* Fill rate bar */}
+                  <div>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[10px] text-white/60 font-semibold">Fill Rate</span>
+                      <span className="text-[10px] font-bold text-white/80">{card.fillRate.toFixed(1)}%</span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden">
+                      <div className={cn('h-1.5 rounded-full', FMT_BAR[card.fmt])} style={{ width: `${Math.min(card.fillRate, 100)}%` }} />
+                    </div>
+                  </div>
+                  {/* Consistency bar */}
+                  <div>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[10px] text-white/60 font-semibold">Consistency Score</span>
+                      <span className="text-[10px] font-bold text-white/80">{card.consistency}%</span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-white/60" style={{ width: `${Math.min(card.consistency, 100)}%` }} />
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     {[
                       { label: 'Non-Empty Classes', value: card.nonEmptyClasses },
                       { label: 'Empty Classes', value: card.emptyClasses },
-                      { label: 'Class Avg', value: card.classAvg.toFixed(1) },
-                      { label: 'Late Cancelled', value: card.lateCancels },
+                      { label: 'Late Cancels', value: card.lateCancels },
+                      { label: 'Cancel Rate', value: `${card.cancellationRate.toFixed(1)}%` },
                     ].map(({ label, value }) => (
                       <div key={label} className="flex items-center justify-between">
                         <span className="text-[11px] text-white/70 font-medium">{label}</span>
@@ -1162,13 +1221,37 @@ const StudioPulse = memo(() => {
     const total = filteredExpirations.length;
     const prev = previousExpirations.length;
     const yoy = previousYearExpirations.length;
-    // All lapsed records are churned (status field not available in this sheet format)
-    const churned = filteredExpirations.length;
+
+    // Categorise each expiring membership: frozen > renewed > lapsed, else active
+    const categorizeMembership = (e: (typeof filteredExpirations)[0]) => {
+      const s = (e.status || '').toLowerCase();
+      if (e.frozen || /frozen|freeze/i.test(s)) return 'frozen';
+      if (/renew/i.test(s)) return 'renewed';
+      if (/lapsed|inactive|expired|churn|lost/i.test(s)) return 'lapsed';
+      return 'active'; // still in window but not yet lapsed
+    };
+
+    const frozen = filteredExpirations.filter((e) => categorizeMembership(e) === 'frozen').length;
+    const renewed = filteredExpirations.filter((e) => categorizeMembership(e) === 'renewed').length;
+    // lapsed = all that are not frozen/renewed/active; if status unknown treat as lapsed
+    const lapsedArr = filteredExpirations.filter((e) => {
+      const cat = categorizeMembership(e);
+      const s = (e.status || '').toLowerCase();
+      // If no status info at all, treat as lapsed (membership has ended)
+      return cat === 'lapsed' || (cat === 'active' && !s);
+    });
+    const lapsed = lapsedArr.length;
+    const active = total - lapsed - renewed - frozen;
+    // churned = subset of lapsed specifically marked as churned
+    const churned = filteredExpirations.filter((e) => /churn/i.test(e.status || '')).length || lapsed;
+
+    // lapsed% = lapsed/expiring * 100
+    const lapsedPct = total ? (lapsed / total) * 100 : 0;
+    const churnRate = total ? (churned / total) * 100 : 0;
+
+    // prev / yoy equivalents (simplified)
     const prevChurned = previousExpirations.length;
     const yoyChurned = previousYearExpirations.length;
-    // Churn rate = lapsed / total memberships sold in period (cross-referenced with sales)
-    const totalSalesInPeriod = filteredSales.length;
-    const churnRate = totalSalesInPeriod ? (churned / totalSalesInPeriod) * 100 : total ? (churned / total) * 100 : 0;
     const prevChurnRate = prev ? (prevChurned / prev) * 100 : 0;
     const yoyChurnRate = yoy ? (yoyChurned / yoy) * 100 : 0;
     const byLocation: Record<string, number> = {};
@@ -1188,7 +1271,12 @@ const StudioPulse = memo(() => {
     const yoyAvgLtvLapsed = yoyLtvVals.length ? yoyLtvVals.reduce((a, b) => a + b, 0) / yoyLtvVals.length : 0;
     return {
       total,
+      lapsed,
+      renewed,
+      frozen,
+      active,
       churned,
+      lapsedPct,
       churnRate,
       avgLtvLapsed,
       topLocations,
@@ -1936,9 +2024,12 @@ const StudioPulse = memo(() => {
     months.forEach((month) => {
       const monthRows = studioWideExpirations.filter((item) => monthKeyFromDate(item.endDate) === month);
       const total = monthRows.length;
-      const renewed = 0; // not available in this sheet format
-      const lapsed = total;
-      const churned = total; // all lapsed = churned in this sheet format
+      const renewed = monthRows.filter((e) => /renew/i.test(e.status || '')).length;
+      const lapsed = monthRows.filter((e) => {
+        const s = (e.status || '').toLowerCase();
+        return !e.frozen && !/renew/i.test(s) && !/frozen|freeze/i.test(s) && !/^active$/i.test(s.trim());
+      }).length || total; // fallback: all are lapsed if no status
+      const churned = monthRows.filter((e) => /churn/i.test(e.status || '')).length || lapsed;
       const reactivated = 0;
       const revenueRecovered = 0;
       const revenueLost = monthRows.reduce((sum, e) => sum + ((e as any).amountPaid || Number(e.paid) || 0), 0);
@@ -1951,7 +2042,7 @@ const StudioPulse = memo(() => {
       rows[4].values[month] = reactivated;
       rows[5].values[month] = revenueRecovered;
       rows[6].values[month] = revenueLost;
-      rows[7].values[month] = total ? ((lapsed + churned) / total) * 100 : 0;
+      rows[7].values[month] = total ? (lapsed / total) * 100 : 0;
       rows[8].values[month] = total ? (churned / total) * 100 : 0;
       rows[9].values[month] = total ? (renewed / total) * 100 : 0;
       rows[10].values[month] = total ? (reactivated / total) * 100 : 0;
@@ -2336,8 +2427,11 @@ const StudioPulse = memo(() => {
   const [newMemberTableMetric, setNewMemberTableMetric] = useState<'source' | 'membership' | 'class'>('source');
   const [funnelChartMetric, setFunnelChartMetric] = useState<'leads' | 'converted' | 'retained' | 'ltv'>('leads');
   const [funnelRankingCount, setFunnelRankingCount] = useState<5 | 10 | 15 | 20>(5);
-  const [editableSummaryText, setEditableSummaryText] = useState('');
+  const [editableSummaryText, setEditableSummaryText] = useState(() => {
+    try { return localStorage.getItem('sp_summary_text') || ''; } catch { return ''; }
+  });
   const [isSummaryEditing, setIsSummaryEditing] = useState(false);
+  const [aiPanel, setAIPanel] = useState<{ open: boolean; sectionKey: string; title: string } | null>(null);
   const [showFunnelMomTable, setShowFunnelMomTable] = useState(false);
   const [funnelChartView, setFunnelChartView] = useState<'funnel' | 'bar'>('funnel');
   const [showFunnelBreakdownTable, setShowFunnelBreakdownTable] = useState(false);
@@ -3434,6 +3528,13 @@ const StudioPulse = memo(() => {
     sectionContext,
   }), [activeStudio.name, dateRange, sharedMetrics]);
 
+  const openAIPanel = useCallback((sectionKey: string, title: string, context?: string) => {
+    setAIPanel({ open: true, sectionKey, title });
+    if (!getSummary(sectionKey) && !aiSectionLoading(sectionKey)) {
+      generateAISummary(buildSummaryInput(sectionKey, context));
+    }
+  }, [getSummary, aiSectionLoading, generateAISummary, buildSummaryInput]);
+
   // Build rich section contexts — memoised so they update when data changes
   const sectionContexts = useMemo(() => {
     const topTrainers = [...trainerRankingsExtended.rows].sort((a, b) => b.paid - a.paid).slice(0, 3);
@@ -4157,12 +4258,16 @@ const StudioPulse = memo(() => {
               sectionNumber={1}
               action={
                 <div className="flex items-center gap-2">
+                  {isSummaryEditing && (
+                    <Button variant="outline" size="sm" onClick={() => { try { localStorage.setItem('sp_summary_text', editableSummaryText); } catch {} setIsSummaryEditing(false); }}>Save</Button>
+                  )}
                   <Button variant="outline" size="sm" onClick={() => { setIsSummaryEditing((v) => !v); if (!isSummaryEditing && !editableSummaryText) { setEditableSummaryText((aiSummary?.bullets ?? locationSummary.sections.flatMap((s) => s.bullets)).map((b) => `• ${b}`).join('\n')); } }}>
-                    {isSummaryEditing ? 'Done' : 'Edit'}
+                    {isSummaryEditing ? 'Cancel' : 'Edit'}
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setInsightOpen(true)}>Expand</Button>
                 </div>
               }
+              onAIPanel={() => openAIPanel('main', 'Studio Overview')}
             >
             <div className="space-y-5">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -4503,7 +4608,7 @@ const StudioPulse = memo(() => {
             </div>
             </AnimatedSectionCard>
 
-            <AnimatedSectionCard title="Sales Metrics" subtitle="Month-on-month table and seller lists" icon={CircleDollarSign} iconGradient="from-blue-600 to-blue-900" iconColor="#1d4ed8" sectionNumber={2}>
+            <AnimatedSectionCard title="Sales Metrics" subtitle="Month-on-month table and seller lists" icon={CircleDollarSign} iconGradient="from-blue-600 to-blue-900" iconColor="#1d4ed8" sectionNumber={2} onAIPanel={() => openAIPanel('sales', 'Sales Metrics')}>
               <div className="space-y-6">
                 <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                   <div className="bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 px-6 py-4 text-white">
@@ -4758,6 +4863,7 @@ const StudioPulse = memo(() => {
               iconGradient="from-emerald-500 to-teal-700"
               iconColor="#059669"
               sectionNumber={3}
+              onAIPanel={() => openAIPanel('funnel', 'New Member Funnel & Conversions')}
               action={
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
@@ -5326,6 +5432,7 @@ const StudioPulse = memo(() => {
               iconGradient="from-violet-600 to-purple-900"
               iconColor="#7c3aed"
               sectionNumber={4}
+              onAIPanel={() => openAIPanel('trainers', 'Teacher Scorecard')}
               action={
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
@@ -5714,6 +5821,7 @@ const StudioPulse = memo(() => {
               iconGradient="from-red-600 to-rose-900"
               iconColor="#dc2626"
               sectionNumber={5}
+              onAIPanel={() => openAIPanel('lapsed', 'Lapsed Members')}
               action={
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
@@ -6150,6 +6258,7 @@ const StudioPulse = memo(() => {
               iconGradient="from-cyan-500 to-sky-800"
               iconColor="#0891b2"
               sectionNumber={6}
+              onAIPanel={() => openAIPanel('attendance', 'Class Attendance')}
               action={
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
@@ -7185,6 +7294,18 @@ const StudioPulse = memo(() => {
         </AnimatePresence>
         )}
       </div>
+
+      {aiPanel && (
+        <FloatingAISectionPanel
+          isOpen={aiPanel.open}
+          onClose={() => setAIPanel(null)}
+          title={aiPanel.title}
+          sectionKey={aiPanel.sectionKey}
+          getSummary={getSummary}
+          aiSectionLoading={aiSectionLoading}
+          onGenerate={() => generateAISummary(buildSummaryInput(aiPanel.sectionKey))}
+        />
+      )}
 
       <InsightDetailDialog
         open={insightOpen}
