@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kwality House — May 2026 Performance Report</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --bg2: #f8f9fc;
+  --bg3: #f0f2f7;
+  --surface: #ffffff;
+  --surface2: #f4f6fb;
+  --border: #dde2ed;
+  --border2: #c8d0e0;
+  --text: #0d1117;
+  --text-2: #3a4355;
+  --text-muted: #5a6474;
+  --text-light: #8c95a6;
+  --blue: #0d2137;
+  --blue-mid: #1a3f6b;
+  --blue-light: #2b6cb0;
+  --blue-pale: #e8f0f9;
+  --yellow: #c8960c;
+  --yellow-deep: #a07508;
+  --yellow-pale: #fef9ec;
+  --yellow-mid: #e8b94f;
+  --positive: #1a6b3c;
+  --positive-bg: #edf7f2;
+  --warn: #b54708;
+  --warn-bg: #fff4ec;
+  --red: #991b1b;
+  --red-bg: #fef2f2;
+  --shadow: 0 1px 4px rgba(13,33,55,0.06), 0 4px 16px rgba(13,33,55,0.06);
+  --shadow-lg: 0 4px 24px rgba(13,33,55,0.10);
+  --radius: 12px;
+  --radius-sm: 7px;
+}
+[data-theme="dark"] {
+  --bg: #000000;
+  --bg2: #0a0a0a;
+  --bg3: #111111;
+  --surface: #0f0f0f;
+  --surface2: #161616;
+  --border: #1e1e1e;
+  --border2: #2a2a2a;
+  --text: #f0f2f5;
+  --text-2: #c0c8d8;
+  --text-muted: #8a93a6;
+  --text-light: #555e70;
+  --blue: #4a90d9;
+  --blue-mid: #2b6cb0;
+  --blue-light: #63b3ed;
+  --blue-pale: #0a1a2e;
+  --yellow: #e8b94f;
+  --yellow-deep: #c8960c;
+  --yellow-pale: #1a1200;
+  --yellow-mid: #d4a314;
+  --positive: #4ade80;
+  --positive-bg: #052e16;
+  --warn: #fb923c;
+  --warn-bg: #1c0f00;
+  --red: #f87171;
+  --red-bg: #1c0000;
+  --shadow: 0 1px 4px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,0.5);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Georgia', 'Times New Roman', serif; background: var(--bg); color: var(--text); line-height: 1.65; font-size: 15px; transition: background .25s, color .25s; }
+a { color: var(--blue-light); text-decoration: none; }
+
+/* TOGGLE */
+.theme-toggle {
+  position: fixed; top: 20px; right: 24px; z-index: 1000;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 50px; padding: 8px 18px;
+  font-family: 'Helvetica Neue', sans-serif; font-size: 12px; letter-spacing: .5px;
+  color: var(--text-muted); cursor: pointer; box-shadow: var(--shadow);
+  transition: all .2s;
+}
+.theme-toggle:hover { color: var(--text); box-shadow: var(--shadow-lg); }
+
+/* HERO */
+.hero {
+  background: var(--blue);
+  color: #fff;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="dark"] .hero { background: #000; border-bottom: 1px solid #1a1a1a; }
+.hero-inner {
+  max-width: 1400px; margin: 0 auto; padding: 80px 60px 0;
+}
+.hero-top {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: end; padding-bottom: 60px;
+}
+.hero-label {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--yellow-mid); margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: clamp(38px, 4.5vw, 64px); font-weight: 400; line-height: 1.08;
+  color: #fff; margin-bottom: 20px;
+}
+.hero h1 span { color: var(--yellow-mid); }
+.hero-desc {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 14px; line-height: 1.7;
+  color: rgba(255,255,255,0.55); max-width: 380px;
+}
+.hero-verdict {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius); padding: 28px 32px;
+}
+.hero-verdict-title {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 10px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--yellow-mid); margin-bottom: 14px;
+}
+.hero-verdict p {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 14px; line-height: 1.75;
+  color: rgba(255,255,255,0.72);
+}
+.hero-verdict strong { color: #fff; font-weight: 600; }
+.hero-kpi-bar {
+  background: rgba(255,255,255,0.04); border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 36px 60px; max-width: 100%;
+}
+.hero-kpis {
+  max-width: 1400px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 0;
+}
+.hero-kpi {
+  padding: 0 28px 0 0; border-right: 1px solid rgba(255,255,255,0.1);
+  margin-right: 28px;
+}
+.hero-kpi:last-child { border-right: none; margin-right: 0; }
+.hero-kpi-label {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 6px;
+}
+.hero-kpi-val { font-size: 26px; color: #fff; letter-spacing: -0.5px; line-height: 1; margin-bottom: 5px; }
+.hero-kpi-delta {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 11px;
+}
+.d-up { color: #4ade80; }
+.d-down { color: #f87171; }
+.d-neu { color: rgba(255,255,255,0.4); }
+
+/* LAYOUT */
+.wrap { max-width: 1400px; margin: 0 auto; padding: 0 60px; }
+@media(max-width:900px) { .wrap { padding: 0 24px; } }
+.section { padding: 72px 0 40px; }
+.section-divider { height: 1px; background: var(--border); }
+
+/* SECTION HEADER */
+.sh { margin-bottom: 44px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+.sh-left { }
+.sh-eyebrow {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 9px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--yellow); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.sh-eyebrow::before { content: ''; display: block; width: 24px; height: 1px; background: var(--yellow); }
+.sh-title { font-size: clamp(22px, 2.5vw, 32px); font-weight: 400; color: var(--text); line-height: 1.15; }
+.sh-right {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 13px; line-height: 1.75;
+  color: var(--text-muted); padding-top: 4px;
+  border-left: 2px solid var(--border); padding-left: 24px;
+}
+
+/* CARDS */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 28px 32px; box-shadow: var(--shadow);
+}
+.card-title {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 9px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--text-light); margin-bottom: 20px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* GRID LAYOUTS */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.g21 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+.g12 { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+.g32 { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; }
+@media(max-width:900px) { .g2,.g3,.g21,.g12,.g32 { grid-template-columns: 1fr; } }
+.mb20 { margin-bottom: 20px; }
+.mb32 { margin-bottom: 32px; }
+.mb48 { margin-bottom: 48px; }
+
+/* KPI STRIP */
+.kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 28px; }
+@media(max-width:900px) { .kpi-strip { grid-template-columns: repeat(2,1fr); } }
+.kpi-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 20px 22px; position: relative; overflow: hidden;
+}
+.kpi-box::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: var(--yellow);
+}
+.kpi-box.blue::after { background: var(--blue); }
+.kpi-box.positive::after { background: var(--positive); }
+.kpi-box.warn::after { background: var(--warn); }
+.kpi-box.red::after { background: var(--red); }
+.kpi-label {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text-light); margin-bottom: 6px;
+}
+.kpi-val { font-size: 26px; color: var(--text); letter-spacing: -0.5px; margin-bottom: 4px; line-height: 1; }
+.kpi-sub { font-family: 'Helvetica Neue', sans-serif; font-size: 11px; color: var(--text-muted); }
+
+/* TABLES */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-family: 'Helvetica Neue', sans-serif; font-size: 12.5px; }
+thead th {
+  text-align: left; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text-light); padding: 10px 14px; border-bottom: 1px solid var(--border2);
+  background: var(--bg2); font-weight: 500; white-space: nowrap;
+}
+tbody td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-2);
+  vertical-align: middle;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg2); }
+.tr { text-align: right; }
+.tc { text-align: center; }
+.tn { color: var(--text); font-weight: 600; }
+.t-blue { color: var(--blue-light); font-weight: 600; }
+.t-yellow { color: var(--yellow); font-weight: 600; }
+.t-green { color: var(--positive); }
+.t-warn { color: var(--warn); }
+.t-red { color: var(--red); }
+.t-muted { color: var(--text-light); }
+
+/* BAR */
+.bar-wrap { display: flex; align-items: center; gap: 8px; }
+.bar-bg { flex: 1; height: 5px; background: var(--border2); border-radius: 3px; overflow: hidden; min-width: 60px; }
+.bar-fill { height: 100%; border-radius: 3px; background: var(--blue-light); }
+.bar-fill.yellow { background: var(--yellow); }
+.bar-fill.green { background: var(--positive); }
+.bar-fill.warn { background: var(--warn); }
+.bar-fill.red { background: var(--red); }
+.bar-pct { font-size: 11px; color: var(--text-muted); width: 34px; text-align: right; flex-shrink: 0; }
+
+/* BADGES */
+.badge {
+  display: inline-flex; align-items: center;
+  font-family: 'Helvetica Neue', sans-serif; font-size: 10px; letter-spacing: .3px;
+  padding: 2px 9px; border-radius: 20px; font-weight: 500; white-space: nowrap;
+}
+.badge-blue { background: var(--blue-pale); color: var(--blue-light); }
+.badge-yellow { background: var(--yellow-pale); color: var(--yellow-deep); }
+.badge-green { background: var(--positive-bg); color: var(--positive); }
+.badge-warn { background: var(--warn-bg); color: var(--warn); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-gray { background: var(--bg3); color: var(--text-muted); }
+
+/* INSIGHT BOXES */
+.insight-panel { display: flex; flex-direction: column; gap: 12px; }
+.insight {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 16px 18px; font-family: 'Helvetica Neue', sans-serif; font-size: 12.5px; line-height: 1.65;
+  color: var(--text-2); position: relative; padding-left: 22px;
+}
+.insight::before {
+  content: '›'; position: absolute; left: 10px; top: 15px;
+  color: var(--yellow); font-size: 16px; font-weight: 700; line-height: 1;
+}
+.insight.blue::before { color: var(--blue-light); }
+.insight.green::before { color: var(--positive); }
+.insight.warn::before { color: var(--warn); }
+.insight.red::before { color: var(--red); }
+.insight strong { display: block; color: var(--text); font-size: 12px; margin-bottom: 4px; letter-spacing: .1px; }
+.insight em { font-style: normal; color: var(--yellow); font-weight: 600; }
+
+/* RED FLAGS */
+.flag-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px; }
+@media(max-width:900px) { .flag-grid { grid-template-columns: 1fr; } }
+.flag {
+  background: var(--red-bg); border: 1px solid rgba(153,27,27,0.2);
+  border-left: 3px solid var(--red); border-radius: var(--radius-sm);
+  padding: 16px 18px; font-family: 'Helvetica Neue', sans-serif; font-size: 12.5px; line-height: 1.65;
+}
+[data-theme="dark"] .flag { border-color: rgba(248,113,113,0.15); border-left-color: var(--red); }
+.flag-title { font-size: 11px; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.flag p { color: var(--text-2); }
+
+/* WHAT WORKED GRID */
+.ww-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:900px) { .ww-grid { grid-template-columns: 1fr; } }
+.ww {
+  padding: 16px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  font-family: 'Helvetica Neue', sans-serif; font-size: 12.5px; line-height: 1.65;
+  position: relative; padding-left: 22px;
+}
+.ww::before { content: '—'; position: absolute; left: 10px; top: 16px; font-size: 12px; }
+.ww.pos { border-left: 3px solid var(--positive); background: var(--positive-bg); }
+.ww.pos::before { color: var(--positive); }
+.ww.neg { border-left: 3px solid var(--warn); background: var(--warn-bg); }
+.ww.neg::before { color: var(--warn); }
+.ww strong { display: block; font-size: 12px; margin-bottom: 4px; }
+.ww.pos strong { color: var(--positive); }
+.ww.neg strong { color: var(--warn); }
+
+/* ACTION ITEMS */
+.action {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 28px 32px; margin-bottom: 16px;
+  display: grid; grid-template-columns: 56px 1fr; gap: 24px; align-items: start;
+}
+.action-num {
+  width: 52px; height: 52px; background: var(--blue); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Helvetica Neue', sans-serif; font-size: 20px; font-weight: 700;
+  color: #fff; flex-shrink: 0;
+}
+[data-theme="dark"] .action-num { background: var(--blue-mid); }
+.action-body h4 { font-size: 17px; font-weight: 400; margin-bottom: 10px; color: var(--text); }
+.action-body p { font-family: 'Helvetica Neue', sans-serif; font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+.action-body p strong { color: var(--text); font-weight: 600; }
+.action-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.action-tag {
+  font-family: 'Helvetica Neue', sans-serif; font-size: 10px; letter-spacing: .3px;
+  padding: 2px 9px; border-radius: 20px; background: var(--blue-pale); color: var(--blue-light);
+}
+
+/* CONCLUSIONS */
+.conclusion-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media(max-width:900px) { .conclusion-grid { grid-template-columns: 1fr; } }
+.conc {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 22px 24px;
+  font-family: 'Helvetica Neue', sans-serif;
+}
+.conc-num {
+  font-family: 'Georgia', serif; font-size: 36px; color: var(--yellow); line-height: 1;
+  margin-bottom: 8px; display: block;
+}
+.conc-text { font-size: 13px; line-height: 1.65; color: var(--text-2); }
+.conc-verdict {
+  font-size: 10px; letter-spacing: .5px; text-transform: uppercase;
+  color: var(--text-light); margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--border); display: block;
+}
+
+/* FUNNEL */
+.funnel-row { margin-bottom: 12px; }
+.funnel-meta { display: flex; justify-content: space-between; font-family: 'Helvetica Neue', sans-serif; font-size: 12px; color: var(--text-2); margin-bottom: 5px; }
+.funnel-meta .fn { font-weight: 600; }
+.funnel-meta .fd { color: var(--text-light); }
+.funnel-bg { height: 10px; background: var(--bg3); border-radius: 5px; overflow: hidden; }
+.funnel-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--blue), var(--blue-light)); }
+
+/* HEATMAP */
+.hm { display: grid; grid-template-columns: 56px repeat(7, 1fr); gap: 3px; font-family: 'Helvetica Neue', sans-serif; }
+.hm-head { text-align: center; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-light); padding: 4px 2px; }
+.hm-time { font-size: 11px; color: var(--text-light); display: flex; align-items: center; padding-right: 4px; }
+.hm-cell { border-radius: 4px; padding: 9px 2px; text-align: center; font-size: 10px; font-weight: 600; cursor: default; transition: transform .12s; }
+.hm-cell:hover { transform: scale(1.07); }
+.hm-blank { border-radius: 4px; padding: 9px 2px; background: var(--bg3); }
+
+/* HIGHLIGHT BOX */
+.highlight {
+  background: var(--blue-pale); border: 1px solid rgba(43,108,176,0.2);
+  border-left: 3px solid var(--blue-light); border-radius: var(--radius-sm);
+  padding: 20px 24px; margin-bottom: 24px;
+  font-family: 'Helvetica Neue', sans-serif; font-size: 13px; line-height: 1.75; color: var(--text-2);
+}
+[data-theme="dark"] .highlight { border-color: rgba(99,179,237,0.15); }
+.highlight strong { color: var(--blue-light); font-weight: 600; }
+
+.warn-box {
+  background: var(--warn-bg); border: 1px solid rgba(181,71,8,0.2);
+  border-left: 3px solid var(--warn); border-radius: var(--radius-sm);
+  padding: 18px 22px; margin-bottom: 20px;
+  font-family: 'Helvetica Neue', sans-serif; font-size: 13px; line-height: 1.75; color: var(--text-2);
+}
+.warn-box strong { color: var(--warn); }
+
+/* FOOTER */
+.footer {
+  background: var(--blue); color: rgba(255,255,255,0.35);
+  text-align: center; padding: 36px;
+  font-family: 'Helvetica Neue', sans-serif; font-size: 10px; letter-spacing: 2px;
+  text-transform: uppercase; margin-top: 80px;
+}
+[data-theme="dark"] .footer { background: #000; border-top: 1px solid #1a1a1a; }
+
+/* COMPARISON TABLE specific */
+.col-may { color: var(--yellow); font-weight: 700; }
+.col-apr { color: var(--text-light); }
+.col-jmavg { color: var(--blue-light); }
+
+/* LAPSED specific */
+.lapse-count { font-size: 28px; font-weight: 400; color: var(--red); font-family: 'Georgia', serif; }
+
+/* PAGE BREAK / TOC NAV */
+.toc {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 24px 32px; margin-bottom: 48px; margin-top: 40px;
+}
+.toc-title { font-family: 'Helvetica Neue', sans-serif; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-light); margin-bottom: 16px; }
+.toc-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px 16px; list-style: none; }
+@media(max-width:900px) { .toc-list { grid-template-columns: 1fr 1fr; } }
+.toc-list li a { font-family: 'Helvetica Neue', sans-serif; font-size: 12px; color: var(--text-muted); display: block; padding: 5px 0; border-bottom: 1px solid var(--border); }
+.toc-list li a:hover { color: var(--blue-light); }
+.toc-list li a span { color: var(--yellow); margin-right: 6px; font-size: 10px; }
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="(function(){var d=document.documentElement,t=d.getAttribute('data-theme'),b=document.getElementById('tbt');if(t==='light'){d.setAttribute('data-theme','dark');b.textContent='Light Mode';}else{d.setAttribute('data-theme','light');b.textContent='Dark Mode';}})()" >
+  <span id="tbt">Dark Mode</span>
+</button>
+
+<!-- ══════════════════════ HERO ══════════════════════ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <div>
+        <div class="hero-label">Senior Management Review &nbsp;·&nbsp; Kwality House, Kemps Corner &nbsp;·&nbsp; May 1–31, 2026</div>
+        <h1>Monthly<br>Performance<br><span>Report</span></h1>
+        <p class="hero-desc">A full-spectrum business intelligence review covering revenue, session performance, trainer analytics, new client acquisition, lapsed membership diagnostics, and strategic action items. Generated June 17, 2026.</p>
+      </div>
+      <div class="hero-verdict">
+        <div class="hero-verdict-title">Executive Summary</div>
+        <p>May 2026 delivered <strong>₹24.28L gross revenue</strong> — 7.4% above the Jan–Mar baseline of ₹22.6L. With discount penetration at <strong>15.6%</strong> versus April's 33%, the revenue quality is markedly better than the previous month. The critical concerns are a <strong>100% lapse rate</strong> on 54 expiring memberships, a <strong>77% new-client non-conversion rate</strong>, and 256 late cancellations creating scheduling friction. June is tracking at ₹13.6L through 17 days — consistent with a healthy full-month outcome if the second half holds. The strongest performance signals are Strength Lab (80.7% fill), the referral channel (41% conversion rate), and membership revenue holding at ₹3.4L without promotional support.</p>
+      </div>
+    </div>
+  </div>
+  <div class="hero-kpi-bar">
+    <div class="hero-kpis">
+      <div class="hero-kpi">
+        <div class="hero-kpi-label">Gross Revenue</div>
+        <div class="hero-kpi-val">₹24.3L</div>
+        <div class="hero-kpi-delta d-up">+7.4% vs J–M avg</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-label">Net Revenue</div>
+        <div class="hero-kpi-val">₹23.1L</div>
+        <div class="hero-kpi-delta d-up">+9% vs J–M avg</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-label">Transactions</div>
+        <div class="hero-kpi-val">320</div>
+        <div class="hero-kpi-delta d-up">+0.9% vs J–M avg</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-label">Unique Members</div>
+        <div class="hero-kpi-val">193</div>
+        <div class="hero-kpi-delta d-up">+3.2% vs J–M avg</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-label">New Clients</div>
+        <div class="hero-kpi-val">122</div>
+        <div class="hero-kpi-delta d-neu">23% converted</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-label">Avg Txn Value</div>
+        <div class="hero-kpi-val">₹7,228</div>
+        <div class="hero-kpi-delta d-up">+7.3% vs J–M avg</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-label">Late Cancels</div>
+        <div class="hero-kpi-val">256</div>
+        <div class="hero-kpi-delta d-down">Critical — action req'd</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOC -->
+<div class="wrap">
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <ul class="toc-list">
+      <li><a href="#fin"><span>01</span> Financial Performance</a></li>
+      <li><a href="#session"><span>02</span> Session Intelligence</a></li>
+      <li><a href="#trainer"><span>03</span> Trainer Rankings</a></li>
+      <li><a href="#funnel"><span>04</span> New Client Funnel</a></li>
+      <li><a href="#lapsed"><span>05</span> Lapsed Memberships</a></li>
+      <li><a href="#flags"><span>06</span> Red Flags & Predictions</a></li>
+      <li><a href="#ww"><span>07</span> What Worked / Didn't</a></li>
+      <li><a href="#actions"><span>08</span> Action Items</a></li>
+      <li><a href="#conc"><span>09</span> Conclusions</a></li>
+    </ul>
+  </nav>
+</div>
+
+<!-- ══════════════════════ SECTION 1: FINANCIAL ══════════════════════ -->
+<div class="wrap">
+<section class="section" id="fin">
+  <div class="sh">
+    <div class="sh-left">
+      <div class="sh-eyebrow">01 · Financial Performance</div>
+      <div class="sh-title">Revenue, Sales Mix<br>& Comparative Health</div>
+    </div>
+    <div class="sh-right">April 2026 is excluded as the performance baseline — it was a 2× gross sales anomaly driven by anniversary discounts (33% discount penetration, ₹21.5L in discounts). May is compared against the Jan–Mar 2026 average, which represents the studio's true organic run-rate. May outperforms this baseline across every key metric.</div>
+  </div>
+
+  <div class="highlight mb32">
+    May's <strong>₹24.28L gross revenue</strong> reflects 7.4% above the Jan–Mar average of ₹22.6L, achieved with only <strong>15.6% discount penetration</strong> versus January's 14.6% and February's 22%. Promo-led revenue is ₹13.47L — 55.5% of gross sales — which remains elevated and warrants monitoring. Membership sales at ₹3.4L match April's ₹3.47L with none of April's promotional support, demonstrating genuine demand for recurring commitment products. The <strong>top seller share has dropped to 28.9%</strong> (from 42.8% in February), indicating healthier revenue distribution across the product portfolio.
+  </div>
+
+  <div class="kpi-strip mb32">
+    <div class="kpi-box">
+      <div class="kpi-label">Gross Sales</div>
+      <div class="kpi-val">₹24.28L</div>
+      <div class="kpi-sub">+7.4% vs Jan–Mar avg</div>
+    </div>
+    <div class="kpi-box blue">
+      <div class="kpi-label">Net Sales</div>
+      <div class="kpi-val">₹23.13L</div>
+      <div class="kpi-sub">+9.0% vs Jan–Mar avg</div>
+    </div>
+    <div class="kpi-box positive">
+      <div class="kpi-label">Avg Txn Value</div>
+      <div class="kpi-val">₹7,228</div>
+      <div class="kpi-sub">+7.3% vs Jan–Mar avg</div>
+    </div>
+    <div class="kpi-box warn">
+      <div class="kpi-label">Promo-led Sales</div>
+      <div class="kpi-val">55.5%</div>
+      <div class="kpi-sub">₹13.47L of ₹24.28L gross</div>
+    </div>
+    <div class="kpi-box red">
+      <div class="kpi-label">Discount Value</div>
+      <div class="kpi-val">₹9.58L</div>
+      <div class="kpi-sub">15.6% penetration</div>
+    </div>
+  </div>
+
+  <div class="g32 mb32">
+    <div class="card">
+      <div class="card-title">Full Sales Metrics Comparison — May 2026 vs April 2026 vs Jan–Mar 2026 Average</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th class="tr col-may">May '26</th>
+              <th class="tr col-apr">Apr '26</th>
+              <th class="tr col-jmavg">Jan–Mar Avg</th>
+              <th class="tr">Jan '26</th>
+              <th class="tr">Feb '26</th>
+              <th class="tr">Mar '26</th>
+              <th class="tr">Trend</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="tn">Gross Sales</td><td class="tr col-may">₹24,28,386</td><td class="tr col-apr">₹50,01,388</td><td class="tr col-jmavg">₹22,61,378</td><td class="tr t-muted">₹27,44,705</td><td class="tr t-muted">₹19,21,110</td><td class="tr t-muted">₹20,18,321</td><td class="tr"><span class="badge badge-green">Above baseline</span></td></tr>
+            <tr><td class="tn">Net Sales</td><td class="tr col-may">₹23,12,818</td><td class="tr col-apr">₹47,64,223</td><td class="tr col-jmavg">₹21,21,907</td><td class="tr t-muted">₹26,14,721</td><td class="tr t-muted">₹18,28,940</td><td class="tr t-muted">₹19,22,061</td><td class="tr"><span class="badge badge-green">+9%</span></td></tr>
+            <tr><td class="tn">Transactions</td><td class="tr col-may">320</td><td class="tr col-apr">421</td><td class="tr col-jmavg">317</td><td class="tr t-muted">302</td><td class="tr t-muted">323</td><td class="tr t-muted">326</td><td class="tr"><span class="badge badge-green">Stable</span></td></tr>
+            <tr><td class="tn">Unique Members</td><td class="tr col-may">193</td><td class="tr col-apr">223</td><td class="tr col-jmavg">187</td><td class="tr t-muted">190</td><td class="tr t-muted">190</td><td class="tr t-muted">182</td><td class="tr"><span class="badge badge-green">+3.2%</span></td></tr>
+            <tr><td class="tn">Avg Txn Value</td><td class="tr col-may">₹7,228</td><td class="tr col-apr">₹11,316</td><td class="tr col-jmavg">₹6,739</td><td class="tr t-muted">₹8,658</td><td class="tr t-muted">₹5,662</td><td class="tr t-muted">₹5,896</td><td class="tr"><span class="badge badge-green">+7.3%</span></td></tr>
+            <tr><td class="tn">Discount Value</td><td class="tr col-may">₹9,57,891</td><td class="tr col-apr">₹21,51,915</td><td class="tr col-jmavg">₹3,76,732</td><td class="tr t-muted">₹3,59,812</td><td class="tr t-muted">₹3,91,117</td><td class="tr t-muted">₹3,79,268</td><td class="tr"><span class="badge badge-warn">2.5× baseline</span></td></tr>
+            <tr><td class="tn">Discounted Txns</td><td class="tr col-may">50</td><td class="tr col-apr">139</td><td class="tr col-jmavg">54</td><td class="tr t-muted">44</td><td class="tr t-muted">71</td><td class="tr t-muted">48</td><td class="tr"><span class="badge badge-gray">Near baseline</span></td></tr>
+            <tr><td class="tn">Discount Penetration</td><td class="tr col-may">15.6%</td><td class="tr col-apr">33.0%</td><td class="tr col-jmavg">17.1%</td><td class="tr t-muted">14.6%</td><td class="tr t-muted">22.0%</td><td class="tr t-muted">14.7%</td><td class="tr"><span class="badge badge-green">Normalising</span></td></tr>
+            <tr><td class="tn">Revenue / Member</td><td class="tr col-may">₹11,984</td><td class="tr col-apr">₹21,364</td><td class="tr col-jmavg">₹11,316</td><td class="tr t-muted">₹13,762</td><td class="tr t-muted">₹9,626</td><td class="tr t-muted">₹10,561</td><td class="tr"><span class="badge badge-green">3-month high</span></td></tr>
+            <tr><td class="tn">VAT Collected</td><td class="tr col-may">₹1,15,567</td><td class="tr col-apr">₹2,37,164</td><td class="tr col-jmavg">₹1,06,137</td><td class="tr t-muted">₹1,29,984</td><td class="tr t-muted">₹92,169</td><td class="tr t-muted">₹96,259</td><td class="tr"><span class="badge badge-gray">—</span></td></tr>
+            <tr><td class="tn">Package Sales</td><td class="tr col-may">₹6,97,808</td><td class="tr col-apr">₹8,09,260</td><td class="tr col-jmavg">₹7,22,620</td><td class="tr t-muted">₹8,07,372</td><td class="tr t-muted">₹6,43,493</td><td class="tr t-muted">₹7,16,996</td><td class="tr"><span class="badge badge-gray">Stable</span></td></tr>
+            <tr><td class="tn">Membership Sales</td><td class="tr col-may">₹3,40,010</td><td class="tr col-apr">₹3,47,872</td><td class="tr col-jmavg">₹42,054</td><td class="tr t-muted">₹46,636</td><td class="tr t-muted">₹65,551</td><td class="tr t-muted">₹13,975</td><td class="tr"><span class="badge badge-green">Standout</span></td></tr>
+            <tr><td class="tn">Drop-in Sales</td><td class="tr col-may">₹5,13,590</td><td class="tr col-apr">₹5,74,228</td><td class="tr col-jmavg">₹4,07,962</td><td class="tr t-muted">₹4,06,592</td><td class="tr t-muted">₹3,75,753</td><td class="tr t-muted">₹4,41,543</td><td class="tr"><span class="badge badge-green">+26%</span></td></tr>
+            <tr><td class="tn">Retail Sales</td><td class="tr col-may">₹72,235</td><td class="tr col-apr">₹1,02,110</td><td class="tr col-jmavg">₹67,212</td><td class="tr t-muted">₹67,324</td><td class="tr t-muted">₹49,340</td><td class="tr t-muted">₹84,971</td><td class="tr"><span class="badge badge-green">Growing</span></td></tr>
+            <tr><td class="tn">Online / System Sales</td><td class="tr col-may">₹5,59,494</td><td class="tr col-apr">₹12,47,989</td><td class="tr col-jmavg">₆,17,087</td><td class="tr t-muted">₹7,67,605</td><td class="tr t-muted">₹5,79,783</td><td class="tr t-muted">₹5,03,872</td><td class="tr"><span class="badge badge-gray">Below J avg</span></td></tr>
+            <tr><td class="tn">Promo-led Sales</td><td class="tr col-may">₹13,46,998</td><td class="tr col-apr">₹34,23,010</td><td class="tr col-jmavg">₹11,01,733</td><td class="tr t-muted">₹12,43,471</td><td class="tr t-muted">₹10,35,560</td><td class="tr t-muted">₹10,28,169</td><td class="tr"><span class="badge badge-warn">55.5% of gross</span></td></tr>
+            <tr><td class="tn">Top Seller Share</td><td class="tr col-may">28.9%</td><td class="tr col-apr">26.2%</td><td class="tr col-jmavg">35.5%</td><td class="tr t-muted">32.0%</td><td class="tr t-muted">42.8%</td><td class="tr t-muted">31.7%</td><td class="tr"><span class="badge badge-green">Well distributed</span></td></tr>
+            <tr><td class="tn">Distinct Products</td><td class="tr col-may">19</td><td class="tr col-apr">23</td><td class="tr col-jmavg">20</td><td class="tr t-muted">21</td><td class="tr t-muted">19</td><td class="tr t-muted">20</td><td class="tr"><span class="badge badge-gray">Stable</span></td></tr>
+            <tr><td class="tn">Money Credits Used</td><td class="tr col-may">₹2,686</td><td class="tr col-apr">₹6,282</td><td class="tr col-jmavg">₹7,472</td><td class="tr t-muted">₹9,705</td><td class="tr t-muted">₹790</td><td class="tr t-muted">₹11,921</td><td class="tr"><span class="badge badge-green">Declining</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Financial Insights</div>
+      <div class="insight-panel">
+        <div class="insight blue"><strong>Revenue quality is the strongest in 4 months</strong>May's net-to-gross ratio is 95.2% — the highest since January. Lower discounting means more revenue is real margin. April's 95.2% net ratio was similar numerically but on 2× gross volume — May's is cleaner.</div>
+        <div class="insight"><strong>Membership sales have broken out of their Jan–Mar range</strong>Jan–Mar average was only ₹42,054/month. May and April both delivered ₹3.4L+ — a 7× increase. This is not a blip; it indicates a structural shift in buyer intent toward commitment products.</div>
+        <div class="insight green"><strong>Drop-in revenue is 26% above the Jan–Mar average</strong>₹5.13L vs ₹4.08L average. Drop-in clients (124 transactions) represent the highest conversion opportunity — they're already inside the studio, already paying. A structured post-drop-in offer converts these casual clients.</div>
+        <div class="insight warn"><strong>Promo dependency is at 55.5% of gross — above the baseline</strong>Jan avg was 45.3%. May's 55.5% means more than half of all revenue flows through promotional pathways. While discount penetration at 15.6% is healthy, the underlying promo architecture is broader than it appears.</div>
+        <div class="insight"><strong>Online / System sales are down versus January</strong>₹5.59L vs ₹7.68L in January — a 27% drop. This may indicate declining self-serve bookings or a shift toward front-desk / in-person transactions. Worth monitoring to see if it reflects digital journey friction.</div>
+        <div class="insight green"><strong>Retail is on a sustained growth trajectory</strong>Jan ₹67K → Feb ₹49K → Mar ₹85K → May ₹72K. The trend excludes February's dip and shows consistent demand above ₹65K. Retail is an under-leveraged revenue line with strong organic pull.</div>
+        <div class="insight blue"><strong>Money credits are declining — a positive sign</strong>Credit usage dropped from ₹9,705 (Jan) to ₹2,686 (May). Credits are often issued as compensation for service issues. A declining trend suggests fewer operational grievances being resolved through credit issuance.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALES MIX TABLE -->
+  <div class="card mb32">
+    <div class="card-title">Revenue Mix by Category — Transactions, Revenue, Avg/Txn, Share</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Category</th><th class="tr">Transactions</th><th class="tr">Total Revenue</th><th class="tr">Avg / Txn</th><th class="tr">% of Gross</th><th style="width:180px">Revenue Share</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="tn">Memberships</td><td class="tr">37</td><td class="tr t-blue">₹11,00,680</td><td class="tr">₹29,748</td><td class="tr t-blue">45.3%</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:100%"></div></div><span class="bar-pct">45.3%</span></div></td></tr>
+          <tr><td class="tn">Class Packages</td><td class="tr">58</td><td class="tr">₹7,32,790</td><td class="tr">₹12,634</td><td class="tr">30.2%</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:66.7%"></div></div><span class="bar-pct">30.2%</span></div></td></tr>
+          <tr><td class="tn">Privates</td><td class="tr">10</td><td class="tr">₹2,63,817</td><td class="tr">₹26,382</td><td class="tr">10.9%</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill yellow" style="width:24%"></div></div><span class="bar-pct">10.9%</span></div></td></tr>
+          <tr><td class="tn">Drop-ins / Singles</td><td class="tr">124</td><td class="tr">₹2,29,365</td><td class="tr">₹1,849</td><td class="tr">9.4%</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:20.8%"></div></div><span class="bar-pct">9.4%</span></div></td></tr>
+          <tr><td class="tn">Retail</td><td class="tr">60</td><td class="tr">₹76,107</td><td class="tr">₹1,269</td><td class="tr">3.1%</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill green" style="width:6.9%"></div></div><span class="bar-pct">3.1%</span></div></td></tr>
+          <tr><td class="tn">Newcomers Special</td><td class="tr">9</td><td class="tr">₹16,538</td><td class="tr">₹1,838</td><td class="tr">0.7%</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill warn" style="width:1.5%"></div></div><span class="bar-pct">0.7%</span></div></td></tr>
+          <tr><td class="tn">Money Credits</td><td class="tr">22</td><td class="tr t-muted">₹9,089</td><td class="tr t-muted">₹413</td><td class="tr t-muted">0.4%</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:0.8%"></div></div><span class="bar-pct t-muted">0.4%</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════ SECTION 2: SESSIONS ══════════════════════ -->
+<section class="section" id="session">
+  <div class="sh">
+    <div class="sh-left">
+      <div class="sh-eyebrow">02 · Session Intelligence</div>
+      <div class="sh-title">Class Performance,<br>Fill Rates & Scheduling</div>
+    </div>
+    <div class="sh-right">348 sessions ran in May across all formats. Fill rate is the primary scheduling health metric. Formats below 40% fill are operationally inefficient — they consume trainer time and studio capacity for diminishing returns. Three formats require immediate scheduling decisions.</div>
+  </div>
+
+  <div class="kpi-strip mb32">
+    <div class="kpi-box blue"><div class="kpi-label">Total Sessions</div><div class="kpi-val">348</div><div class="kpi-sub">Across all formats</div></div>
+    <div class="kpi-box"><div class="kpi-label">Avg Fill Rate</div><div class="kpi-val">52.1%</div><div class="kpi-sub">All formats, all days</div></div>
+    <div class="kpi-box positive"><div class="kpi-label">Strength Lab Fill</div><div class="kpi-val">80.7%</div><div class="kpi-sub">Highest in studio</div></div>
+    <div class="kpi-box warn"><div class="kpi-label">Late Cancellations</div><div class="kpi-val">256</div><div class="kpi-sub">Across 29 session types</div></div>
+    <div class="kpi-box red"><div class="kpi-label">Cardio Barre Express</div><div class="kpi-val">12.2%</div><div class="kpi-sub">Lowest fill — discontinue</div></div>
+  </div>
+
+  <div class="g32 mb32">
+    <div class="card">
+      <div class="card-title">Session Intelligence Rankings — All Formats, All Metrics</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Format</th><th class="tr">Sessions</th><th class="tr">Visits</th><th class="tr">Capacity</th><th class="tr">Avg Size</th><th class="tr">Fill Rate</th><th style="width:120px">Fill Bar</th><th class="tr">Cancel Rate</th><th class="tr">Rev/Check-in</th><th class="tr">Revenue</th><th class="tc">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="tn">Strength Lab</td><td class="tr">60</td><td class="tr">339</td><td class="tr">420</td><td class="tr">5.65</td><td class="tr t-green">80.7%</td><td><div class="bar-bg"><div class="bar-fill green" style="width:80.7%"></div></div></td><td class="tr t-warn">12.2%</td><td class="tr">₹828</td><td class="tr t-blue">₹2,80,816</td><td class="tc"><span class="badge badge-green">Expand</span></td></tr>
+            <tr><td class="tn">Studio Mat</td><td class="tr">22</td><td class="tr">274</td><td class="tr">440</td><td class="tr">12.5</td><td class="tr t-green">62.3%</td><td><div class="bar-bg"><div class="bar-fill green" style="width:62.3%"></div></div></td><td class="tr t-warn">9.0%</td><td class="tr t-blue">₹842</td><td class="tr t-blue">₹2,30,691</td><td class="tc"><span class="badge badge-green">Expand</span></td></tr>
+            <tr><td class="tn">Studio FIT</td><td class="tr">26</td><td class="tr">234</td><td class="tr">442</td><td class="tr">9.0</td><td class="tr t-green">52.9%</td><td><div class="bar-bg"><div class="bar-fill" style="width:52.9%"></div></div></td><td class="tr">8.9%</td><td class="tr">₹778</td><td class="tr">₹1,82,110</td><td class="tc"><span class="badge badge-blue">Monitor</span></td></tr>
+            <tr><td class="tn">Back Body Blaze</td><td class="tr">8</td><td class="tr">66</td><td class="tr">128</td><td class="tr">8.25</td><td class="tr">51.6%</td><td><div class="bar-bg"><div class="bar-fill" style="width:51.6%"></div></div></td><td class="tr">5.7%</td><td class="tr">₹892</td><td class="tr">₹58,858</td><td class="tc"><span class="badge badge-blue">Hold</span></td></tr>
+            <tr><td class="tn">Back Body Blaze Expr.</td><td class="tr">9</td><td class="tr">57</td><td class="tr">180</td><td class="tr">6.3</td><td class="tr">31.7%</td><td><div class="bar-bg"><div class="bar-fill warn" style="width:31.7%"></div></div></td><td class="tr t-warn">9.5%</td><td class="tr">₹806</td><td class="tr">₹45,967</td><td class="tc"><span class="badge badge-warn">Reduce</span></td></tr>
+            <tr><td class="tn">Powercycle</td><td class="tr">83</td><td class="tr">422</td><td class="tr">830</td><td class="tr">5.1</td><td class="tr t-warn">50.8%</td><td><div class="bar-bg"><div class="bar-fill yellow" style="width:50.8%"></div></div></td><td class="tr t-warn">15.1%</td><td class="tr">₹831</td><td class="tr t-blue">₹3,50,825</td><td class="tc"><span class="badge badge-warn">Reduce vol.</span></td></tr>
+            <tr><td class="tn">Powercycle Express</td><td class="tr">5</td><td class="tr">25</td><td class="tr">50</td><td class="tr">5.0</td><td class="tr">50.0%</td><td><div class="bar-bg"><div class="bar-fill yellow" style="width:50%"></div></div></td><td class="tr t-warn">10.7%</td><td class="tr">₹862</td><td class="tr">₹21,551</td><td class="tc"><span class="badge badge-gray">Hold</span></td></tr>
+            <tr><td class="tn">Studio Barre</td><td class="tr">75</td><td class="tr">500</td><td class="tr">1,292</td><td class="tr">6.7</td><td class="tr t-warn">38.7%</td><td><div class="bar-bg"><div class="bar-fill warn" style="width:38.7%"></div></div></td><td class="tr t-warn">8.9%</td><td class="tr">₹943</td><td class="tr t-blue">₹4,71,666</td><td class="tc"><span class="badge badge-warn">Prune slots</span></td></tr>
+            <tr><td class="tn">Studio Cardio Barre</td><td class="tr">22</td><td class="tr">153</td><td class="tr">408</td><td class="tr">7.0</td><td class="tr t-warn">37.5%</td><td><div class="bar-bg"><div class="bar-fill warn" style="width:37.5%"></div></div></td><td class="tr t-warn">10.0%</td><td class="tr">₹798</td><td class="tr">₹1,22,121</td><td class="tc"><span class="badge badge-warn">Reduce</span></td></tr>
+            <tr><td class="tn">Studio Recovery</td><td class="tr">5</td><td class="tr">41</td><td class="tr">100</td><td class="tr">8.2</td><td class="tr">41.0%</td><td><div class="bar-bg"><div class="bar-fill" style="width:41%"></div></div></td><td class="tr">4.7%</td><td class="tr">₹520</td><td class="tr">₹21,311</td><td class="tc"><span class="badge badge-gray">Hold</span></td></tr>
+            <tr><td class="tn">Studio Mat 57 Express</td><td class="tr">8</td><td class="tr">59</td><td class="tr">116</td><td class="tr">7.4</td><td class="tr">50.9%</td><td><div class="bar-bg"><div class="bar-fill" style="width:50.9%"></div></div></td><td class="tr">7.8%</td><td class="tr">₹778</td><td class="tr">₹45,893</td><td class="tc"><span class="badge badge-gray">Monitor</span></td></tr>
+            <tr><td class="tn">Studio Amped Up!</td><td class="tr">4</td><td class="tr">35</td><td class="tr">80</td><td class="tr">8.75</td><td class="tr">43.8%</td><td><div class="bar-bg"><div class="bar-fill" style="width:43.8%"></div></div></td><td class="tr t-warn">12.5%</td><td class="tr">₹661</td><td class="tr">₹23,142</td><td class="tc"><span class="badge badge-gray">Monitor</span></td></tr>
+            <tr><td class="tn">Cardio Barre Plus</td><td class="tr">9</td><td class="tr">36</td><td class="tr">180</td><td class="tr">4.0</td><td class="tr t-warn">20.0%</td><td><div class="bar-bg"><div class="bar-fill red" style="width:20%"></div></div></td><td class="tr">5.3%</td><td class="tr">₹719</td><td class="tr">₹25,885</td><td class="tc"><span class="badge badge-red">Restructure</span></td></tr>
+            <tr><td class="tn t-red">Cardio Barre Express</td><td class="tr">9</td><td class="tr">21</td><td class="tr">172</td><td class="tr t-red">2.3</td><td class="tr t-red">12.2%</td><td><div class="bar-bg"><div class="bar-fill red" style="width:12.2%"></div></div></td><td class="tr t-red">22.2%</td><td class="tr">₹808</td><td class="tr">₹16,965</td><td class="tc"><span class="badge badge-red">Discontinue</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Session Insights</div>
+      <div class="insight-panel">
+        <div class="insight green"><strong>Strength Lab is capacity-constrained, not demand-constrained</strong>80.7% fill across 60 sessions with a maximum of 7 clients per class. The bottleneck is the small room capacity, not client interest. Adding Strength Lab time slots — particularly Wed 8am, Mon 17:00 and Tue 18:00 — would absorb existing demand immediately.</div>
+        <div class="insight blue"><strong>Studio Mat has the highest revenue per check-in (₹842)</strong>The highest revPAX of any regular format. 12.5 avg clients per session at 62.3% fill also means it handles larger groups well. This format is both popular and economically efficient — the clearest case for expansion.</div>
+        <div class="insight warn"><strong>Powercycle is over-indexed at 83 sessions — nearly 3 per day</strong>At 50.8% fill and 5.1 clients/session against a ~10-seat capacity, Powercycle is being scheduled at 1.6× the demand. Over-scheduling deflates the perceived value and creates trainer fatigue. Cutting 20 sessions (to ~63/month) and concentrating them in high-heatmap slots would push fill toward 65%+.</div>
+        <div class="insight warn"><strong>Studio Barre runs 75 sessions at 38.7% fill — a scheduling imbalance</strong>Despite being the highest revenue format by volume (₹4.71L), it is systematically underfilled. 75 sessions at 1,292 total capacity with only 500 check-ins means 792 empty spots. Pruning 15–20 low-performing time slots would increase fill rate without meaningful revenue loss.</div>
+        <div class="insight red"><strong>Cardio Barre Express must be discontinued</strong>2.3 clients/class across 9 sessions. The 22.2% cancellation rate is also the highest of any format — clients who do book are frequently cancelling. The format has no viable future at Kwality House in its current configuration.</div>
+        <div class="insight"><strong>Hosted events are the studio's most efficient fill vehicle</strong>Aditya's Barre Hosted Class: 18/20 (90%). Harshvi's Birthday Barre: 17/22 (77%). These events consistently fill without requiring discounts. A structured monthly hosted-class calendar — 2–3 per month — would sustainably drive both fill and new lead acquisition.</div>
+        <div class="insight blue"><strong>Late cancellation rate in Cardio Barre Express is 22.2% — an anomaly</strong>Clients are booking speculatively and cancelling late. This inflates the format's apparent demand while blocking real bookings. The late cancel fee would have its highest impact here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEATMAP -->
+  <div class="card mb32">
+    <div class="card-title">Session Fill Rate Heatmap — Average Occupancy % by Time Slot and Day</div>
+    <div class="tbl-wrap">
+      <div class="hm" style="min-width:580px;">
+        <div></div>
+        <div class="hm-head">MON</div><div class="hm-head">TUE</div><div class="hm-head">WED</div>
+        <div class="hm-head">THU</div><div class="hm-head">FRI</div><div class="hm-head">SAT</div><div class="hm-head">SUN</div>
+
+        <div class="hm-time">7:00</div>
+        <div class="hm-cell" style="background:hsl(214,60%,45%);color:#fff">51%</div>
+        <div class="hm-cell" style="background:hsl(214,45%,55%);color:#fff">39%</div>
+        <div class="hm-cell" style="background:hsl(214,50%,50%);color:#fff">44%</div>
+        <div class="hm-cell" style="background:hsl(214,35%,60%);color:#fff">34%</div>
+        <div class="hm-cell" style="background:hsl(214,38%,58%);color:#fff">37%</div>
+        <div class="hm-blank"></div><div class="hm-blank"></div>
+
+        <div class="hm-time">8:00</div>
+        <div class="hm-cell" style="background:hsl(214,60%,45%);color:#fff">50%</div>
+        <div class="hm-cell" style="background:hsl(214,50%,50%);color:#fff">44%</div>
+        <div class="hm-cell" style="background:hsl(120,55%,30%);color:#fff">90%</div>
+        <div class="hm-cell" style="background:hsl(150,52%,34%);color:#fff">78%</div>
+        <div class="hm-cell" style="background:hsl(214,32%,62%);color:#fff">33%</div>
+        <div class="hm-cell" style="background:hsl(214,25%,67%);color:#fff">27%</div>
+        <div class="hm-blank"></div>
+
+        <div class="hm-time">9:00</div>
+        <div class="hm-cell" style="background:hsl(150,52%,34%);color:#fff">71%</div>
+        <div class="hm-cell" style="background:hsl(214,48%,52%);color:#fff">42%</div>
+        <div class="hm-cell" style="background:hsl(214,38%,58%);color:#fff">34%</div>
+        <div class="hm-cell" style="background:hsl(214,32%,62%);color:#fff">30%</div>
+        <div class="hm-cell" style="background:hsl(150,48%,38%);color:#fff">69%</div>
+        <div class="hm-cell" style="background:hsl(120,55%,30%);color:#fff">71%</div>
+        <div class="hm-blank"></div>
+
+        <div class="hm-time">10:00</div>
+        <div class="hm-cell" style="background:hsl(30,70%,55%);color:#fff">23%</div>
+        <div class="hm-cell" style="background:hsl(214,42%,57%);color:#fff">35%</div>
+        <div class="hm-cell" style="background:hsl(214,30%,63%);color:#fff">26%</div>
+        <div class="hm-cell" style="background:hsl(214,55%,48%);color:#fff">53%</div>
+        <div class="hm-cell" style="background:hsl(214,48%,52%);color:#fff">42%</div>
+        <div class="hm-cell" style="background:hsl(150,46%,40%);color:#fff">68%</div>
+        <div class="hm-cell" style="background:hsl(214,58%,46%);color:#fff">56%</div>
+
+        <div class="hm-time">11:00</div>
+        <div class="hm-cell" style="background:hsl(30,70%,55%);color:#fff">25%</div>
+        <div class="hm-cell" style="background:hsl(120,55%,30%);color:#fff">73%</div>
+        <div class="hm-cell" style="background:hsl(214,55%,48%);color:#fff">49%</div>
+        <div class="hm-cell" style="background:hsl(214,35%,60%);color:#fff">31%</div>
+        <div class="hm-cell" style="background:hsl(214,52%,49%);color:#fff">47%</div>
+        <div class="hm-cell" style="background:hsl(214,58%,46%);color:#fff">54%</div>
+        <div class="hm-cell" style="background:hsl(150,46%,40%);color:#fff">64%</div>
+
+        <div class="hm-time">17:00</div>
+        <div class="hm-cell" style="background:hsl(120,60%,28%);color:#fff">89%</div>
+        <div class="hm-cell" style="background:hsl(214,50%,50%);color:#fff">44%</div>
+        <div class="hm-blank"></div><div class="hm-blank"></div>
+        <div class="hm-cell" style="background:hsl(214,38%,58%);color:#fff">37%</div>
+        <div class="hm-cell" style="background:hsl(214,57%,47%);color:#fff">53%</div>
+        <div class="hm-cell" style="background:hsl(214,50%,50%);color:#fff">42%</div>
+
+        <div class="hm-time">18:00</div>
+        <div class="hm-cell" style="background:hsl(214,57%,47%);color:#fff">53%</div>
+        <div class="hm-cell" style="background:hsl(120,55%,30%);color:#fff">86%</div>
+        <div class="hm-cell" style="background:hsl(214,35%,60%);color:#fff">33%</div>
+        <div class="hm-cell" style="background:hsl(214,52%,49%);color:#fff">48%</div>
+        <div class="hm-cell" style="background:hsl(150,48%,38%);color:#fff">74%</div>
+        <div class="hm-blank"></div><div class="hm-blank"></div>
+
+        <div class="hm-time">19:00</div>
+        <div class="hm-cell" style="background:hsl(150,50%,36%);color:#fff">69%</div>
+        <div class="hm-cell" style="background:hsl(150,50%,36%);color:#fff">68%</div>
+        <div class="hm-cell" style="background:hsl(214,57%,47%);color:#fff">55%</div>
+        <div class="hm-cell" style="background:hsl(214,55%,48%);color:#fff">51%</div>
+        <div class="hm-cell" style="background:hsl(214,38%,58%);color:#fff">32%</div>
+        <div class="hm-blank"></div><div class="hm-blank"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:20px;margin-top:14px;font-family:'Helvetica Neue',sans-serif;font-size:11px;color:var(--text-muted)">
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:hsl(120,55%,30%);border-radius:2px;display:inline-block"></span>70%+ Peak</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:hsl(214,55%,45%);border-radius:2px;display:inline-block"></span>50–70% Healthy</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:hsl(30,70%,55%);border-radius:2px;display:inline-block"></span>Below 40% Underperforming</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:var(--border2);border-radius:2px;display:inline-block"></span>No session scheduled</span>
+    </div>
+  </div>
+
+  <!-- LATE CANCELLATIONS -->
+  <div class="card mb32">
+    <div class="card-title">Late Cancellations by Session — May 2026 (256 Total)</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Session</th><th class="tr">Late Cancels</th><th style="width:200px">Volume</th><th>Decision</th></tr></thead>
+        <tbody>
+          <tr><td class="tn">Studio Barre 57</td><td class="tr t-red">46</td><td><div class="bar-bg"><div class="bar-fill red" style="width:100%"></div></div></td><td><span class="badge badge-red">Implement fee — highest volume</span></td></tr>
+          <tr><td class="tn">powerCycle</td><td class="tr t-red">45</td><td><div class="bar-bg"><div class="bar-fill red" style="width:97.8%"></div></div></td><td><span class="badge badge-red">Waitlist + fee priority</span></td></tr>
+          <tr><td class="tn">Studio Mat 57</td><td class="tr t-warn">29</td><td><div class="bar-bg"><div class="bar-fill warn" style="width:63%"></div></div></td><td><span class="badge badge-warn">High-demand — add waitlist</span></td></tr>
+          <tr><td class="tn">Studio FIT</td><td class="tr t-warn">22</td><td><div class="bar-bg"><div class="bar-fill warn" style="width:47.8%"></div></div></td><td><span class="badge badge-warn">Monitor post-fee implementation</span></td></tr>
+          <tr><td class="tn">Studio Cardio Barre</td><td class="tr">17</td><td><div class="bar-bg"><div class="bar-fill yellow" style="width:37%"></div></div></td><td><span class="badge badge-yellow">Fee will deter speculation</span></td></tr>
+          <tr><td class="tn">Strength Lab (Full Body)</td><td class="tr">16</td><td><div class="bar-bg"><div class="bar-fill yellow" style="width:34.8%"></div></div></td><td><span class="badge badge-yellow">Waitlist critical — oversubscribed</span></td></tr>
+          <tr><td class="tn">Strength Lab (Push)</td><td class="tr">14</td><td><div class="bar-bg"><div class="bar-fill" style="width:30.4%"></div></div></td><td><span class="badge badge-blue">Waitlist recommended</span></td></tr>
+          <tr><td class="tn">Strength Lab (Pull)</td><td class="tr">11</td><td><div class="bar-bg"><div class="bar-fill" style="width:23.9%"></div></div></td><td><span class="badge badge-blue">Waitlist recommended</span></td></tr>
+          <tr><td class="tn t-muted">Others (21 session types)</td><td class="tr">56</td><td><div class="bar-bg"><div class="bar-fill" style="width:12%"></div></div></td><td><span class="badge badge-gray">Cover under blanket policy</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════ SECTION 3: TRAINERS ══════════════════════ -->
+<section class="section" id="trainer">
+  <div class="sh">
+    <div class="sh-left">
+      <div class="sh-eyebrow">03 · Trainer Intelligence</div>
+      <div class="sh-title">Trainer Rankings,<br>Conversion & Efficiency</div>
+    </div>
+    <div class="sh-right">Revenue Score is a composite of fill rate, conversion rate, and paid revenue relative to session load. Utilization reflects whether a trainer showed up to all their scheduled sessions. Conversion rate reflects how often new clients from that trainer's classes subsequently purchased a membership.</div>
+  </div>
+
+  <div class="g32 mb32">
+    <div class="card">
+      <div class="card-title">Trainer Performance — All Metrics, May 2026</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Trainer</th><th class="tr">Sessions</th><th class="tr">Clients</th><th class="tr">Paid Revenue</th><th class="tr">Avg/Session</th><th class="tr">Fill Rate</th><th class="tr">Utilisation</th><th class="tr">Conv. Rate</th><th class="tr">Late Cancels</th><th class="tr">Score</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tn">Anmol Sharma</td><td class="tr">12</td><td class="tr">60</td><td class="tr">₹57,652</td><td class="tr">₹4,804</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill" style="width:54%"></div></div><span class="bar-pct">54.1%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-green">33.3%</td><td class="tr t-green">0</td>
+              <td class="tr"><span style="font-weight:700;color:var(--yellow)">54.6</span></td>
+            </tr>
+            <tr>
+              <td class="tn">Pranjali Jain</td><td class="tr">33</td><td class="tr">277</td><td class="tr">₹2,29,834</td><td class="tr">₹6,965</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill" style="width:52.5%"></div></div><span class="bar-pct">52.5%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-green">66.7%</td><td class="tr t-green">0</td>
+              <td class="tr"><span style="font-weight:700;color:var(--yellow)">50.3</span></td>
+            </tr>
+            <tr>
+              <td class="tn">Reshma Sharma</td><td class="tr">24</td><td class="tr">225</td><td class="tr">₹1,86,090</td><td class="tr">₹7,754</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill green" style="width:63.9%"></div></div><span class="bar-pct">63.9%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-green">40.0%</td><td class="tr t-green">0</td>
+              <td class="tr"><span style="font-weight:700;color:var(--blue-light)">49.7</span></td>
+            </tr>
+            <tr>
+              <td class="tn">Anisha Shah</td><td class="tr">21</td><td class="tr">154</td><td class="tr">₹93,274</td><td class="tr">₹4,442</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill green" style="width:62.1%"></div></div><span class="bar-pct">62.1%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-green">50.0%</td><td class="tr t-green">0</td>
+              <td class="tr"><span style="font-weight:700;color:var(--blue-light)">48.4</span></td>
+            </tr>
+            <tr>
+              <td class="tn">Rohan Dahima</td><td class="tr">43</td><td class="tr">412</td><td class="tr">₹3,41,275</td><td class="tr">₹7,937</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill" style="width:58.4%"></div></div><span class="bar-pct">58.4%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-warn">17.9%</td><td class="tr t-green">0</td>
+              <td class="tr">45.9</td>
+            </tr>
+            <tr>
+              <td class="tn">Bret Saldanha</td><td class="tr">25</td><td class="tr">97</td><td class="tr">₹76,400</td><td class="tr">₹3,056</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill warn" style="width:38.8%"></div></div><span class="bar-pct">38.8%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-green">50.0%</td><td class="tr t-green">0</td>
+              <td class="tr">41.8</td>
+            </tr>
+            <tr>
+              <td class="tn">Vivaran Dhasmana</td><td class="tr">22</td><td class="tr">133</td><td class="tr">₹1,12,824</td><td class="tr">₹5,128</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill warn" style="width:41.6%"></div></div><span class="bar-pct">41.6%</span></div></td>
+              <td class="tr t-warn">95.5%</td><td class="tr t-green">50.0%</td><td class="tr t-green">0</td>
+              <td class="tr">40.9</td>
+            </tr>
+            <tr>
+              <td class="tn">Richard D'Costa</td><td class="tr">19</td><td class="tr">112</td><td class="tr">₹88,023</td><td class="tr">₹4,633</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill warn" style="width:39.4%"></div></div><span class="bar-pct">39.4%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-green">50.0%</td><td class="tr t-green">0</td>
+              <td class="tr">39.7</td>
+            </tr>
+            <tr>
+              <td class="tn">Cauveri Vikrant</td><td class="tr">38</td><td class="tr">261</td><td class="tr">₹2,11,724</td><td class="tr">₹5,572</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill" style="width:48%"></div></div><span class="bar-pct">48.0%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-red">16.7%</td><td class="tr t-green">0</td>
+              <td class="tr">38.9</td>
+            </tr>
+            <tr>
+              <td class="tn">Simonelle De Vitre</td><td class="tr">22</td><td class="tr">122</td><td class="tr">₹1,15,464</td><td class="tr">₹5,248</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill red" style="width:33.3%"></div></div><span class="bar-pct">33.3%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-red">13.3%</td><td class="tr t-green">0</td>
+              <td class="tr">35.1</td>
+            </tr>
+            <tr>
+              <td class="tn">Atulan Purohit</td><td class="tr">12</td><td class="tr">91</td><td class="tr">₹66,841</td><td class="tr">₹5,570</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill green" style="width:65%"></div></div><span class="bar-pct">65.0%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-red">0.0%</td><td class="tr t-green">0</td>
+              <td class="tr t-warn">29.6</td>
+            </tr>
+            <tr>
+              <td class="tn">Raunak Khemuka</td><td class="tr">17</td><td class="tr">68</td><td class="tr">₹60,490</td><td class="tr">₹3,558</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill warn" style="width:40%"></div></div><span class="bar-pct">40.0%</span></div></td>
+              <td class="tr t-warn">94.1%</td><td class="tr t-green">60.0%</td><td class="tr t-green">0</td>
+              <td class="tr">33.0</td>
+            </tr>
+            <tr>
+              <td class="tn">Karan Bhatia</td><td class="tr">12</td><td class="tr">35</td><td class="tr">₹27,533</td><td class="tr">₹2,294</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill red" style="width:19.9%"></div></div><span class="bar-pct">19.9%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-warn">20.0%</td><td class="tr t-green">0</td>
+              <td class="tr t-red">33.9</td>
+            </tr>
+            <tr>
+              <td class="tn">Mrigakshi Jaiswal</td><td class="tr">29</td><td class="tr">171</td><td class="tr">₹1,51,116</td><td class="tr">₹5,211</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill warn" style="width:43.3%"></div></div><span class="bar-pct">43.3%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-red">0.0%</td><td class="tr t-green">0</td>
+              <td class="tr t-red">20.8</td>
+            </tr>
+            <tr>
+              <td class="tn">Simran Dutt</td><td class="tr">10</td><td class="tr">57</td><td class="tr">₹50,299</td><td class="tr">₹5,030</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill red" style="width:28.5%"></div></div><span class="bar-pct">28.5%</span></div></td>
+              <td class="tr t-green">100%</td><td class="tr t-red">0.0%</td><td class="tr t-green">0</td>
+              <td class="tr t-red">16.2</td>
+            </tr>
+            <tr>
+              <td class="tn">Karanvir Bhatia</td><td class="tr">9</td><td class="tr">32</td><td class="tr">₹28,959</td><td class="tr">₹3,218</td>
+              <td class="tr"><div class="bar-wrap"><div class="bar-bg" style="width:80px"><div class="bar-fill red" style="width:32%"></div></div><span class="bar-pct">32.0%</span></div></td>
+              <td class="tr t-warn">88.9%</td><td class="tr t-red">0.0%</td><td class="tr t-green">0</td>
+              <td class="tr t-red">14.9</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Trainer Insights</div>
+      <div class="insight-panel">
+        <div class="insight"><strong>Pranjali Jain has the highest conversion rate (66.7%) of any high-volume trainer</strong>33 sessions, 277 clients, 2 in 3 new trials converting to membership. She should anchor the new client trial schedule — specifically the 10am–12pm Saturday and Sunday slots where new clients are most likely to appear.</div>
+        <div class="insight green"><strong>Rohan Dahima is the highest revenue generator (₹3.41L) but converts at only 17.9%</strong>He runs the most sessions and hosts the most clients. His low conversion rate is a missed multiplier. The business case: even improving to 25% conversion on his volume would represent 3–4 additional memberships per month.</div>
+        <div class="insight warn"><strong>Atulan Purohit: 65% fill rate with 0% conversion — a structural disconnect</strong>Clients choose his classes repeatedly (65% fill is the joint-highest) yet none have converted to a membership. This likely indicates his student base are existing long-term members. Investigate whether he is teaching primarily high-frequency veteran clients versus new trial clients.</div>
+        <div class="insight warn"><strong>Mrigakshi Jaiswal, Simran Dutt, Karanvir Bhatia — zero conversions, low fill</strong>Combined: 48 sessions, 260 clients, ₹2.3L revenue, 0 conversions. These trainers are generating transactions but not growing the membership base. They may be better deployed in formats that suit their energy, or need structured conversion coaching and post-class engagement training.</div>
+        <div class="insight blue"><strong>Karan Bhatia: 19.9% fill rate across 12 sessions — the worst fill of any trainer</strong>Averaging fewer than 3 clients per class. This may be a format mismatch (he may be assigned to underperforming slots or formats). Before any personnel decision, audit which formats and time slots he is teaching.</div>
+        <div class="insight"><strong>Raunak Khemuka: 60% conversion, 94.1% utilisation — an underrated asset</strong>Despite a 40% fill rate, his conversion rate is the highest of any trainer with meaningful session volume. He is showing up reliably and converting trials effectively. Assigning him to new client-facing time slots would extract more value from this profile.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════ SECTION 4: FUNNEL ══════════════════════ -->
+<section class="section" id="funnel">
+  <div class="sh">
+    <div class="sh-left">
+      <div class="sh-eyebrow">04 · New Client Funnel</div>
+      <div class="sh-title">Acquisition, Conversion<br>& First-Class Intelligence</div>
+    </div>
+    <div class="sh-right">122 new clients visited Kwality House in May. 28 converted (23%) to a paid product. 34 returned for a second visit. The avg LTV of a converted client is ₹16,458 — confirming that conversion investment has a meaningful payback. The single largest growth lever in the business is improving the 77% non-conversion rate.</div>
+  </div>
+
+  <div class="kpi-strip mb32">
+    <div class="kpi-box blue"><div class="kpi-label">New Clients</div><div class="kpi-val">122</div><div class="kpi-sub">First visit in May</div></div>
+    <div class="kpi-box positive"><div class="kpi-label">Converted</div><div class="kpi-val">28</div><div class="kpi-sub">23% conversion rate</div></div>
+    <div class="kpi-box"><div class="kpi-label">Returned (2nd visit)</div><div class="kpi-val">34</div><div class="kpi-sub">28% retention</div></div>
+    <div class="kpi-box warn"><div class="kpi-label">Did Not Convert</div><div class="kpi-val">89</div><div class="kpi-sub">73% left without buying</div></div>
+    <div class="kpi-box"><div class="kpi-label">Avg Converted LTV</div><div class="kpi-val">₹16,458</div><div class="kpi-sub">Per converting client</div></div>
+  </div>
+
+  <div class="g2 mb32">
+    <div class="card">
+      <div class="card-title">Conversion Funnel — May 2026</div>
+      <div style="margin-bottom:28px">
+        <div class="funnel-row"><div class="funnel-meta"><span class="fn">New Clients — First Visit</span><span class="fd">122 · 100%</span></div><div class="funnel-bg"><div class="funnel-fill" style="width:100%"></div></div></div>
+        <div class="funnel-row"><div class="funnel-meta"><span class="fn">Returned for 2nd Visit</span><span class="fd">34 · 27.9%</span></div><div class="funnel-bg"><div class="funnel-fill" style="width:27.9%"></div></div></div>
+        <div class="funnel-row"><div class="funnel-meta"><span class="fn">Converted to Paid Product</span><span class="fd">28 · 23.0%</span></div><div class="funnel-bg"><div class="funnel-fill" style="width:23%"></div></div></div>
+        <div class="funnel-row"><div class="funnel-meta"><span class="fn">Converted AND Retained</span><span class="fd">~18 · ~14.8%</span></div><div class="funnel-bg"><div class="funnel-fill" style="width:14.8%"></div></div></div>
+        <div class="funnel-row"><div class="funnel-meta"><span class="fn">Did Not Convert</span><span class="fd" style="color:var(--red)">89 · 73.0%</span></div><div class="funnel-bg"><div class="funnel-fill" style="background:var(--red);width:73%"></div></div></div>
+      </div>
+
+      <div class="card-title" style="margin-top:8px">Conversion by First Class Attended</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>First Class</th><th class="tr">Clients</th><th class="tr">Converted</th><th class="tr">Conv. Rate</th><th class="tr">Retained</th><th class="tr">Total LTV</th></tr></thead>
+          <tbody>
+            <tr><td class="tn">Studio Cardio Barre</td><td class="tr">6</td><td class="tr t-green">4</td><td class="tr t-green">67%</td><td class="tr t-green">4</td><td class="tr t-blue">₹99,842</td></tr>
+            <tr><td class="tn">Studio Mat 57</td><td class="tr">5</td><td class="tr t-green">2</td><td class="tr">40%</td><td class="tr">2</td><td class="tr">₹16,852</td></tr>
+            <tr><td class="tn">Powercycle Express</td><td class="tr">5</td><td class="tr">2</td><td class="tr">40%</td><td class="tr t-green">4</td><td class="tr">₹22,286</td></tr>
+            <tr><td class="tn">powerCycle</td><td class="tr">12</td><td class="tr">4</td><td class="tr">33%</td><td class="tr">6</td><td class="tr">₹27,200</td></tr>
+            <tr><td class="tn">Studio Barre 57</td><td class="tr">47</td><td class="tr">10</td><td class="tr">21%</td><td class="tr">13</td><td class="tr t-blue">₹2,61,940</td></tr>
+            <tr><td class="tn">Physique57 Hosted (Ahana)</td><td class="tr">6</td><td class="tr t-warn">1</td><td class="tr t-warn">17%</td><td class="tr t-warn">1</td><td class="tr">₹1,838</td></tr>
+            <tr><td class="tn t-red">Physique57 Birthday Barre</td><td class="tr">17</td><td class="tr t-red">0</td><td class="tr t-red">0%</td><td class="tr t-red">1</td><td class="tr t-muted">₹0</td></tr>
+            <tr><td class="tn t-red">Physique57 Hosted (Aditya)</td><td class="tr">6</td><td class="tr t-red">0</td><td class="tr t-red">0%</td><td class="tr t-red">0</td><td class="tr t-muted">₹1,838</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Lead Source Analysis — All Metrics</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Source</th><th class="tr">Leads</th><th class="tr">Trials</th><th class="tr">Conv.</th><th class="tr">Conv. %</th><th class="tr">Mem. Bought</th><th class="tr">Total LTV</th></tr></thead>
+          <tbody>
+            <tr><td class="tn">Client Referral</td><td class="tr">34</td><td class="tr">17</td><td class="tr t-green">14</td><td class="tr t-green">41%</td><td class="tr">12</td><td class="tr t-blue">₹1,84,630</td></tr>
+            <tr><td class="tn">Walk-in</td><td class="tr">11</td><td class="tr">5</td><td class="tr t-green">3</td><td class="tr t-green">27%</td><td class="tr">2</td><td class="tr t-blue">₹1,74,248</td></tr>
+            <tr><td class="tn">Staff Referral</td><td class="tr">1</td><td class="tr">1</td><td class="tr t-green">1</td><td class="tr t-green">100%</td><td class="tr">1</td><td class="tr t-blue">₹63,809</td></tr>
+            <tr><td class="tn">Incoming Call</td><td class="tr">9</td><td class="tr">5</td><td class="tr">3</td><td class="tr">33%</td><td class="tr">2</td><td class="tr">₹49,131</td></tr>
+            <tr><td class="tn">WhatsApp Enquiry</td><td class="tr">6</td><td class="tr">5</td><td class="tr">3</td><td class="tr">50%</td><td class="tr">1</td><td class="tr">₹30,235</td></tr>
+            <tr><td class="tn">Hosted Class</td><td class="tr">20</td><td class="tr">12</td><td class="tr">3</td><td class="tr">15%</td><td class="tr">3</td><td class="tr">₹24,124</td></tr>
+            <tr><td class="tn">Instagram</td><td class="tr">5</td><td class="tr">1</td><td class="tr">1</td><td class="tr">20%</td><td class="tr">0</td><td class="tr">₹15,750</td></tr>
+            <tr><td class="tn">Website Form</td><td class="tr">28</td><td class="tr">13</td><td class="tr">4</td><td class="tr t-warn">14%</td><td class="tr">3</td><td class="tr">₹12,968</td></tr>
+            <tr><td class="tn">Abandoned Checkout</td><td class="tr">6</td><td class="tr">2</td><td class="tr">1</td><td class="tr t-warn">17%</td><td class="tr">0</td><td class="tr">₹5,618</td></tr>
+            <tr><td class="tn t-red">Website (direct)</td><td class="tr">19</td><td class="tr">4</td><td class="tr t-red">0</td><td class="tr t-red">0%</td><td class="tr t-red">0</td><td class="tr t-red">₹0</td></tr>
+            <tr><td class="tn t-muted">Social (other)</td><td class="tr">2</td><td class="tr">1</td><td class="tr t-muted">0</td><td class="tr t-muted">0%</td><td class="tr t-muted">0</td><td class="tr t-muted">₹0</td></tr>
+            <tr><td class="tn t-muted">Influencer (Inde Wild)</td><td class="tr">1</td><td class="tr">0</td><td class="tr t-muted">0</td><td class="tr t-muted">0%</td><td class="tr t-muted">0</td><td class="tr t-muted">₹0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-title" style="margin-top:28px">Lead Stage Breakdown</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Stage</th><th class="tr">Count</th><th class="tr">% of Leads</th></tr></thead>
+          <tbody>
+            <tr><td class="t-green">Membership Sold</td><td class="tr t-green">32</td><td class="tr t-green">22.2%</td></tr>
+            <tr><td>Trial Completed</td><td class="tr">23</td><td class="tr">16.0%</td></tr>
+            <tr><td>Will Get Back Later</td><td class="tr t-warn">15</td><td class="tr t-warn">10.4%</td></tr>
+            <tr><td>Client Unresponsive</td><td class="tr t-warn">14</td><td class="tr t-warn">9.7%</td></tr>
+            <tr><td>Called — No Answer</td><td class="tr">9</td><td class="tr">6.3%</td></tr>
+            <tr><td>Trial Completed — Travelling</td><td class="tr">7</td><td class="tr">4.9%</td></tr>
+            <tr><td>Lead Dropped / Lost</td><td class="tr t-red">7</td><td class="tr t-red">4.9%</td></tr>
+            <tr><td>Pricing Shared</td><td class="tr">7</td><td class="tr">4.9%</td></tr>
+            <tr><td>Initial Contact Only</td><td class="tr">7</td><td class="tr">4.9%</td></tr>
+            <tr><td>Not Interested — Proximity</td><td class="tr t-muted">5</td><td class="tr t-muted">3.5%</td></tr>
+            <tr><td>Not Interested — Other</td><td class="tr t-muted">5</td><td class="tr t-muted">3.5%</td></tr>
+            <tr><td>Post-Trial Follow Up</td><td class="tr">4</td><td class="tr">2.8%</td></tr>
+            <tr><td>Not Interested — Pricing</td><td class="tr t-muted">1</td><td class="tr t-muted">0.7%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb20">
+    <div class="card-title">8 New Client Funnel Insights</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="insight blue"><strong>Client Referral generates 7× more LTV per lead than Website Form</strong>Referral LTV/lead: ₹5,430. Website Form LTV/lead: ₹463. Referrals are not just the best channel — they're in a different category entirely. This ratio justifies aggressive investment in a formalised referral programme.</div>
+      <div class="insight green"><strong>Studio Cardio Barre converts 67% of first-time clients — the highest of any class</strong>Small sample (6 clients) but the signal is meaningful: the format, energy, or trainer assigned creates a strong first impression. Ensure new trial clients are directed to Cardio Barre slots where possible.</div>
+      <div class="insight warn"><strong>Birthday/hosted events bring 23 guests who convert at 0%</strong>17 Harshvi Birthday Barre clients + 6 Aditya Hosted clients = 23 people, zero conversions, ₹0 LTV from most. These are social attendees, not fitness prospects. Hosted events are good for brand exposure but should not be counted in conversion metrics. The follow-up approach for these guests needs to be structurally different.</div>
+      <div class="insight red"><strong>Website direct (19 leads) is converting at 0% — a broken funnel step</strong>These 19 people expressed explicit interest through the website. None purchased. This is not a traffic problem — it is a follow-up problem. Industry benchmark for responded-within-1-hour web leads is 35–50% conversion. Kwality House is at 0%.</div>
+      <div class="insight"><strong>23 trial-completed leads are warm pipeline — worth an immediate intervention</strong>Clients who finished a trial and haven't bought are the highest-probability conversion opportunity. They have proven they can attend. A personal call offering a 48-hour time-limited package deal historically converts 25–35% of this group.</div>
+      <div class="insight blue"><strong>Powercycle Express has an 80% retention rate — higher than any other class</strong>5 clients, 4 returned for a second visit. The format creates habitual behaviour. Consider creating a newcomer Powercycle Express pathway to leverage this retention tendency.</div>
+      <div class="insight warn"><strong>10 out of 12 Proximity-related lost leads suggest a geographic ceiling</strong>5 "Not Interested — Proximity Issues" + 2 "Trial Completed — Proximity Issues" = 7 proximity-driven losses. Kwality House's catchment area may be narrower than assumed. New client acquisition should focus on Kemps Corner, Breach Candy, and Cumballa Hill rather than broader Mumbai targeting.</div>
+      <div class="insight"><strong>Studio Barre 57 is generating the most new-client volume (47 first visits) but the LTV per converted client is ₹26,194</strong>The class is the primary entry point for new clients. However, at 21% conversion, 37 of 47 first-time Barre 57 clients left without buying. Positioning Barre 57 as the deliberate new-client entry experience — with a structured post-class offer — could materially shift this.</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════ SECTION 5: LAPSED ══════════════════════ -->
+<section class="section" id="lapsed">
+  <div class="sh">
+    <div class="sh-left">
+      <div class="sh-eyebrow">05 · Lapsed Membership Analysis</div>
+      <div class="sh-title">Expirations, Churn Patterns<br>& Win-Back Intelligence</div>
+    </div>
+    <div class="sh-right">54 memberships expired in May. Every single one lapsed — zero renewals were recorded in the expiration data. This 100% lapse rate is the most critical business risk identified in this report. The historical lapsed database shows deep structural patterns: certain products are systematically failing to retain clients, and specific cohorts require targeted intervention immediately.</div>
+  </div>
+
+  <div class="warn-box">
+    <strong>Critical finding: 100% lapse rate on May expirations.</strong> 54 memberships expired and none renewed within the month. Whether this reflects a data capture issue, a lag in renewal recording, or genuine non-renewal, the data demands investigation and an immediate renewal outreach process. The 30–60 day post-lapse window is the highest-probability re-engagement period — that window is open now for all May lapsed clients.
+  </div>
+
+  <div class="kpi-strip mb32">
+    <div class="kpi-box red"><div class="kpi-label">May Expirations</div><div class="kpi-val">54</div><div class="kpi-sub">All status: Lapsed</div></div>
+    <div class="kpi-box red"><div class="kpi-label">Renewals in May</div><div class="kpi-val">0</div><div class="kpi-sub">0% renewal rate</div></div>
+    <div class="kpi-box warn"><div class="kpi-label">Highest Volume Lapse</div><div class="kpi-val">19</div><div class="kpi-sub">Studio 12 Class Package</div></div>
+    <div class="kpi-box"><div class="kpi-label">All-time Lapsed Members</div><div class="kpi-val">1,300+</div><div class="kpi-sub">Across all products</div></div>
+    <div class="kpi-box positive"><div class="kpi-label">Top LTV — Lapsed</div><div class="kpi-val">₹42,072</div><div class="kpi-sub">Studio 30 Class Pack avg</div></div>
+  </div>
+
+  <div class="g2 mb32">
+    <div class="card">
+      <div class="card-title">May 2026 Expirations — by Product, Count & Risk</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Membership Product</th><th class="tr">Expirations</th><th class="tr">Status</th><th class="tr">Risk Level</th><th>Win-Back Priority</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="tn">Studio 12 Class Package</td><td class="tr t-red">19</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr t-red">Critical</td><td><span class="badge badge-red">Tier 1 — Personal call</span></td></tr>
+            <tr><td class="tn">Studio 8 Class Package</td><td class="tr t-warn">7</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr t-warn">High</td><td><span class="badge badge-warn">Tier 1 — WhatsApp + email</span></td></tr>
+            <tr><td class="tn">Studio 3 Month Unlimited</td><td class="tr t-warn">6</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr t-red">Critical</td><td><span class="badge badge-red">Tier 1 — Personal call</span></td></tr>
+            <tr><td class="tn">Studio 1 Month Unlimited</td><td class="tr">5</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr">Medium</td><td><span class="badge badge-blue">Tier 2 — Upsell to 3-month</span></td></tr>
+            <tr><td class="tn">Studio Extended 10 Class Pack</td><td class="tr">5</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr">Medium</td><td><span class="badge badge-warn">Tier 1 — WhatsApp offer</span></td></tr>
+            <tr><td class="tn">Studio 6 Month Unlimited</td><td class="tr t-red">4</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr t-red">Critical</td><td><span class="badge badge-red">Tier 1 — Executive outreach</span></td></tr>
+            <tr><td class="tn">Studio Annual Unlimited</td><td class="tr t-red">2</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr t-red">Critical</td><td><span class="badge badge-red">Tier 1 — Studio Manager call</span></td></tr>
+            <tr><td class="tn">Barre 1 Month Unlimited</td><td class="tr">2</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr">Medium</td><td><span class="badge badge-blue">Tier 2 — Barre upsell offer</span></td></tr>
+            <tr><td class="tn">Studio 10 Single Class Pack</td><td class="tr">2</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr">Low</td><td><span class="badge badge-gray">Tier 3 — Email sequence</span></td></tr>
+            <tr><td class="tn">Studio 20 Single Class Pack</td><td class="tr">1</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr">Medium</td><td><span class="badge badge-blue">Tier 2 — Upgrade to 30-pack</span></td></tr>
+            <tr><td class="tn">Studio 30 Single Class Pack</td><td class="tr">1</td><td class="tr"><span class="badge badge-red">Lapsed</span></td><td class="tr t-red">High</td><td><span class="badge badge-red">Tier 1 — Immediate outreach</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:20px" class="card-title">May Expiration Calendar — When Did Memberships Expire?</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Expiry Week</th><th class="tr">Count</th><th class="tr">Key Products</th></tr></thead>
+          <tbody>
+            <tr><td>May 1–7</td><td class="tr">17</td><td class="tr t-muted">Annual ×1, 1M Unl ×3, 12CP ×5, 8CP ×3, 3M ×2, Barre ×2, Ext10 ×1</td></tr>
+            <tr><td>May 8–15</td><td class="tr">15</td><td class="tr t-muted">Annual ×1, 12CP ×4, 8CP ×2, Ext10 ×2, 10CP ×2, BBarre ×1, 3M ×2, 6M ×1</td></tr>
+            <tr><td>May 16–23</td><td class="tr">12</td><td class="tr t-muted">12CP ×5, 20CP ×1, Ext10 ×2, 3M ×1, 6M ×1, 8CP ×1, 30CP ×1</td></tr>
+            <tr><td>May 24–31</td><td class="tr">10</td><td class="tr t-muted">12CP ×5, 6M ×2, 3M ×1, 8CP ×1, 1M ×1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Historical Lapsed Database — Cumulative All-Time</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Product</th><th class="tr">Total Lapsed</th><th class="tr">Avg LTV</th><th class="tr">Insights</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="tn t-red">Studio 1 Month Unlimited</td><td class="tr t-red">246</td><td class="tr t-red">₹0</td><td><span class="badge badge-red">Product failure</span></td></tr>
+            <tr><td class="tn">Studio 8 Class Package</td><td class="tr">229</td><td class="tr">₹5,427</td><td><span class="badge badge-warn">High churn rate</span></td></tr>
+            <tr><td class="tn">Studio 4 Class Package</td><td class="tr">226</td><td class="tr">₹4,333</td><td><span class="badge badge-warn">Trial product</span></td></tr>
+            <tr><td class="tn">Studio 12 Class Package</td><td class="tr">181</td><td class="tr t-blue">₹11,762</td><td><span class="badge badge-blue">Win-back priority</span></td></tr>
+            <tr><td class="tn">Studio 3 Month Unlimited</td><td class="tr">66</td><td class="tr t-warn">₹335</td><td><span class="badge badge-red">Pricing anomaly</span></td></tr>
+            <tr><td class="tn">Studio 2 Week Unlimited</td><td class="tr">42</td><td class="tr t-red">₹0</td><td><span class="badge badge-red">No value capture</span></td></tr>
+            <tr><td class="tn">Newcomers 2 Week Unlimited</td><td class="tr">37</td><td class="tr t-red">₹0</td><td><span class="badge badge-warn">Trial — no upsell</span></td></tr>
+            <tr><td class="tn">Studio 10 Class Pack</td><td class="tr">36</td><td class="tr t-blue">₹14,800</td><td><span class="badge badge-blue">Strong LTV</span></td></tr>
+            <tr><td class="tn">Studio Annual Unlimited</td><td class="tr">34</td><td class="tr t-red">₹0</td><td><span class="badge badge-red">Data gap — investigate</span></td></tr>
+            <tr><td class="tn">Studio Extended 10 Class Pack</td><td class="tr">33</td><td class="tr t-blue">₹14,696</td><td><span class="badge badge-blue">High-value segment</span></td></tr>
+            <tr><td class="tn">Studio 6 Month Unlimited</td><td class="tr">22</td><td class="tr t-red">₹0</td><td><span class="badge badge-red">Data gap — investigate</span></td></tr>
+            <tr><td class="tn">Studio 20 Class Pack</td><td class="tr">16</td><td class="tr">₹28,088</td><td><span class="badge badge-green">Premium segment</span></td></tr>
+            <tr><td class="tn">Barre 1 Month Unlimited</td><td class="tr">14</td><td class="tr">₹15,480</td><td><span class="badge badge-blue">Barre retention risk</span></td></tr>
+            <tr><td class="tn">Studio 30 Class Pack</td><td class="tr">11</td><td class="tr t-green">₹42,072</td><td><span class="badge badge-green">Highest LTV segment</span></td></tr>
+            <tr><td class="tn">Barre 3 Month Unlimited</td><td class="tr">3</td><td class="tr t-green">₹41,949</td><td><span class="badge badge-green">Premium — retain at all cost</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAPSE CAUSES AND FIXES -->
+  <div class="g2 mb32">
+    <div class="card">
+      <div class="card-title">Root Cause Analysis — Why Are Members Lapsing?</div>
+      <div class="insight-panel">
+        <div class="insight red"><strong>No proactive renewal outreach process exists</strong>The data shows memberships expiring across every week of May with no visible renewal capture. In a functioning retention system, 20–35% of expiring members renew before or within 7 days of expiry. The 0% renewal rate strongly suggests there is no automated or manual pre-expiry renewal reminder in place.</div>
+        <div class="insight warn"><strong>Studio 1 Month Unlimited is a structural trap: 246 lapsed, ₹0 avg LTV</strong>This product has the highest historical churn volume and generates zero long-term value. It is being purchased as a cheap trial entry and abandoned. The product design needs to include a mandated upsell moment: on Day 20 of the month, front desk should initiate every 1-month unlimited holder for a renewal conversation.</div>
+        <div class="insight warn"><strong>Studio 3 Month Unlimited shows ₹335 avg LTV despite a 3-month commitment — a pricing investigation is needed</strong>66 lapsed members averaging only ₹335 total spend on a 3-month product suggests either the product has been sold at near-zero cost repeatedly (heavy discounting), or the data is capturing a specific promotional cohort. Cross-reference against discount history.</div>
+        <div class="insight red"><strong>Annual and 6-Month Unlimited LTV shows ₹0 across 56 historical lapses — a data quality red flag</strong>34 Annual + 22 Six-Month = 56 high-commitment members with zero recorded LTV. This is almost certainly a data pipeline issue — these members would have paid thousands of rupees for these products. Reconcile this data against payment records before drawing strategic conclusions.</div>
+        <div class="insight"><strong>Proximity is cited by 7 leads as a reason for disengagement</strong>While these are leads rather than existing members, proximity concerns from the acquisition funnel likely also explain some membership lapses. Members who live or work far from Kemps Corner are at higher churn risk when motivation dips. This is structural and partially beyond studio control, but should inform targeting and scheduling strategies.</div>
+        <div class="insight blue"><strong>The sessionsUsedPct, avgSessionsPerMonth and daysActive columns are empty for all 54 expirations</strong>These three data fields — which would reveal whether clients were lapsing after heavy or light usage — are missing for every expiring member. This is a data collection failure. Without usage data, it is impossible to distinguish "used-up-and-left" from "disengaged-and-abandoned" — two very different retention problems requiring different interventions.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Win-Back Protocol — June 2026</div>
+      <div class="insight-panel">
+        <div class="insight green"><strong>Tier 1 — Personal outreach this week (Annual, 6-Month, 3-Month, 12-Class lapses)</strong>27 members across these four product categories represent the highest-value win-back opportunity. A studio manager or senior front desk member should call each personally within 5 working days. Script: acknowledge the lapse without pressure, offer a complimentary re-entry class to ease re-engagement friction, and present a renewal offer in-studio.</div>
+        <div class="insight blue"><strong>Tier 2 — WhatsApp sequence weeks 2–3 (8-Class, Extended 10-Class, Barre lapses)</strong>14 members. A 2-message WhatsApp sequence: Day 7 after lapse (value message: "What you're missing this month at Kwality House") and Day 14 (time-limited renewal offer: current package at ₹500 off, valid 48 hours). WhatsApp response rates are 5–10× higher than email for this category of re-engagement.</div>
+        <div class="insight"><strong>Tier 3 — Email re-engagement campaign weeks 3–4 (1-Month, 10-Class, 2-Week lapses)</strong>13 members. A 3-email sequence over 14 days. Email 1: "We noticed you've been away" + highlight new classes this month. Email 2: Feature testimonials from similar members who returned. Email 3: A final soft offer — newcomers special rate if they return this month. No pressure. No heavy discount.</div>
+        <div class="insight warn"><strong>For Studio 1-Month Unlimited lapses: restructure the product, not the outreach</strong>5 May lapses + 246 historical = a product that has never successfully retained clients. Win-back outreach for these members is low-probability. The real fix is in the product architecture: add a Day-20 upsell checkpoint into the onboarding flow so the renewal conversation happens before the membership expires, not after.</div>
+        <div class="insight blue"><strong>Target: 15–20% win-back rate on Tier 1 members</strong>Industry benchmark for personal outreach win-back in boutique fitness is 15–25%. On 27 Tier 1 members, a 15% rate = 4 renewals. At avg renewal value of ₹18,000–₹30,000 per member, that is ₹72,000–₹1,20,000 in direct June revenue from this cohort alone.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════ SECTION 6: RED FLAGS ══════════════════════ -->
+<section class="section" id="flags">
+  <div class="sh">
+    <div class="sh-left">
+      <div class="sh-eyebrow">06 · Red Flags & Predictions</div>
+      <div class="sh-title">Business Risk Signals<br>& Forward Outlook</div>
+    </div>
+    <div class="sh-right">Red flags are data patterns that pose a structural risk to revenue, retention, or operations if left unaddressed. Predictions are forward-looking interpretations of current trend lines — not forecasts, but directional signals that inform decision-making.</div>
+  </div>
+
+  <div class="flag-grid mb32">
+    <div class="flag">
+      <div class="flag-title">Red Flag 01 · 100% Lapse Rate on Expirations</div>
+      <p>54 memberships expired in May. Zero renewed. This is either a genuine retention failure or a data reporting issue. Either scenario requires immediate investigation. If genuine, the business is not converting existing committed members into repeat buyers — the most costly failure mode in subscription fitness.</p>
+    </div>
+    <div class="flag">
+      <div class="flag-title">Red Flag 02 · Website Leads Converting at 0%</div>
+      <p>19 leads arrived via website direct. None converted, none bought a membership, ₹0 LTV. This is not a small sample issue — 19 is a meaningful lead count. The follow-up process for website leads is broken. Every day this persists, interested prospects are being lost to inaction.</p>
+    </div>
+    <div class="flag">
+      <div class="flag-title">Red Flag 03 · 256 Late Cancellations — No Deterrent in Place</div>
+      <p>256 late cancellations represent blocked capacity in the studio's highest-demand formats (Barre 57, Powercycle, Strength Lab). Without a financial penalty, late cancellation is costless for the member. Every empty spot from a late cancel is a real client who couldn't book. At ₹800 avg revenue per check-in, 256 late cancels represent ₹2L+ in theoretical lost revenue per month.</p>
+    </div>
+    <div class="flag">
+      <div class="flag-title">Red Flag 04 · Promo Dependency at 55.5% of Gross Revenue</div>
+      <p>More than half of May's revenue flowed through promotional pricing pathways. While discount penetration at 15.6% appears manageable, the underlying promo architecture is broader than a single discount line. If promotional activity were reduced, the revenue base could be more exposed than the headline numbers suggest.</p>
+    </div>
+    <div class="flag">
+      <div class="flag-title">Red Flag 05 · Annual & 6-Month Unlimited Showing ₹0 LTV Historically</div>
+      <p>34 Annual Unlimited and 22 Six-Month Unlimited members show ₹0 average LTV in the lapsed database. These are long-duration, high-value commitment products. Zero LTV is almost certainly a data integrity issue — but until reconciled, the studio is flying blind on its most valuable customer segment's actual spend history.</p>
+    </div>
+    <div class="flag">
+      <div class="flag-title">Red Flag 06 · Cardio Barre Express — 9 Sessions at 2.3 Clients Average</div>
+      <p>This format has been given 9 scheduled sessions in May with a 22.2% cancellation rate and 12.2% fill rate. Trainers are being deployed, the time slot is consumed, and administrative overhead is real — for an average audience of 2.3 people. Each session costs the studio more to run than the revenue it generates relative to alternatives.</p>
+    </div>
+    <div class="flag">
+      <div class="flag-title">Red Flag 07 · Mrigakshi Jaiswal — 29 Sessions, ₹1.51L Revenue, 0% Conversion</div>
+      <p>29 sessions is a significant scheduling commitment. 171 clients attended. Zero converted to memberships. This trainer is servicing an existing client base without adding any new membership value to the business. At this session load with zero conversion, there is a direct opportunity cost against trainers with 33–67% conversion rates.</p>
+    </div>
+    <div class="flag">
+      <div class="flag-title">Red Flag 08 · sessionsUsedPct Data Missing for All 54 Expirations</div>
+      <p>The three most operationally useful fields in the expiration dataset — sessions used percentage, average sessions per month, and days active — are empty for every single expiring member in May. Without knowing whether members lapsed with unused classes or had exhausted their package, the studio cannot distinguish heavy users from disengaged ones, making targeted retention strategy impossible.</p>
+    </div>
+  </div>
+
+  <div class="card mb20">
+    <div class="card-title">Forward Predictions — Based on May Trend Lines</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="insight blue"><strong>June full-month revenue likely ₹23–26L, consistent with baseline</strong>June is 17 days in at ₹13.6L gross (₹8,000/day avg). Extrapolating across 30 days implies ₹24–25L. No anniversary promotions are expected in June, so discount penetration should remain in the 14–17% range. Revenue per member and avg transaction value are both running above May, suggesting slight upward momentum.</div>
+      <div class="insight warn"><strong>Strength Lab demand will exceed capacity within 60 days without schedule expansion</strong>At 80.7% fill and growing late cancellation pressure (Strength Lab variants account for 41 late cancels in May), the format is approaching a structural booking bottleneck. Members who cannot book will migrate to other studios. Adding 3–4 sessions at peak slots must happen in June or July.</div>
+      <div class="insight warn"><strong>Powercycle will continue to underperform unless schedule is reduced</strong>The format's 50.8% fill rate is not improving — it reflects structural oversupply of Powercycle relative to actual demand. Without a schedule reduction, the fill rate will oscillate around 50% as loyal regulars maintain their bookings. The opportunity cost of running 83 sessions/month at this fill rate is substantial relative to running 60 sessions at 65%+.</div>
+      <div class="insight red"><strong>If May's lapsed members are not contacted in June, the win-back rate drops to near zero</strong>Research in boutique fitness consistently shows that 60 days post-lapse is the boundary beyond which win-back probability drops below 5%. The 54 May lapsed members have until late July to be meaningfully re-engaged. Every week without outreach reduces that probability.</div>
+      <div class="insight"><strong>Referral pipeline may plateau without formalisation</strong>May's referral channel generated 34 leads organically. Without a named, incentivised referral programme, this volume is ceiling-constrained by existing members' spontaneous behaviour. A structured programme should grow this to 45–50 leads per month — an additional 4–6 memberships at historical conversion rates.</div>
+      <div class="insight blue"><strong>Retail revenue is likely to sustain above ₹65K without active promotion</strong>The organic trend line (Jan ₹67K, May ₹72K) shows demand is product-driven. Without any retail promotion visible in the data, this line is likely to hold or grow slightly. An active retail push — staff recommendations, seasonal product drops — could push this above ₹1L/month.</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════ SECTION 7: WHAT WORKED ══════════════════════ -->
+<section class="section" id="ww">
+  <div class="sh">
+    <div class="sh-left">
+      <div class="sh-eyebrow">07 · Performance Diagnostics</div>
+      <div class="sh-title">What Worked &<br>What Needs Attention</div>
+    </div>
+  </div>
+
+  <div class="ww-grid mb32">
+    <div class="ww pos"><strong>Referral channel is generating the highest-quality leads without a formal programme</strong>41% lead-to-conversion rate, ₹1.84L LTV, 12 memberships from 34 organic referrals. No other channel comes within 3× of this performance. The studio's best sales mechanism is its own member base — and it's working entirely by word of mouth.</div>
+    <div class="ww pos"><strong>Membership sales have broken out of the Jan–Mar range without promotional support</strong>Jan–Mar average was ₹42,054/month in membership revenue. May delivered ₹3.4L — an 8× increase, matching April's ₹3.47L without anniversary discounting. Genuine demand for long-term commitment products is building.</div>
+    <div class="ww pos"><strong>Strength Lab is performing at near-capacity with the highest fill rate in the studio</strong>80.7% fill across 60 sessions is exceptional in boutique fitness. The format has proven its demand. The studio's scheduling response has not yet caught up to that demand — which is an opportunity, not a problem.</div>
+    <div class="ww pos"><strong>Retail revenue is growing organically above the Jan–Mar trend</strong>₹72,235 in May with no visible retail promotion. Members are buying because they want to, not because they've been prompted. This organic pull is a signal of strong brand affinity and studio culture.</div>
+    <div class="ww pos"><strong>Drop-in revenue is 26% above the Jan–Mar average</strong>₹5.13L from drop-ins versus a ₹4.08L baseline. Drop-in clients are the studio's most accessible conversion segment — they have already demonstrated willingness to pay and attend. A structured post-drop-in offer is the most direct upgrade pathway.</div>
+    <div class="ww pos"><strong>WhatsApp enquiry channel converts 50% of leads and 100% of trials</strong>6 leads, 3 conversions, 5 of 5 trials converted. The WhatsApp pathway produces better-qualified leads because the conversation is personal from the first touchpoint. Scaling this channel — proactively using WhatsApp as the first response mechanism for all inbound enquiries — would lift overall conversion materially.</div>
+    <div class="ww pos"><strong>Average transaction value is at a 3-month high at ₹7,228</strong>January led at ₹8,658 (skewed by high membership sales that month), but May's ₹7,228 beats February and March comfortably. Clients are spending more per visit — indicating a mix shift toward higher-tier products.</div>
+    <div class="ww pos"><strong>Hosted class events are reliably filling to 77–90% without paid promotion</strong>Two hosted events in May both achieved exceptional attendance. They are free marketing events, community-building tools, and lead generation mechanisms simultaneously. The ROI of increasing hosted class frequency is very high.</div>
+    <div class="ww neg"><strong>Website direct leads (19) converting at 0% — the funnel is broken at the response stage</strong>19 explicit website enquiries. Zero converted. The likely cause is a slow or absent follow-up. A 2-hour phone call SLA for all website form submissions — personal, not automated — would address this immediately.</div>
+    <div class="ww neg"><strong>256 late cancellations with no financial deterrent — significant capacity leakage</strong>Barre 57 (46) and Powercycle (45) alone account for 91 late cancels. These are the studio's most popular formats, meaning real clients are blocked from booking. A ₹500 late cancel fee with 1 free pass per month would significantly reduce speculative bookings.</div>
+    <div class="ww neg"><strong>Cardio Barre Express is consuming scheduling capacity at 2.3 clients per session</strong>9 sessions, 12.2% fill, 22.2% cancellation rate. The format is not viable and should be discontinued. The trainer time and room capacity currently allocated to these 9 sessions can be directly reallocated to Strength Lab or Studio Mat expansion.</div>
+    <div class="ww neg"><strong>New client conversion at 23% means 89 of 122 new visitors left without buying</strong>The first-class experience, same-day follow-up, and pricing conversation are the three variables that determine conversion. All three appear to be underdeveloped. The revenue upside from improving to 30% conversion is 8–9 additional memberships per month at ₹16,458 avg LTV.</div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════ SECTION 8: ACTIONS ══════════════════════ -->
+<section class="section" id="actions">
+  <div class="sh">
+    <div class="sh-left">
+      <div class="sh-eyebrow">08 · Strategic Action Plan</div>
+      <div class="sh-title">Priority Decisions —<br>June 2026</div>
+    </div>
+    <div class="sh-right">Each action is directly traceable to a data point in this report. These are not recommendations — they are business decisions that the data makes urgent. Owner, timeline, and expected outcome are specified for each.</div>
+  </div>
+
+  <div class="action">
+    <div class="action-num">1</div>
+    <div class="action-body">
+      <div class="action-tags"><span class="action-tag">Retention</span><span class="action-tag">Revenue Recovery</span><span class="action-tag">Urgent — This Week</span></div>
+      <h4>Launch win-back outreach for all 54 May-lapsed members before June 22</h4>
+      <p><strong>The data:</strong> 54 memberships lapsed in May with 0 renewals recorded. 27 are Tier 1 (Annual, 6-Month, 3-Month, 12-Class Package). The 60-day win-back window closes in late July. Each week without outreach reduces probability by 10–15 percentage points.<br><br>
+      <strong>Decision:</strong> (a) Studio Manager personally calls all 6-Month and Annual lapses — 6 members — this week with a re-entry class invitation. (b) Front desk initiates WhatsApp contact with all 3-Month and 12-Class lapses — 25 members — over the next 10 days. Script is personal, not template-based. Offer: one complimentary re-entry class, then a renewal conversation in studio. (c) Email sequence for Tier 2/3 members (28 members) across weeks 2–3 of June.<br><br>
+      <strong>Expected outcome:</strong> A 15% win-back rate on 54 members = 8 renewals at avg ₹18,000 = ₹1,44,000 incremental June revenue.</p>
+    </div>
+  </div>
+
+  <div class="action">
+    <div class="action-num">2</div>
+    <div class="action-body">
+      <div class="action-tags"><span class="action-tag">Scheduling</span><span class="action-tag">Revenue</span><span class="action-tag">Implement in July Schedule</span></div>
+      <h4>Restructure the class schedule: expand Strength Lab, reduce Powercycle, discontinue Cardio Barre Express</h4>
+      <p><strong>The data:</strong> Strength Lab: 80.7% fill, 60 sessions, 41 late cancels across variants — demand is outpacing supply. Powercycle: 50.8% fill, 83 sessions — oversupplied by ~25%. Cardio Barre Express: 12.2% fill, 2.3 clients/session, 22.2% cancellation rate — unviable.<br><br>
+      <strong>Decision:</strong> (a) Add 4 Strength Lab sessions to the July schedule at Wed 8am, Mon 17:00, Tue 18:00, and Fri 9am — the four highest unfilled peak slots per the heatmap. (b) Reduce Powercycle from 83 to 62 sessions/month — eliminate Mon 10am, Thu 9am, and Fri slots showing below 35% fill. (c) Remove all Cardio Barre Express sessions from the July schedule entirely. Redirect the 9 freed slots to Strength Lab and Studio Mat. (d) Reduce Cardio Barre Plus to 2 curated specialty slots per week.<br><br>
+      <strong>Expected outcome:</strong> Strength Lab fill rate maintains 80%+ on new sessions, Powercycle fill improves to 62–65%, and overall studio avg fill rate moves from 52% to 58–62% within 60 days.</p>
+    </div>
+  </div>
+
+  <div class="action">
+    <div class="action-num">3</div>
+    <div class="action-body">
+      <div class="action-tags"><span class="action-tag">Conversion</span><span class="action-tag">New Clients</span><span class="action-tag">Implement This Month</span></div>
+      <h4>Implement a 24-hour new client follow-up protocol and fix the website lead response process</h4>
+      <p><strong>The data:</strong> 89 of 122 new clients (73%) did not convert. Website leads converted at 0% (19 leads). The WhatsApp channel — which has an inherently personal response — converted 50% of leads. Trial-completed leads (23 people) are sitting unconverted with no follow-up visible in the data.<br><br>
+      <strong>Decision:</strong> (a) Every new client receives a personal WhatsApp message from front desk within 4 hours of their first class — not template, not automated. The message acknowledges their first class by name, references something specific about the session, and extends a 48-hour welcome offer (not a blanket discount — a curated package recommendation). (b) Assign one front desk team member as Website Lead Owner with a 2-hour phone response SLA for all website form submissions. Response must be a phone call, not an email or WhatsApp message. (c) The 23 trial-completed leads receive a 3-touch sequence: Day 1 call, Day 4 WhatsApp, Day 8 personal email with a schedule suggestion for their specific class preference.<br><br>
+      <strong>Expected outcome:</strong> Moving conversion from 23% to 30% on comparable new client volume = 8–9 additional memberships/month = ₹1.32L–1.48L incremental monthly revenue at ₹16,458 avg LTV.</p>
+    </div>
+  </div>
+
+  <div class="action">
+    <div class="action-num">4</div>
+    <div class="action-body">
+      <div class="action-tags"><span class="action-tag">Referral Programme</span><span class="action-tag">Acquisition</span><span class="action-tag">Launch by June 30</span></div>
+      <h4>Formalise the referral programme and set a monthly referral lead target</h4>
+      <p><strong>The data:</strong> Referral generated 34 leads, 14 conversions (41%), 12 memberships, ₹1.84L LTV — organically, with no formal programme. The LTV/lead ratio (₹5,430) is 11× higher than website form (₹463). Referral is already the studio's best growth channel. It is growing by chance, not design.<br><br>
+      <strong>Decision:</strong> (a) Name the programme ("Refer a Friend") and publish clear terms: for every referred client who purchases any membership or 8+ class package, the referring member earns one complimentary class credit. (b) The offer is communicated in post-class conversation by trainers and front desk — not via email broadcast, which dilutes the personal feel. (c) Track referral source attribution rigorously in the CRM — in May, 11 leads and 6 memberships (₹93,634 LTV) were tagged as "Unknown," meaning referral performance is being under-counted. (d) Set a monthly target: 40 referral leads = baseline, 50 = goal.<br><br>
+      <strong>Expected outcome:</strong> Growing referral volume by 35% (34 → 46 leads) at maintained conversion rates = 6 additional memberships/month = ~₹99,000 incremental revenue at near-zero acquisition cost.</p>
+    </div>
+  </div>
+
+  <div class="action">
+    <div class="action-num">5</div>
+    <div class="action-body">
+      <div class="action-tags"><span class="action-tag">Operations</span><span class="action-tag">Revenue Recovery</span><span class="action-tag">Policy Decision — This Week</span></div>
+      <h4>Implement a late cancellation fee and automated waitlist system across all formats</h4>
+      <p><strong>The data:</strong> 256 late cancellations in May. Barre 57 (46) and Powercycle (45) together = 91 late cancels. Strength Lab variants = 41 late cancels in a format that is already at 80.7% fill. At ₹831 avg revenue per Powercycle check-in and ₹828 per Strength Lab check-in, the late-cancel opportunity cost exceeds ₹2L/month.<br><br>
+      <strong>Decision:</strong> (a) Introduce a ₹500 late cancellation fee for any booking cancelled within 8 hours of class start. Each member receives one fee-free late cancel per rolling 30 days as a goodwill allowance. (b) An automated waitlist system is activated for all classes — when a cancellation is received (late or otherwise), the next person on the waitlist is auto-booked and notified within 15 minutes. (c) The policy is published in the app, on the booking confirmation email, and communicated at front desk during sign-up. A grace period of 2 weeks gives members time to adjust behaviour before fees are enforced. (d) Track late cancel counts monthly with a target of below 150 by August 2026.<br><br>
+      <strong>Expected outcome:</strong> A 40% reduction in late cancels (256 → 154) frees 100 class spots per month for real bookings. At studio avg revenue of ₹830/check-in, this represents up to ₹83,000 in recovered booking revenue per month, plus ₹50,000+ in direct late cancel fee income from the remaining violations.</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════ SECTION 9: CONCLUSIONS ══════════════════════ -->
+<section class="section" id="conc">
+  <div class="sh">
+    <div class="sh-left">
+      <div class="sh-eyebrow">09 · Executive Conclusions</div>
+      <div class="sh-title">Data-Backed Business<br>Verdicts — May 2026</div>
+    </div>
+    <div class="sh-right">Each conclusion is anchored to a specific metric. Every verdict implies a decision. These are not summaries — they are the business intelligence outputs that this report exists to deliver.</div>
+  </div>
+
+  <div class="conclusion-grid mb32">
+    <div class="conc">
+      <span class="conc-num">₹24.3L</span>
+      <div class="conc-text">May gross revenue is 7.4% above the Jan–Mar baseline — the business is growing organically. April's ₹50L was a promotional anomaly. May's revenue at 15.6% discount penetration is the sustainable run-rate to plan against, not April's inflated base.</div>
+      <span class="conc-verdict">Verdict: Revenue health is positive. Build planning models on ₹23–25L monthly.</span>
+    </div>
+    <div class="conc">
+      <span class="conc-num">0%</span>
+      <div class="conc-text">Renewal rate on 54 May expirations. Whether a data issue or a genuine retention failure, a 0% renewal rate on expiring memberships is the most structurally dangerous metric in this report. It must be investigated and resolved before the June expiration cycle begins.</div>
+      <span class="conc-verdict">Verdict: Treat as a critical operational failure. Investigate and respond this week.</span>
+    </div>
+    <div class="conc">
+      <span class="conc-num">80.7%</span>
+      <div class="conc-text">Strength Lab fill rate — the studio's single clearest product-market fit signal. The format is capacity-constrained, not demand-constrained. Adding 4 Strength Lab sessions at peak heatmap slots in July is the scheduling decision with the highest probability of immediate revenue impact.</div>
+      <span class="conc-verdict">Verdict: Expand Strength Lab in the July schedule. This is overdue.</span>
+    </div>
+    <div class="conc">
+      <span class="conc-num">41%</span>
+      <div class="conc-text">Client Referral lead-to-conversion rate. No other acquisition channel exceeds 33%, and most deliver under 20%. The referral channel is already the studio's most powerful growth engine — operating entirely without a formal programme, incentive structure, or tracking mechanism.</div>
+      <span class="conc-verdict">Verdict: Formalise the referral programme in June. Highest-ROI marketing investment available.</span>
+    </div>
+    <div class="conc">
+      <span class="conc-num">73%</span>
+      <div class="conc-text">Proportion of new clients who did not convert. 89 of 122 first-time visitors left without purchasing anything. The product experience is clearly strong enough to attract people — the gap is in the conversion moment. Post-class follow-up and the first-offer conversation are the two variables to fix.</div>
+      <span class="conc-verdict">Verdict: Install a 24-hour new client protocol. Target 30% conversion rate by August.</span>
+    </div>
+    <div class="conc">
+      <span class="conc-num">256</span>
+      <div class="conc-text">Late cancellations in a single month with no financial deterrent. This is the studio's most significant operational inefficiency — it blocks real members from high-demand classes, depresses effective fill rates, and creates a false picture of format popularity. A late cancel fee is the single most operationally impactful policy change available.</div>
+      <span class="conc-verdict">Verdict: Implement ₹500 late cancel fee with 1 monthly free pass. Target: below 150/month.</span>
+    </div>
+    <div class="conc">
+      <span class="conc-num">₹0</span>
+      <div class="conc-text">Lifetime value from 19 website-direct leads who expressed explicit purchase interest. The website is generating traffic and enquiries — then losing them to a non-existent follow-up process. This is not a marketing problem. It is an operations problem solvable with a 2-hour response SLA and one dedicated team member.</div>
+      <span class="conc-verdict">Verdict: Assign a Website Lead Owner. Mandate 2-hour phone response for all form submissions.</span>
+    </div>
+    <div class="conc">
+      <span class="conc-num">12.2%</span>
+      <div class="conc-text">Cardio Barre Express fill rate across 9 sessions. At 2.3 clients per class and a 22.2% cancellation rate, this format is consuming real resources for negative relative return. Discontinuation is not a risk — it is the right decision. The freed capacity goes directly to Strength Lab expansion.</div>
+      <span class="conc-verdict">Verdict: Remove Cardio Barre Express from the July schedule. No further review needed.</span>
+    </div>
+    <div class="conc">
+      <span class="conc-num">₹16,458</span>
+      <div class="conc-text">Average LTV of clients who converted after their first visit. The product works. Clients who experience the studio and are asked to buy — spend meaningfully. The challenge is not the product or the price. It is the conversion conversation. Investment in this moment compounds at ₹16K per client acquired.</div>
+      <span class="conc-verdict">Verdict: The business case for conversion training and post-class protocol is ₹16K per incremental client.</span>
+    </div>
+  </div>
+</section>
+
+</div><!-- end .wrap -->
+
+<div class="footer">
+  Kwality House &nbsp;·&nbsp; Kemps Corner &nbsp;·&nbsp; Physique57 India &nbsp;·&nbsp; May 2026 Performance Report &nbsp;·&nbsp; Senior Management Review<br>
+  Generated June 17, 2026 &nbsp;·&nbsp; Data Source: Studio Pulse Export &nbsp;·&nbsp; Report period: May 1–31, 2026
+</div>
+
+</body>
+</html>

@@ -114,6 +114,7 @@ import { PresenterAnnotationOverlay } from '@/components/dashboard/PresenterAnno
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { AdminCodeGate } from '@/components/ui/AdminCodeGate';
 import { useToast } from '@/hooks/use-toast';
+import { StudioPulseReport } from '@/components/dashboard/StudioPulseReport';
 
 /* ------------------------------------------------------------------ */
 /* Studio definitions                                                  */
@@ -4324,34 +4325,23 @@ const StudioPulse = memo(() => {
         ) : (
         <>
         {reportMode && (
-          <div className="mb-6 overflow-hidden rounded-3xl border border-blue-200 bg-gradient-to-r from-blue-900 via-slate-900 to-blue-900 shadow-lg">
-            <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-blue-300 shrink-0" />
-                <span className="text-xs font-bold uppercase tracking-widest text-blue-200">Report Mode</span>
-                <span className="text-xs text-white/50">·</span>
-                <span className="text-xs text-white/70">{activeStudio.name} · {dateRange.start} to {dateRange.end}</span>
-              </div>
-              <button onClick={() => setReportMode(false)} className="text-white/40 hover:text-white/80 transition text-xs">✕ Exit</button>
-            </div>
-            <div className="grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-4 lg:grid-cols-8">
-              {[
-                { label: 'Net Sales', value: sharedMetrics.netSales },
-                { label: 'Transactions', value: formatNumber(sharedMetrics.transactions) },
-                { label: 'Members', value: formatNumber(sharedMetrics.uniqueMembers) },
-                { label: 'Sessions', value: formatNumber(sharedMetrics.totalSessions) },
-                { label: 'Avg Fill', value: sharedMetrics.avgFill },
-                { label: 'New Clients', value: formatNumber(sharedMetrics.newClients) },
-                { label: 'Conversion', value: sharedMetrics.conversionRate },
-                { label: 'Late Cancels', value: formatNumber(sharedMetrics.lateCancels) },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex flex-col items-center justify-center bg-white/5 px-4 py-3 text-center">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-1">{label}</span>
-                  <span className="text-sm font-bold text-white tabular-nums">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <StudioPulseReport
+            studioName={activeStudio.name}
+            dateRange={dateRange}
+            salesStats={salesStats}
+            sessionStats={sessionStats}
+            sessionIntelligenceRows={sessionIntelligence.rows}
+            trainerRows={trainerRankingsExtended.rows}
+            clientStats={clientStats}
+            funnelRows={funnelRankings.rows}
+            lcStats={lcStats}
+            expirationStats={expirationStats}
+            lapsedByMembership={lapsedByMembership}
+            salesMatrix={salesMetricsMatrix}
+            getSummary={getSummary}
+            sectionEdits={sectionEdits}
+            onClose={() => setReportMode(false)}
+          />
         )}
         <AnimatePresence mode="wait">
           <motion.div

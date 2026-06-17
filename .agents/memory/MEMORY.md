@@ -1,3 +1,4 @@
 - [StudioPulse AI summary design](ai-summary-design.md) — AI auto-generation is disabled; summaries only trigger on button click or AI panel open
 - [StudioPulse editable summaries](editable-summaries.md) — per-section manual overrides stored in localStorage key `sp_section_edits_v1` as JSON map
 - [StudioPulse duplicate key fix](duplicate-key-fix.md) — trainer scorecard thead had two columns labeled 'Pay'; fixed by removing duplicate; use index+label as row key
+- [StudioPulseReport component](studio-pulse-report.md) — full editorial report at src/components/dashboard/StudioPulseReport.tsx; fixed overlay (z-60) triggered by reportMode state; receives live data props from StudioPulse.tsx
