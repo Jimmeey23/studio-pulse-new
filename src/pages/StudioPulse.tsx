@@ -2782,6 +2782,34 @@ const StudioPulse = memo(() => {
     return { rows: sorted, top: sorted.slice(0, sessionRankingCount), bottom: [...sorted].reverse().slice(0, sessionRankingCount) };
   }, [filteredSessions, sessions, studio, sessionRankingDimension, sessionRankingMetric, sessionRankingCount, sessionMinCheckins, sessionMinClasses, sessionExcludeHosted, sessionIncludeTrainer, sessionStatusFilter, sessionGrouping]);
 
+  const reportSlotRows = useMemo(() => {
+    const grouped: Record<string, {
+      name: string; trainer: string; day: string; time: string; location: string;
+      sessions: number; visits: number; capacity: number; lateCancels: number;
+    }> = {};
+    filteredSessions.forEach((s) => {
+      const className = normalizeClassName(s.sessionName || s.cleanedClass || s.classType);
+      const trainer   = s.trainerName || 'Unknown';
+      const dayFull   = (() => { const d = parseDate(s.date); return d ? d.toLocaleDateString('en-IN', { weekday: 'short' }) : '—'; })();
+      const time      = s.time || '—';
+      const loc       = s.location || '—';
+      const key       = `${className}|${dayFull}|${time}|${trainer}`;
+      if (!grouped[key]) {
+        grouped[key] = { name: className, trainer, day: dayFull, time, location: loc, sessions: 0, visits: 0, capacity: 0, lateCancels: 0 };
+      }
+      const g = grouped[key];
+      g.sessions  += 1;
+      g.visits    += Number(s.checkedInCount) || 0;
+      g.capacity  += Number(s.capacity) || 0;
+      g.lateCancels += Number(s.lateCancels) || 0;
+    });
+    return Object.values(grouped)
+      .map(g => ({ ...g, fillRate: g.capacity > 0 ? (g.visits / g.capacity) * 100 : 0 }))
+      .filter(g => g.sessions >= 2)
+      .sort((a, b) => b.fillRate - a.fillRate)
+      .slice(0, 15);
+  }, [filteredSessions]);
+
   const funnelRankings = useMemo(() => {
     const leadLookup = new Map<string, any>();
     filteredLeads.forEach((lead) => {
@@ -4331,6 +4359,7 @@ const StudioPulse = memo(() => {
             salesStats={salesStats}
             sessionStats={sessionStats}
             sessionIntelligenceRows={sessionIntelligence.rows}
+            classSlotRows={reportSlotRows}
             trainerRows={trainerRankingsExtended.rows}
             clientStats={clientStats}
             funnelRows={funnelRankings.rows}
