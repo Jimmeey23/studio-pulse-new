@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getPreviousMonthPeriod } from '@/utils/dateUtils';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
 
@@ -494,12 +493,28 @@ Provide ${hasMoMData ? '7' : '5'} detailed, data-driven insights:`;
     let attempt = 0; let lastError: any = null;
     while (attempt <= maxRetries) {
       try {
-        const result = await this.model.generateContent({
-          contents: [{ role: 'user', parts: [{ text: prompt }]}],
-          generationConfig: { temperature: 0.3, topP: 0.95, topK: 50, maxOutputTokens: 4096 },
-          safetySettings: []
+        const response = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gemini-1.5-flash',
+            body: {
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.3, topP: 0.95, topK: 50, maxOutputTokens: 4096 },
+            },
+          }),
         });
-        const response = await result.response; return response.text();
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          const status = response.status;
+          lastError = Object.assign(new Error(err.error?.message || `HTTP ${status}`), { status });
+          if (status === 429 || (status >= 500 && status < 600)) { attempt++; if (attempt > maxRetries) break; await delay(500 * attempt * attempt); continue; }
+          throw lastError;
+        }
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error('No content in Gemini response');
+        return text;
       } catch (error: any) {
         lastError = error;
         if (error?.status === 429 || (error?.status >= 500 && error?.status < 600)) { attempt++; if (attempt > maxRetries) break; await delay(500 * attempt * attempt); continue; }
@@ -510,12 +525,7 @@ Provide ${hasMoMData ? '7' : '5'} detailed, data-driven insights:`;
   }
 }
 
-// Initialize Google Generative AI and export singleton instance
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(apiKey);
-
-let model: any;
-try { model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }); }
-catch { try { model = genAI.getGenerativeModel({ model: 'gemini-pro' }); } catch { model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' }); } }
+// Export singleton instance (no API key needed in frontend anymore)
+const model = {};  // placeholder — actual calls go through /api/gemini proxy
 
 export const geminiService = new GeminiServiceImpl(model);

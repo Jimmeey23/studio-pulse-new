@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef } from 'react';
-import OpenAI from 'openai';
 
 export interface StudioSummaryInput {
   studioName: string;
@@ -34,11 +33,6 @@ export interface StudioSummaryResult {
   bullets: string[];
   lastGenerated: string;
 }
-
-const openaiClient = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
-  dangerouslyAllowBrowser: true,
-});
 
 const DEEPSEEK_BASE = 'https://api.deepseek.com';
 
@@ -149,19 +143,26 @@ const callAI = async (prompt: string): Promise<{ bullets: string[]; narrative?: 
     }
   };
 
-  // Attempt GPT-4o
+  // Attempt GPT-4o via server proxy
   if (hasOpenAI) {
     try {
-      const res = await openaiClient.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.2,
-        max_tokens: 900,
-        response_format: { type: 'json_object' },
+      const response = await fetch('/api/openai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.2,
+          max_tokens: 900,
+          response_format: { type: 'json_object' },
+        }),
       });
-      const content = res.choices[0]?.message?.content || '{}';
-      const result = parseResult(content);
-      if (result.bullets.length >= 3) return result;
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || '{}';
+        const result = parseResult(content);
+        if (result.bullets.length >= 3) return result;
+      }
     } catch {
       // fall through to deepseek
     }

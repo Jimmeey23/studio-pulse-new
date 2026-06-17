@@ -70,11 +70,6 @@ export const DashboardChatbot: React.FC = () => {
 
   const generateResponseWithOpenAI = async (userMessage: string): Promise<string> => {
     try {
-      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-      if (!apiKey) {
-        return 'OpenAI API key not configured. Please check your environment variables.';
-      }
-
       const contextData = getContextData();
       const systemPrompt = `You are a smart business intelligence assistant for a fitness studio analytics dashboard. 
 You have access to real-time data and should provide insightful, specific answers about business metrics.
@@ -94,12 +89,9 @@ Current Dashboard Context:
 Always reference actual data in your responses. Provide actionable insights, trends, and recommendations based on the metrics.
 Be conversational but professional. Use emojis sparingly for clarity.`;
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch('/api/openai', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'gpt-4-turbo',
           messages: [
@@ -114,14 +106,12 @@ Be conversational but professional. Use emojis sparingly for clarity.`;
 
       if (!response.ok) {
         const error = await response.json();
-        console.error('OpenAI API Error:', error);
         return `I encountered an issue accessing the AI service. Please try again. (Error: ${error.error?.message || 'Unknown'})`;
       }
 
       const data = await response.json();
       return data.choices[0].message.content || 'Unable to generate response.';
     } catch (error) {
-      console.error('Error calling OpenAI API:', error);
       return 'I encountered an error processing your request. Please try again.';
     }
   };

@@ -4,6 +4,8 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import notesHandler from "./api/notes.js";
 import payrollHandler from "./api/payroll.js";
+import openaiHandler from "./api/openai.js";
+import geminiHandler from "./api/gemini.js";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -122,6 +124,64 @@ export default defineConfig(({ mode }) => {
         });
       },
     },
+
+    // Local API middleware for /api/openai
+    mode === "development" && {
+      name: "local-api-openai",
+      configureServer(server: ViteDevServer) {
+        server.middlewares.use("/api/openai", (req: any, res: any, next: any) => {
+          if (req.method !== "POST") return next();
+
+          process.env.OPENAI_API_KEY = env.OPENAI_API_KEY || env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+          process.env.VITE_OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+          const wrapResponse = (res: any) =>
+            Object.assign(res, {
+              status(code: number) { res.statusCode = code; return res; },
+              json(obj: any) { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); },
+            });
+
+          let body = "";
+          req.on("data", (chunk: any) => (body += chunk));
+          req.on("end", async () => {
+            try { (req as any).body = body ? JSON.parse(body) : {}; } catch { (req as any).body = {}; }
+            Promise.resolve(openaiHandler(req, wrapResponse(res))).catch((err: any) => {
+              console.error("Local /api/openai error", err);
+              wrapResponse(res).status(500).json({ error: "Internal server error" });
+            });
+          });
+        });
+      },
+    },
+
+    // Local API middleware for /api/gemini
+    mode === "development" && {
+      name: "local-api-gemini",
+      configureServer(server: ViteDevServer) {
+        server.middlewares.use("/api/gemini", (req: any, res: any, next: any) => {
+          if (req.method !== "POST") return next();
+
+          process.env.GEMINI_API_KEY = env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+          process.env.VITE_GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+          const wrapResponse = (res: any) =>
+            Object.assign(res, {
+              status(code: number) { res.statusCode = code; return res; },
+              json(obj: any) { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); },
+            });
+
+          let body = "";
+          req.on("data", (chunk: any) => (body += chunk));
+          req.on("end", async () => {
+            try { (req as any).body = body ? JSON.parse(body) : {}; } catch { (req as any).body = {}; }
+            Promise.resolve(geminiHandler(req, wrapResponse(res))).catch((err: any) => {
+              console.error("Local /api/gemini error", err);
+              wrapResponse(res).status(500).json({ error: "Internal server error" });
+            });
+          });
+        });
+      },
+    },
   ].filter(Boolean),
 
   resolve: {
@@ -136,6 +196,10 @@ export default defineConfig(({ mode }) => {
 
   define: {
     "process.env.NODE_ENV": JSON.stringify(mode),
+    // Bridge non-VITE_ prefixed Replit secrets to import.meta.env
+    "import.meta.env.VITE_GOOGLE_CLIENT_ID": JSON.stringify(env.GOOGLE_CLIENT_ID || env.VITE_GOOGLE_CLIENT_ID || ''),
+    "import.meta.env.VITE_GOOGLE_CLIENT_SECRET": JSON.stringify(env.GOOGLE_CLIENT_SECRET || env.VITE_GOOGLE_CLIENT_SECRET || ''),
+    "import.meta.env.VITE_GOOGLE_REFRESH_TOKEN": JSON.stringify(env.GOOGLE_REFRESH_TOKEN || env.VITE_GOOGLE_REFRESH_TOKEN || ''),
   },
 
   build: {

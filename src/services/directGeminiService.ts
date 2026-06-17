@@ -32,18 +32,10 @@ interface GeminiResponse {
 }
 
 export class DirectGeminiService {
-  private apiKey: string;
-  private baseUrl: string;
   private modelId: string;
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
-    this.modelId = 'gemini-flash-latest'; // Matching your bash reference
-    
-    if (!this.apiKey) {
-      throw new Error('Gemini API key is not configured. Please set VITE_GEMINI_API_KEY in your environment variables.');
-    }
+    this.modelId = 'gemini-1.5-flash';
   }
 
   async generateContent(prompt: string): Promise<string> {
@@ -51,34 +43,22 @@ export class DirectGeminiService {
       contents: [
         {
           role: "user",
-          parts: [
-            {
-              text: prompt
-            }
-          ]
+          parts: [{ text: prompt }]
         }
       ],
       generationConfig: {
         temperature: 0.7,
         topP: 0.9,
         maxOutputTokens: 2048,
-        thinkingConfig: {
-          thinkingBudget: -1
-        }
       }
     };
 
     try {
-      const response = await fetch(
-        `${this.baseUrl}/${this.modelId}:generateContent?key=${this.apiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody)
-        }
-      );
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: this.modelId, body: requestBody })
+      });
 
       if (!response.ok) {
         const errorText = await response.text();

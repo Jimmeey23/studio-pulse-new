@@ -1,5 +1,3 @@
-import OpenAI from 'openai';
-
 // Types
 export interface SummaryGenerationOptions {
   data: any[];
@@ -31,51 +29,39 @@ export interface SummaryResult {
 }
 
 class OpenAIService {
-  private client: OpenAI;
-  private apiKey: string;
-
-  constructor() {
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    
-    if (!this.apiKey) {
-      console.warn('OpenAI API key not configured. AI summaries will be unavailable.');
-      return;
-    }
-
-    this.client = new OpenAI({
-      apiKey: this.apiKey,
-      dangerouslyAllowBrowser: true // Note: In production, this should be handled via a backend API
-    });
-  }
+  constructor() {}
 
   async generateSummary(options: SummaryGenerationOptions): Promise<SummaryResult> {
-    if (!this.client) {
-      throw new Error('OpenAI service not properly initialized. Please check your API key configuration.');
-    }
-
     const prompt = this.buildPrompt(options);
     
     try {
-      const response = await this.client.chat.completions.create({
-        model: 'gpt-4o-mini', // Using the latest efficient model
-        messages: [
-          {
-            role: 'system',
-            content: `You are a senior business intelligence analyst specializing in fitness and wellness analytics. 
+      const response = await fetch('/api/openai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a senior business intelligence analyst specializing in fitness and wellness analytics. 
             You provide deep, actionable insights from business data with a focus on contextual awareness and strategic recommendations.
             Always respond in valid JSON format with the exact structure specified.`
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.3, // Lower temperature for more consistent, analytical responses
-        max_tokens: 2000,
-        response_format: { type: "json_object" }
+            },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 2000,
+          response_format: { type: "json_object" }
+        }),
       });
 
-      const content = response.choices[0]?.message?.content;
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw Object.assign(new Error(err.error?.message || `API error ${response.status}`), { status: response.status });
+      }
+
+      const data = await response.json();
+      const content = data.choices[0]?.message?.content;
       if (!content) {
         throw new Error('No response received from OpenAI');
       }
@@ -213,18 +199,18 @@ Generate a comprehensive business intelligence analysis in JSON format with this
     return metrics;
   }
 
-  // Test connection method
   async testConnection(): Promise<{ success: boolean; error?: string }> {
-    if (!this.client) {
-      return { success: false, error: 'OpenAI service not initialized' };
-    }
-
     try {
-      await this.client.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: 'Test connection. Respond with just "OK".' }],
-        max_tokens: 10
+      const response = await fetch('/api/openai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: 'Test connection. Respond with just "OK".' }],
+          max_tokens: 10
+        }),
       });
+      if (!response.ok) return { success: false, error: `HTTP ${response.status}` };
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message };
