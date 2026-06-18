@@ -3,3 +3,4 @@
 - [StudioPulse duplicate key fix](duplicate-key-fix.md) — trainer scorecard thead had two columns labeled 'Pay'; fixed by removing duplicate; use index+label as row key
 - [StudioPulseReport component](studio-pulse-report.md) — full editorial report at src/components/dashboard/StudioPulseReport.tsx; fixed overlay (z-60) triggered by reportMode state; receives live data props from StudioPulse.tsx
 - [Export field-name fixes](export-field-names.md) — CheckinData uses teacherName/cleanedClass/checkedIn(bool); dataCrawler had wrong classFormat/trainerName/c.attendance causing zero values
+- [StudioPulse export & skeleton loaders](export-skeleton.md) — camelToHeader + parseRegistryTable at module level in StudioPulse.tsx; registry tables appended to both XLSX and PDF; isLoading on all 19 metric cards

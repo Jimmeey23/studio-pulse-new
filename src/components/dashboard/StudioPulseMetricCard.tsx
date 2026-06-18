@@ -30,6 +30,8 @@ interface StudioPulseMetricCardProps extends React.HTMLAttributes<HTMLDivElement
   badgeLabel?: string;
   tooltipContent?: string;
   onClick?: () => void;
+  /** When true, renders a shimmer skeleton instead of live data */
+  isLoading?: boolean;
 }
 
 const formatMetric = (value: number, precision: number, formatter?: (value: number) => string) => {
@@ -82,6 +84,7 @@ const StudioPulseMetricCard = React.forwardRef<HTMLDivElement, StudioPulseMetric
       badgeLabel: _badgeLabel,
       tooltipContent,
       onClick: _onClick,
+      isLoading,
       ...props
     },
     ref
@@ -212,6 +215,29 @@ const StudioPulseMetricCard = React.forwardRef<HTMLDivElement, StudioPulseMetric
 
     const peakColor = '#60a5fa';
     const formattedMetric = formatMetric(metric, precision, formatter);
+
+    if (isLoading) {
+      return (
+        <div
+          ref={ref as React.Ref<HTMLDivElement>}
+          className={cn('relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-white', className)}
+          style={{ minHeight: 180 }}
+        >
+          <div className="p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-slate-100 animate-pulse" />
+              <div className="h-3 w-28 rounded-full bg-slate-100 animate-pulse" style={{ animationDelay: '80ms' }} />
+            </div>
+            <div className="h-8 w-36 rounded-lg bg-slate-100 animate-pulse" style={{ animationDelay: '140ms' }} />
+            <div className="h-3 w-48 rounded-full bg-slate-100 animate-pulse" style={{ animationDelay: '200ms' }} />
+            <div className="flex gap-2 pt-1">
+              <div className="h-11 flex-1 rounded-md bg-slate-100 animate-pulse" style={{ animationDelay: '250ms' }} />
+              <div className="h-11 flex-1 rounded-md bg-slate-100 animate-pulse" style={{ animationDelay: '310ms' }} />
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div

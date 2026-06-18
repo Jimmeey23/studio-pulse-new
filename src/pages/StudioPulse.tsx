@@ -87,6 +87,7 @@ import { FloatingAISectionPanel } from '@/components/dashboard/FloatingAISection
 import { UnifiedTopBottomSellers } from '@/components/dashboard/UnifiedTopBottomSellers';
 import DetailedComparisonView from '@/components/dashboard/DetailedComparisonView';
 import LocationReport from '@/pages/LocationReport';
+import { useMetricsTablesRegistry } from '@/contexts/MetricsTablesRegistryContext';
 
 import { useGoogleSheets } from '@/hooks/useGoogleSheets';
 import { useSessionsData } from '@/hooks/useSessionsData';
@@ -706,6 +707,34 @@ const csvSafeValue = (value: any) => {
   return String(value);
 };
 
+const camelToHeader = (key: string): string =>
+  key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^[a-z]/, (c) => c.toUpperCase())
+    .replace(/\bIst\b/g, 'IST')
+    .replace(/\bVat\b/g, 'VAT')
+    .replace(/\bLtv\b/g, 'LTV')
+    .replace(/\bPct\b/g, '%')
+    .replace(/\bId\b/g, 'ID')
+    .trim();
+
+const parseRegistryTable = (content: string): { title: string; headers: string[]; rows: string[][] } => {
+  const lines = content.split('\n');
+  const title = lines[0]?.trim() || 'Table';
+  let headerIdx = -1;
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split('\t').filter(Boolean);
+    if (parts.length >= 2) { headerIdx = i; break; }
+  }
+  if (headerIdx === -1) return { title, headers: [], rows: [] };
+  const headers = lines[headerIdx].split('\t').map((h) => h.trim()).filter(Boolean);
+  const rows = lines
+    .slice(headerIdx + 1)
+    .filter((l) => l.includes('\t'))
+    .map((l) => l.split('\t').map((c) => c.trim()));
+  return { title, headers, rows };
+};
+
 /* ------------------------------------------------------------------ */
 /* Main page                                                           */
 /* ------------------------------------------------------------------ */
@@ -1118,6 +1147,7 @@ const StudioPulse = memo(() => {
   const { data: checkins = [], loading: checkinsLoading } = useCheckinsData();
 
   const anyLoading = salesLoading || sessionsLoading || clientsLoading || payrollLoading || leadsLoading || lcLoading || expLoading || recurringLoading || checkinsLoading;
+  const metricsRegistry = useMetricsTablesRegistry();
 
   useEffect(() => {
     setLoading(salesLoading, 'Reading the studio pulse...');
@@ -3814,13 +3844,13 @@ const StudioPulse = memo(() => {
       { title: 'Filtered Sessions', columns: ['date', 'location', 'sessionName', 'cleanedClass', 'trainerName', 'checkedInCount', 'capacity', 'revenue', 'lateCancelledCount'], rows: filteredSessions },
       { title: 'Filtered Clients', columns: ['firstVisitDate', 'firstVisitLocation', 'firstVisitEntityName', 'memberId', 'email', 'conversionStatus', 'retentionStatus', 'ltv'], rows: filteredClients },
       { title: 'Filtered Leads', columns: ['createdAt', 'center', 'source', 'stage', 'classType', 'memberId', 'email', 'conversionStatus', 'ltv'], rows: filteredLeads },
-      { title: 'Filtered Late Cancellations', columns: ['dateIST', 'sessionDateIST', 'location', 'teacherName', 'memberId', 'sessionName', 'penaltyAmount'], rows: filteredLateCancels },
+      { title: 'Filtered Late Cancels', columns: ['dateIST', 'sessionDateIST', 'location', 'teacherName', 'memberId', 'sessionName', 'penaltyAmount'], rows: filteredLateCancels },
       { title: 'Filtered Expirations', columns: ['endDate', 'primaryLocation', 'homeLocation', 'membershipName', 'memberId', 'status', 'sessionsUsedPct', 'avgSessionsPerMonth', 'daysActive'], rows: filteredExpirations },
       { title: 'Sales Metrics Matrix', columns: ['label', ...salesMetricsMatrix.months.map((m) => salesMetricsMatrix.monthLabels[m])], rows: salesMetricsMatrix.metricRows.map((row) => ({
         label: row.label,
         ...Object.fromEntries(salesMetricsMatrix.months.map((month) => [salesMetricsMatrix.monthLabels[month], row.values[month] ?? 0])),
       })) },
-      { title: 'Session Intelligence Rankings', columns: ['name', 'sessions', 'visits', 'capacity', 'empty', 'classAvg', 'fillRate', 'cancellationRate', 'revPerCheckin', 'revenue', 'isActive'], rows: sessionIntelligence.rows },
+      { title: 'Session Intelligence', columns: ['name', 'sessions', 'visits', 'capacity', 'empty', 'classAvg', 'fillRate', 'cancellationRate', 'revPerCheckin', 'revenue', 'isActive'], rows: sessionIntelligence.rows },
       { title: 'Funnel Rankings', columns: ['name', 'leads', 'trials', 'converted', 'retained', 'visitsPostTrial', 'ltv', 'membershipsBought'], rows: funnelRankings.rows },
       { title: 'Trainer Rankings', columns: ['name', 'sessions', 'customers', 'paid', 'classAvg', 'fillRate', 'utilization', 'conversionRate', 'lateCancels', 'revenueScore'], rows: trainerRankingsExtended.rows },
       { title: 'Lapsed Memberships', columns: ['name', 'count', 'uniqueMembers', 'avgLtv', 'avgSessionsUsedPct', 'avgDaysActive', 'earlyExitRate', 'discountRate'], rows: membershipChurnBreakdown },
@@ -3837,17 +3867,30 @@ const StudioPulse = memo(() => {
           ['Generated At', new Date().toLocaleString()],
         ]);
         XLSX.utils.book_append_sheet(wb, metaSheet, 'Summary');
+
+        // Raw data sections with readable headers
         workbookSections.forEach((section) => {
           if (!section.rows.length) return;
-          const sheetRows = section.rows.map((row) => {
-            const out: Record<string, any> = {};
-            section.columns.forEach((column) => {
-              out[column] = csvSafeValue((row as Record<string, any>)[column]);
-            });
-            return out;
-          });
-          XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sheetRows), section.title.slice(0, 31));
+          const headerRow = section.columns.map(camelToHeader);
+          const dataRows = section.rows.map((row) =>
+            section.columns.map((col) => csvSafeValue((row as Record<string, any>)[col]))
+          );
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headerRow, ...dataRows]), section.title.slice(0, 31));
         });
+
+        // Append all registered dashboard tables (pivot tables, rankings, etc.)
+        const existingSheets = new Set(wb.SheetNames);
+        metricsRegistry.getAllTables().forEach((table) => {
+          try {
+            const { title, headers, rows } = parseRegistryTable(table.getTextContent());
+            if (!headers.length || !rows.length) return;
+            let sheetName = title.slice(0, 31).replace(/[\\/*?[\]:]/g, '-');
+            if (existingSheets.has(sheetName)) sheetName = sheetName.slice(0, 28) + ' (2)';
+            existingSheets.add(sheetName);
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headers, ...rows]), sheetName);
+          } catch { /* skip tables that fail to render */ }
+        });
+
         XLSX.writeFile(wb, `${filenameBase}.xlsx`);
       } else {
         const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
@@ -3866,43 +3909,68 @@ const StudioPulse = memo(() => {
         pdf.text(`Generated: ${new Date().toLocaleString()}`, 14, y);
         y += 8;
 
-        const pdfSections = [
-          { title: 'Filtered Sales', columns: ['paymentDate', 'calculatedLocation', 'cleanedProduct', 'paymentValue', 'paymentVAT', 'discountAmount', 'soldBy'], rows: filteredSales },
-          { title: 'Filtered Sessions', columns: ['date', 'location', 'sessionName', 'trainerName', 'checkedInCount', 'capacity', 'revenue'], rows: filteredSessions },
-          { title: 'Filtered Clients', columns: ['firstVisitDate', 'firstVisitLocation', 'memberId', 'conversionStatus', 'retentionStatus', 'ltv'], rows: filteredClients },
-          { title: 'Filtered Leads', columns: ['createdAt', 'center', 'source', 'stage', 'conversionStatus', 'ltv'], rows: filteredLeads },
-          { title: 'Filtered Late Cancellations', columns: ['dateIST', 'location', 'teacherName', 'sessionName', 'penaltyAmount'], rows: filteredLateCancels },
-          { title: 'Filtered Expirations', columns: ['endDate', 'primaryLocation', 'membershipName', 'memberId', 'sessionsUsedPct', 'daysActive'], rows: filteredExpirations },
-        ];
-
-        pdfSections.forEach((section) => {
-          if (!section.rows.length) return;
-          if (y > 170) {
-            pdf.addPage();
-            y = 14;
-          }
+        const addPdfSection = (title: string, columns: string[], rows: any[], maxRows = 250) => {
+          if (!rows.length) return;
+          if (y > 170) { pdf.addPage(); y = 14; }
           pdf.setFontSize(12);
           pdf.setFont('helvetica', 'bold');
-          pdf.text(section.title, 14, y);
+          pdf.text(title, 14, y);
           y += 4;
           autoTable(pdf, {
             startY: y,
-            head: [section.columns],
-            body: section.rows.slice(0, 250).map((row) => section.columns.map((column) => csvSafeValue((row as Record<string, any>)[column]))),
+            head: [columns.map(camelToHeader)],
+            body: rows.slice(0, maxRows).map((row) =>
+              columns.map((col) => csvSafeValue((row as Record<string, any>)[col]))
+            ),
             styles: { fontSize: 7, cellPadding: 1.5 },
-            headStyles: { fillColor: [15, 23, 42] },
+            headStyles: { fillColor: [15, 23, 42], textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
             margin: { left: 14, right: 14 },
             theme: 'grid',
           });
           y = ((pdf as any).lastAutoTable?.finalY || y) + 8;
+        };
+
+        addPdfSection('Filtered Sales', ['paymentDate', 'calculatedLocation', 'cleanedProduct', 'paymentValue', 'paymentVAT', 'discountAmount', 'soldBy'], filteredSales);
+        addPdfSection('Filtered Sessions', ['date', 'location', 'sessionName', 'trainerName', 'checkedInCount', 'capacity', 'revenue'], filteredSessions);
+        addPdfSection('Filtered Clients', ['firstVisitDate', 'firstVisitLocation', 'memberId', 'conversionStatus', 'retentionStatus', 'ltv'], filteredClients);
+        addPdfSection('Filtered Leads', ['createdAt', 'center', 'source', 'stage', 'conversionStatus', 'ltv'], filteredLeads);
+        addPdfSection('Filtered Late Cancellations', ['dateIST', 'location', 'teacherName', 'sessionName', 'penaltyAmount'], filteredLateCancels);
+        addPdfSection('Filtered Expirations', ['endDate', 'primaryLocation', 'membershipName', 'memberId', 'sessionsUsedPct', 'daysActive'], filteredExpirations);
+        addPdfSection('Trainer Rankings', ['name', 'sessions', 'customers', 'paid', 'classAvg', 'fillRate', 'lateCancels', 'revenueScore'], trainerRankingsExtended.rows);
+        addPdfSection('Session Intelligence', ['name', 'sessions', 'visits', 'classAvg', 'fillRate', 'revenue'], sessionIntelligence.rows);
+        addPdfSection('Funnel Rankings', ['name', 'leads', 'trials', 'converted', 'retained', 'ltv'], funnelRankings.rows);
+
+        // Append all registered dashboard tables
+        metricsRegistry.getAllTables().forEach((table) => {
+          try {
+            const { title, headers, rows } = parseRegistryTable(table.getTextContent());
+            if (!headers.length || !rows.length) return;
+            if (y > 170) { pdf.addPage(); y = 14; }
+            pdf.setFontSize(12);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(title, 14, y);
+            y += 4;
+            autoTable(pdf, {
+              startY: y,
+              head: [headers],
+              body: rows.slice(0, 200),
+              styles: { fontSize: 7, cellPadding: 1.5 },
+              headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
+              alternateRowStyles: { fillColor: [248, 250, 252] },
+              margin: { left: 14, right: 14 },
+              theme: 'grid',
+            });
+            y = ((pdf as any).lastAutoTable?.finalY || y) + 8;
+          } catch { /* skip tables that fail to render */ }
         });
 
         pdf.save(`${filenameBase}.pdf`);
       }
 
       toast({
-        title: 'Export started',
-        description: `Studio Pulse ${format.toUpperCase()} export queued for ${locationLabel}.`,
+        title: 'Export complete',
+        description: `Studio Pulse ${format.toUpperCase()} ready for ${locationLabel}.`,
       });
     } catch (error) {
       console.error('Studio Pulse export failed:', error);
@@ -3914,7 +3982,7 @@ const StudioPulse = memo(() => {
     } finally {
       setIsExportingPulse(false);
     }
-  }, [activeStudio.name, dateRange.end, dateRange.start, filteredClients, filteredExpirations, filteredLateCancels, filteredLeads, filteredSales, filteredSessions, isExportingPulse, membershipChurnBreakdown, peakHourHeatmap.buckets, peakHourHeatmap.days, peakHourHeatmap.timeSlots, salesMetricsMatrix.months, salesMetricsMatrix.monthLabels, sessionIntelligence.rows, studio, toast, trainerRankingsExtended.rows, funnelRankings.rows]);
+  }, [activeStudio.name, dateRange.end, dateRange.start, filteredClients, filteredExpirations, filteredLateCancels, filteredLeads, filteredSales, filteredSessions, isExportingPulse, membershipChurnBreakdown, metricsRegistry, peakHourHeatmap.buckets, peakHourHeatmap.days, peakHourHeatmap.timeSlots, salesMetricsMatrix.months, salesMetricsMatrix.monthLabels, sessionIntelligence.rows, studio, toast, trainerRankingsExtended.rows, funnelRankings.rows]);
 
   const [summaryRefreshing, setSummaryRefreshing] = useState(false);
   const [funnelActiveIdx, setFunnelActiveIdx] = useState(0);
@@ -4468,6 +4536,7 @@ const StudioPulse = memo(() => {
                 subtext={`Gross ${formatCurrency(salesStats.gross)} · Discount ${formatCurrency(salesStats.discount)}`}
                 iconContainerClassName="bg-gradient-to-br from-emerald-600 to-green-700 text-white"
                 onClick={() => openMetricDrillDown('Net Sales', 'metric', { name: 'Net Sales', rawData: filteredSales, filteredTransactionData: filteredSales }, filteredSales)}
+                isLoading={salesLoading}
               />
               <StudioPulseMetricCard
                 icon={<Wallet className="h-5 w-5" />}
@@ -4487,6 +4556,7 @@ const StudioPulse = memo(() => {
                 subtext={`ATV ${formatCurrency(salesStats.atv)} · ${formatPercentage(salesStats.discountPenetration)} discounted`}
                 iconContainerClassName="bg-gradient-to-br from-blue-700 to-blue-900 text-white"
                 onClick={() => openMetricDrillDown('Units Sold', 'product', { name: 'Units Sold', rawData: filteredSales, filteredTransactionData: filteredSales }, filteredSales)}
+                isLoading={salesLoading}
               />
               <StudioPulseMetricCard
                 icon={<Users className="h-5 w-5" />}
@@ -4506,6 +4576,7 @@ const StudioPulse = memo(() => {
                 subtext="Unique buyers in the active period"
                 iconContainerClassName="bg-gradient-to-br from-slate-700 to-slate-900 text-white"
                 onClick={() => openMetricDrillDown('Unique Members', 'member', { name: 'Unique Members', rawData: filteredSales, filteredTransactionData: filteredSales }, filteredSales)}
+                isLoading={salesLoading}
               />
               <StudioPulseMetricCard
                 icon={<Zap className="h-5 w-5" />}
@@ -4525,6 +4596,7 @@ const StudioPulse = memo(() => {
                 subtext={`${formatNumber(expirationStats.churned)} churned · memberships expired`}
                 iconContainerClassName="bg-gradient-to-br from-slate-600 to-slate-800 text-white"
                 onClick={() => openMetricDrillDown('Lapsed Members', 'client', { name: 'Lapsed Members', rawData: filteredExpirations as any, filteredTransactionData: filteredExpirations as any }, filteredExpirations as any)}
+                isLoading={expLoading}
               />
               <StudioPulseMetricCard
                 icon={<LineChart className="h-5 w-5" />}
@@ -4544,6 +4616,7 @@ const StudioPulse = memo(() => {
                 subtext={`${formatNumber(sessionStats.totalSessions)} sessions · Avg ${formatNumber(sessionStats.classAvg)} per non-empty class`}
                 iconContainerClassName="bg-gradient-to-br from-cyan-600 to-blue-700 text-white"
                 onClick={() => openMetricDrillDown('Visits', 'location', { name: activeStudio.name, rawData: filteredSessions, filteredTransactionData: filteredSessions }, filteredSessions)}
+                isLoading={sessionsLoading}
               />
               <StudioPulseMetricCard
                 icon={<Scan className="h-5 w-5" />}
@@ -4563,6 +4636,7 @@ const StudioPulse = memo(() => {
                 subtext={`Fill rate ${formatPercentage(sessionStats.avgFill)} · Empty share ${formatPercentage(sessionStats.emptyShare)}`}
                 iconContainerClassName="bg-gradient-to-br from-sky-600 to-cyan-700 text-white"
                 onClick={() => openMetricDrillDown('Sessions Conducted', 'location', { name: activeStudio.name, rawData: filteredSessions, filteredTransactionData: filteredSessions }, filteredSessions)}
+                isLoading={sessionsLoading}
               />
               <StudioPulseMetricCard
                 icon={<UserPlus className="h-5 w-5" />}
@@ -4582,6 +4656,7 @@ const StudioPulse = memo(() => {
                 subtext="Average check-ins per non-empty class"
                 iconContainerClassName="bg-gradient-to-br from-teal-600 to-emerald-700 text-white"
                 onClick={() => openMetricDrillDown('Class Average', 'trainer', { name: activeStudio.name, rawData: filteredSessions, filteredTransactionData: filteredSessions }, filteredSessions)}
+                isLoading={sessionsLoading}
               />
               <StudioPulseMetricCard
                 icon={<Target className="h-5 w-5" />}
@@ -4601,6 +4676,7 @@ const StudioPulse = memo(() => {
                 subtext={`${formatPercentage(sessionStats.emptyShare)} empty-session share`}
                 iconContainerClassName="bg-gradient-to-br from-orange-600 to-red-700 text-white"
                 onClick={() => openMetricDrillDown('Fill Rate', 'location', { name: activeStudio.name, rawData: filteredSessions, filteredTransactionData: filteredSessions }, filteredSessions)}
+                isLoading={sessionsLoading}
               />
               <StudioPulseMetricCard
                 icon={<Repeat className="h-5 w-5" />}
@@ -4620,6 +4696,7 @@ const StudioPulse = memo(() => {
                 subtext={`${formatNumber(sessionStats.attendance)} visits · ${formatNumber(sessionStats.totalSessions)} sessions`}
                 iconContainerClassName="bg-gradient-to-br from-rose-600 to-pink-700 text-white"
                 onClick={() => openMetricDrillDown('Revenue / Visit', 'metric', { name: 'Revenue / Visit', rawData: filteredSessions, filteredTransactionData: filteredSessions }, filteredSessions)}
+                isLoading={salesLoading || sessionsLoading}
               />
               <StudioPulseMetricCard
                 icon={<CalendarClock className="h-5 w-5" />}
@@ -4637,6 +4714,7 @@ const StudioPulse = memo(() => {
                 subtext={`${formatNumber(lcStats.sameDay)} same-day · Penalties ${formatCurrency(lcStats.penalty)}`}
                 iconContainerClassName="bg-gradient-to-br from-amber-600 to-orange-700 text-white"
                 onClick={() => openMetricDrillDown('Late Cancellations', 'location', { name: activeStudio.name, rawData: filteredLateCancels, filteredTransactionData: filteredLateCancels }, filteredLateCancels)}
+                isLoading={lcLoading}
               />
               <StudioPulseMetricCard
                 icon={<TrendingUp className="h-5 w-5" />}
@@ -4653,6 +4731,7 @@ const StudioPulse = memo(() => {
                 tooltipContent="Net revenue divided by new clients acquired. Measures how much revenue each new client drives."
                 subtext={`${formatNumber(clientStats.newClients)} new clients · ${formatCurrency(salesStats.net)} net`}
                 iconContainerClassName="bg-gradient-to-br from-violet-600 to-purple-800 text-white"
+                isLoading={salesLoading || clientsLoading}
               />
               <StudioPulseMetricCard
                 icon={<Percent className="h-5 w-5" />}
@@ -4671,6 +4750,7 @@ const StudioPulse = memo(() => {
                 tooltipContent="Net revenue generated per ₹1 discounted. Above ₹1 = discount driving net-positive sales."
                 subtext={`${formatNumber(discountEfficiency.discountedTxns)} discounted txns · ${formatCurrency(discountEfficiency.totalDiscount)} total discount`}
                 iconContainerClassName="bg-gradient-to-br from-amber-500 to-orange-700 text-white"
+                isLoading={salesLoading}
               />
               <StudioPulseMetricCard
                 icon={<TrendingUp className="h-5 w-5" />}
@@ -4690,6 +4770,7 @@ const StudioPulse = memo(() => {
                 tooltipContent="Classes used vs. classes purchased across all active class packs."
                 subtext={`${formatNumber(packageSellThrough.usedClasses)} used of ${formatNumber(packageSellThrough.totalClasses)} purchased`}
                 iconContainerClassName="bg-gradient-to-br from-sky-500 to-cyan-700 text-white"
+                isLoading={sessionsLoading || checkinsLoading}
               />
               <StudioPulseMetricCard
                 icon={<Repeat className="h-5 w-5" />}
@@ -4709,6 +4790,7 @@ const StudioPulse = memo(() => {
                 tooltipContent="% of members who made more than one purchase in the selected period."
                 subtext={`${formatNumber(repeatPurchaseRate.repeaters)} repeat of ${formatNumber(repeatPurchaseRate.total)} members`}
                 iconContainerClassName="bg-gradient-to-br from-emerald-500 to-green-800 text-white"
+                isLoading={salesLoading}
               />
               <StudioPulseMetricCard
                 icon={<CircleDollarSign className="h-5 w-5" />}
@@ -4727,6 +4809,7 @@ const StudioPulse = memo(() => {
                 tooltipContent="Average gross order value per transaction in the selected period."
                 subtext={`${formatNumber(salesStats.txns)} transactions · ${formatCurrency(salesStats.gross)} gross`}
                 iconContainerClassName="bg-gradient-to-br from-indigo-500 to-blue-800 text-white"
+                isLoading={salesLoading}
               />
             </div>
 
@@ -5057,10 +5140,10 @@ const StudioPulse = memo(() => {
               }
             >
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-                <StudioPulseMetricCard icon={<Users className="h-5 w-5" />} title="Leads Received" metric={leadStats.total} formatter={formatNumber} growthLabel="MoM" growthValue={leadStats.growth.total} secondaryGrowthLabel="YoY" secondaryGrowthValue={leadStats.yoyGrowth.total} subtext="All leads captured in the active period" iconContainerClassName="bg-gradient-to-br from-blue-700 to-slate-900 text-white" backSparklineData={backNewClientSparkline} backSparklineLabels={backClientSparklineLabels} />
-                <StudioPulseMetricCard icon={<Zap className="h-5 w-5" />} title="Trials / First Visits" metric={clientStats.newClients} formatter={formatNumber} growthLabel="MoM" growthValue={clientStats.growth.newClients} secondaryGrowthLabel="YoY" secondaryGrowthValue={clientStats.yoyGrowth.newClients} subtext="Unique first visits from New sheet" iconContainerClassName="bg-gradient-to-br from-cyan-600 to-blue-800 text-white" backSparklineData={backNewClientSparkline} backSparklineLabels={backClientSparklineLabels} />
-                <StudioPulseMetricCard icon={<Target className="h-5 w-5" />} title="Converted Members" metric={clientStats.converted} formatter={formatNumber} growthLabel="MoM" growthValue={clientStats.growth.converted} secondaryGrowthLabel="YoY" secondaryGrowthValue={clientStats.yoyGrowth.converted} subtext={`${formatPercentage(clientStats.conversionRate)} conversion rate`} iconContainerClassName="bg-gradient-to-br from-emerald-600 to-teal-800 text-white" backSparklineData={backConvertedSparkline} backSparklineLabels={backClientSparklineLabels} />
-                <StudioPulseMetricCard icon={<Wallet className="h-5 w-5" />} title="Retained Members" metric={clientStats.retained} formatter={formatNumber} growthLabel="MoM" growthValue={clientStats.growth.retained} secondaryGrowthLabel="YoY" secondaryGrowthValue={clientStats.yoyGrowth.retained} subtext={`${formatPercentage(clientStats.retentionRate)} retained · Avg LTV ${formatCurrency(clientStats.avgLtv)}`} iconContainerClassName="bg-gradient-to-br from-amber-600 to-orange-800 text-white" backSparklineData={backRetainedSparkline} backSparklineLabels={backClientSparklineLabels} />
+                <StudioPulseMetricCard icon={<Users className="h-5 w-5" />} title="Leads Received" metric={leadStats.total} formatter={formatNumber} growthLabel="MoM" growthValue={leadStats.growth.total} secondaryGrowthLabel="YoY" secondaryGrowthValue={leadStats.yoyGrowth.total} subtext="All leads captured in the active period" iconContainerClassName="bg-gradient-to-br from-blue-700 to-slate-900 text-white" backSparklineData={backNewClientSparkline} backSparklineLabels={backClientSparklineLabels} isLoading={leadsLoading} />
+                <StudioPulseMetricCard icon={<Zap className="h-5 w-5" />} title="Trials / First Visits" metric={clientStats.newClients} formatter={formatNumber} growthLabel="MoM" growthValue={clientStats.growth.newClients} secondaryGrowthLabel="YoY" secondaryGrowthValue={clientStats.yoyGrowth.newClients} subtext="Unique first visits from New sheet" iconContainerClassName="bg-gradient-to-br from-cyan-600 to-blue-800 text-white" backSparklineData={backNewClientSparkline} backSparklineLabels={backClientSparklineLabels} isLoading={clientsLoading} />
+                <StudioPulseMetricCard icon={<Target className="h-5 w-5" />} title="Converted Members" metric={clientStats.converted} formatter={formatNumber} growthLabel="MoM" growthValue={clientStats.growth.converted} secondaryGrowthLabel="YoY" secondaryGrowthValue={clientStats.yoyGrowth.converted} subtext={`${formatPercentage(clientStats.conversionRate)} conversion rate`} iconContainerClassName="bg-gradient-to-br from-emerald-600 to-teal-800 text-white" backSparklineData={backConvertedSparkline} backSparklineLabels={backClientSparklineLabels} isLoading={clientsLoading} />
+                <StudioPulseMetricCard icon={<Wallet className="h-5 w-5" />} title="Retained Members" metric={clientStats.retained} formatter={formatNumber} growthLabel="MoM" growthValue={clientStats.growth.retained} secondaryGrowthLabel="YoY" secondaryGrowthValue={clientStats.yoyGrowth.retained} subtext={`${formatPercentage(clientStats.retentionRate)} retained · Avg LTV ${formatCurrency(clientStats.avgLtv)}`} iconContainerClassName="bg-gradient-to-br from-amber-600 to-orange-800 text-white" backSparklineData={backRetainedSparkline} backSparklineLabels={backClientSparklineLabels} isLoading={clientsLoading} />
               </div>
 
               {showNewMemberMomTable && (
