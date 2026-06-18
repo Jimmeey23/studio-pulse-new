@@ -70,6 +70,7 @@ import {
   Users,
   Wallet,
   Zap,
+  ChevronsUpDown,
 } from 'lucide-react';
 
 import { Footer } from '@/components/ui/footer';
@@ -1279,16 +1280,27 @@ const StudioPulse = memo(() => {
   );
 
   /* ---------- Expirations (lapsed) ---------- */
+  // Exclude low-value / noise memberships from all lapsed/churn views
+  const isValidExpiration = (item: (typeof expirations)[0]): boolean => {
+    const name = (item.membershipName || '').toLowerCase();
+    const paid = (item as any).amountPaid ?? Number((item as any).paid) ?? 0;
+    if (paid <= 900) return false;
+    if (/private/i.test(name)) return false;
+    if (/newcomers.{0,5}2.{0,5}for.{0,5}1/i.test(name)) return false;
+    if (/single\s*class/i.test(name)) return false;
+    return true;
+  };
+
   const filteredExpirations = useMemo(
-    () => expirations.filter((item) => inStudio(item.primaryLocation || item.homeLocation, studio) && isWithinRange(item.endDate, dateRange)),
+    () => expirations.filter((item) => isValidExpiration(item) && inStudio(item.primaryLocation || item.homeLocation, studio) && isWithinRange(item.endDate, dateRange)),
     [expirations, studio, dateRange]
   );
   const previousExpirations = useMemo(
-    () => expirations.filter((item) => inStudio(item.primaryLocation || item.homeLocation, studio) && isWithinRange(item.endDate, previousDateRange)),
+    () => expirations.filter((item) => isValidExpiration(item) && inStudio(item.primaryLocation || item.homeLocation, studio) && isWithinRange(item.endDate, previousDateRange)),
     [expirations, studio, previousDateRange]
   );
   const previousYearExpirations = useMemo(
-    () => expirations.filter((item) => inStudio(item.primaryLocation || item.homeLocation, studio) && isWithinRange(item.endDate, previousYearDateRange)),
+    () => expirations.filter((item) => isValidExpiration(item) && inStudio(item.primaryLocation || item.homeLocation, studio) && isWithinRange(item.endDate, previousYearDateRange)),
     [expirations, studio, previousYearDateRange]
   );
   const expirationStats = useMemo(() => {
@@ -1980,7 +1992,7 @@ const StudioPulse = memo(() => {
   );
 
   const studioWideExpirations = useMemo(
-    () => expirations.filter((item) => inStudio(item.primaryLocation || item.homeLocation, studio)),
+    () => expirations.filter((item) => isValidExpiration(item) && inStudio(item.primaryLocation || item.homeLocation, studio)),
     [expirations, studio]
   );
 
@@ -2158,19 +2170,26 @@ const StudioPulse = memo(() => {
     ];
     months.forEach((month) => {
       const monthRows = studioWideExpirations.filter((item) => monthKeyFromDate(item.endDate) === month);
-      const total = monthRows.length;
+      // Mutually exclusive buckets — every row assigned to exactly one
       const renewed = monthRows.filter((e) => /renew/i.test(e.status || '')).length;
+      const frozen = monthRows.filter((e) => e.frozen || /frozen|freeze/i.test(e.status || '')).length;
+      const active = monthRows.filter((e) => {
+        const s = (e.status || '').toLowerCase().trim();
+        return s === 'active' && !e.frozen && !/renew/i.test(s) && !/frozen|freeze/i.test(s);
+      }).length;
+      // lapsed = catch-all for anything not renewed/frozen/active
       const lapsed = monthRows.filter((e) => {
-        const s = (e.status || '').toLowerCase();
-        return !e.frozen && !/renew/i.test(s) && !/frozen|freeze/i.test(s) && !/^active$/i.test(s.trim());
-      }).length || total; // fallback: all are lapsed if no status
+        const s = (e.status || '').toLowerCase().trim();
+        return !e.frozen && !/renew/i.test(s) && !/frozen|freeze/i.test(s) && s !== 'active';
+      }).length;
+      const total = lapsed + renewed + active + frozen; // always equals monthRows.length
       const churned = monthRows.filter((e) => /churn/i.test(e.status || '')).length || lapsed;
       const reactivated = 0;
       const revenueRecovered = 0;
       const revenueLost = monthRows.reduce((sum, e) => sum + ((e as any).amountPaid || Number(e.paid) || 0), 0);
       const notRenewed = total - renewed - reactivated;
       const pending = monthRows.filter((e) => !e.status || /pending|unknown|n\/a/i.test(e.status)).length;
-      rows[0].values[month] = total;
+      rows[0].values[month] = total; // Due Renewals = lapsed + renewed + active + frozen
       rows[1].values[month] = renewed;
       rows[2].values[month] = lapsed;
       rows[3].values[month] = churned;
@@ -2590,6 +2609,27 @@ const StudioPulse = memo(() => {
   const [lapsedTableTab, setLapsedTableTab] = useState<'breakdown' | 'renewal' | 'churned' | 'highvalue'>('churned');
   const [churnTrendMetric, setChurnTrendMetric] = useState<'count' | 'ltv'>('count');
   const [showSessionRankings, setShowSessionRankings] = useState(false);
+  const [showMomTable, setShowMomTable] = useState(false);
+  const [allTogglesOn, setAllTogglesOn] = useState(false);
+  const handleMasterToggle = useCallback(() => {
+    const next = !allTogglesOn;
+    setAllTogglesOn(next);
+    setShowFunnelMomTable(next);
+    setShowFunnelBreakdownTable(next);
+    setShowNewMemberMomTable(next);
+    setShowTrainerMomTable(next);
+    setShowTrainerFormatSection(next);
+    setShowClassMomTable(next);
+    setShowLapsedMomTable(next);
+    setShowSalesRankings(next);
+    setShowDiscountCodes(next);
+    setShowFunnelRankings(next);
+    setShowTrainerRankings(next);
+    setShowLapseRankings(next);
+    setShowLapsedChurnTrend(next);
+    setShowSessionRankings(next);
+    setShowMomTable(next);
+  }, [allTogglesOn]);
   const [sessionRankingDimension, setSessionRankingDimension] = useState<'class' | 'trainer' | 'format' | 'location' | 'day' | 'time'>('class');
   const [sessionRankingMetric, setSessionRankingMetric] = useState<'classAvg' | 'fillRate' | 'visits' | 'sessions' | 'revenue' | 'cancellationRate' | 'revPerCheckin' | 'compositeScore'>('classAvg');
   const [sessionRankingCount, setSessionRankingCount] = useState<10 | 20 | 30>(10);
@@ -2688,6 +2728,7 @@ const StudioPulse = memo(() => {
   // Sync state → URL params
   useEffect(() => {
     const params = new URLSearchParams();
+    if (searchParams.get('mv') === '1') params.set('mv', '1');
     params.set('studio', studio);
     params.set('from', dateRange.start);
     params.set('to', dateRange.end);
@@ -2729,6 +2770,7 @@ const StudioPulse = memo(() => {
     lapseRankDimension, sessionRankingDimension, sessionRankingMetric, sessionRankingCount,
     sessionViewMode, sessionTableView, sessionDensity, formatCompTab, sessionStatusFilter,
     sessionExcludeHosted, sessionTopMetric, sessionBottomMetric, sessionTopCount, sessionBottomCount,
+    searchParams,
     setSearchParams,
   ]);
 
@@ -3254,7 +3296,6 @@ const StudioPulse = memo(() => {
   const [insightOpen, setInsightOpen] = useState(false);
   const [drillDownOpen, setDrillDownOpen] = useState(false);
   const [drillDownConfig, setDrillDownConfig] = useState<{ title: string; type: any; data: any; relatedData: any[] } | null>(null);
-  const [showMomTable, setShowMomTable] = useState(false);
   const activeMatrixMonthKey = useMemo(() => getPreviousMonthKey(), []);
 
   // Front-face sparklines — date-filtered (show trend within selected range, same as before)
@@ -4477,6 +4518,10 @@ const StudioPulse = memo(() => {
   // Lock viewer controls when following
   const viewerLocked = presenterMode.role === 'viewer' && presenterMode.isConnected;
 
+  if (monthViewMode) {
+    return <LocationReport />;
+  }
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* ── Full-page data loader ── show until every sheet has responded */}
@@ -4713,7 +4758,11 @@ const StudioPulse = memo(() => {
               PDF
             </button>
             <button
-              onClick={() => navigate('/location-report')}
+              onClick={() => {
+                const params = new URLSearchParams(searchParams);
+                params.set('mv', '1');
+                setSearchParams(params);
+              }}
               title="Open location report"
               className={cn(
                 'flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-semibold shadow-sm backdrop-blur transition',
@@ -4722,6 +4771,20 @@ const StudioPulse = memo(() => {
             >
               <CalendarDays className="h-3.5 w-3.5" />
               Monthly Report View
+            </button>
+            {/* Master toggle — expand/collapse all section toggles */}
+            <button
+              onClick={handleMasterToggle}
+              title={allTogglesOn ? 'Collapse all sections' : 'Expand all sections'}
+              className={cn(
+                'flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-semibold shadow-sm backdrop-blur transition',
+                allTogglesOn
+                  ? 'border-emerald-400 bg-emerald-600 text-white hover:bg-emerald-700'
+                  : 'border-slate-200 bg-white/70 text-slate-600 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700'
+              )}
+            >
+              {allTogglesOn ? <ChevronsUpDown className="h-3.5 w-3.5" /> : <ChevronsUpDown className="h-3.5 w-3.5" />}
+              {allTogglesOn ? 'Collapse All' : 'Expand All'}
             </button>
             {/* Report Mode toggle */}
             <button

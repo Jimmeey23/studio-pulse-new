@@ -12,7 +12,7 @@ import { useSalesMetrics } from '@/hooks/useSalesMetrics';
 import { useGeminiAnalysis } from '@/hooks/useGeminiAnalysis';
 import { geminiService, type LocationReportNarrative } from '@/services/geminiService';
 import { useGlobalFilters } from '@/contexts/GlobalFiltersContext';
-import { getDashboardDefaultDateRange, parseDate } from '@/utils/dateUtils';
+import { parseDate } from '@/utils/dateUtils';
 import { formatCurrency, formatNumber, formatPercentage } from '@/utils/formatters';
 import { logger } from '@/utils/logger';
 
@@ -88,16 +88,15 @@ export interface LocationReportData {
 }
 
 export const useLocationReportData = () => {
-  const { activeLocations } = useGlobalFilters(); // Only get location, ignore date filters
+  const { activeLocations, filters } = useGlobalFilters();
   const { generateQuickInsights } = useGeminiAnalysis();
   
-  const previousMonthRange = useMemo(() => {
-    const defaultDateRange = getDashboardDefaultDateRange();
+  const reportDateRange = useMemo(() => {
     return {
-      startDate: defaultDateRange.start,
-      endDate: defaultDateRange.end,
+      startDate: filters.dateRange.start,
+      endDate: filters.dateRange.end,
     };
-  }, []);
+  }, [filters.dateRange.end, filters.dateRange.start]);
   
 
   
@@ -170,14 +169,13 @@ export const useLocationReportData = () => {
     };
 
     const filterByDateRange = (item: any) => {
-      // Always use the shared dashboard default range, ignore global date filters
       if (!item.date && !item.timestamp && !item.createdAt) return true;
       
       const itemDate = parseDate(item.date || item.timestamp || item.createdAt);
       if (!itemDate) return true;
       
-      const start = parseDate(previousMonthRange.startDate);
-      const end = parseDate(previousMonthRange.endDate);
+      const start = parseDate(reportDateRange.startDate);
+      const end = parseDate(reportDateRange.endDate);
       
       return itemDate >= start && itemDate <= end;
     };
@@ -193,7 +191,7 @@ export const useLocationReportData = () => {
 
     // Debug logging with sample data
     logger.debug('Location Report Debug Info:', {
-      dateRange: previousMonthRange,
+      dateRange: reportDateRange,
       primaryLocation,
       totalRawData: {
         sales: salesData.length,
@@ -224,7 +222,7 @@ export const useLocationReportData = () => {
       lateCancellations: filteredLateCancellations.length,
       expirations: filteredExpirations.length,
       primaryLocation,
-      fixedDateRange: previousMonthRange
+      fixedDateRange: reportDateRange
     });
 
     return {
@@ -240,7 +238,7 @@ export const useLocationReportData = () => {
   }, [
     salesData, sessionsData, payrollData, newClientData, leadsData, 
     discountData, lateCancellationsData, expirationsData,
-    primaryLocation, previousMonthRange, activeLocations
+    primaryLocation, reportDateRange, activeLocations
   ]);
 
   // Generate AI insights based on metrics
@@ -249,7 +247,7 @@ export const useLocationReportData = () => {
     
     try {
       // Get previous month's data for comparison
-      const currentMonth = new Date(previousMonthRange.startDate);
+      const currentMonth = new Date(reportDateRange.startDate);
       const prevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
       const prevMonthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0);
       
@@ -437,7 +435,7 @@ export const useLocationReportData = () => {
       console.error('Error generating AI insights:', error);
       return null;
     }
-  }, [generateQuickInsights, primaryLocation, previousMonthRange, filteredData]);
+  }, [generateQuickInsights, primaryLocation, reportDateRange, filteredData]);
 
   // Calculate metrics
   const metrics = useMemo((): LocationReportMetrics | null => {
@@ -679,9 +677,9 @@ export const useLocationReportData = () => {
     if (!calculatedMetrics) return null;
 
     const reportPeriod = {
-      startDate: previousMonthRange.startDate,
-      endDate: previousMonthRange.endDate,
-      monthName: new Date(previousMonthRange.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      startDate: reportDateRange.startDate,
+      endDate: reportDateRange.endDate,
+      monthName: new Date(reportDateRange.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     };
 
     // Generate basic insights (will be enhanced with AI later)
@@ -713,7 +711,7 @@ export const useLocationReportData = () => {
         yearOverYear: {}     // TODO: Calculate from historical data
       }
     };
-  }, [calculatedMetrics, primaryLocation, previousMonthRange]);
+  }, [calculatedMetrics, primaryLocation, reportDateRange]);
 
   // Function to enhance insights with AI
   const enhanceWithAI = useCallback(async () => {
@@ -735,9 +733,9 @@ export const useLocationReportData = () => {
 
   const generateFullReport = useCallback(async (): Promise<LocationReportNarrative | null> => {
     if (!calculatedMetrics) return null;
-    const periodLabel = new Date(previousMonthRange.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const periodLabel = new Date(reportDateRange.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     return geminiService.generateLocationReport(calculatedMetrics, primaryLocation, periodLabel);
-  }, [calculatedMetrics, primaryLocation, previousMonthRange]);
+  }, [calculatedMetrics, primaryLocation, reportDateRange]);
 
   return {
     data,
