@@ -9,6 +9,7 @@ export type StudioId = 'all' | 'kwality' | 'supreme' | 'kenkere' | 'popup';
 export interface PulseSnapshot {
   studio: StudioId;
   dateRange: { start: string; end: string };
+  monthViewMode: boolean;
   funnelRankingDimension: 'source' | 'location' | 'stage' | 'membership' | 'class';
   newMemberTableMetric: 'source' | 'membership' | 'class';
   funnelChartMetric: 'leads' | 'converted' | 'retained' | 'ltv';

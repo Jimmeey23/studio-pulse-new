@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from "react-router-dom";
 import { LazyGlobalCommandPalette } from "@/components/lazy/LazyGlobalCommandPalette";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
@@ -43,6 +43,16 @@ const queryClient = new QueryClient({
 });
 
 // Inner component that uses the route change loader hook
+const StudioPulseRoute = () => {
+  const [searchParams] = useSearchParams();
+
+  if (searchParams.get('mv') === '1') {
+    return <LocationReport />;
+  }
+
+  return <StudioPulse />;
+};
+
 const AppRoutes = () => {
   useRouteChangeLoader();
   
@@ -58,7 +68,7 @@ const AppRoutes = () => {
           <PageTransition>
             <Routes>
               <Route path="/" element={<Navigate to="/studio-pulse" replace />} />
-              <Route path="/studio-pulse" element={<StudioPulse />} />
+              <Route path="/studio-pulse" element={<StudioPulseRoute />} />
               <Route path="/location-report" element={<LocationReport />} />
               <Route path="*" element={<Navigate to="/studio-pulse" replace />} />
             </Routes>

@@ -4419,7 +4419,7 @@ const StudioPulse = memo(() => {
 
   // Collect current snapshot for broadcast
   const currentSnapshot: PulseSnapshot = {
-    studio, dateRange,
+    studio, dateRange, monthViewMode,
     funnelRankingDimension, newMemberTableMetric, funnelChartMetric, funnelRankingCount,
     funnelChartView, showFunnelMomTable, showFunnelBreakdownTable, showNewMemberMomTable,
     showTrainerMomTable, showTrainerFormatSection, scorecardSortKey, scorecardSortDir,
@@ -4446,7 +4446,7 @@ const StudioPulse = memo(() => {
     sessionTableView, sessionDensity, sessionMinCheckins, sessionMinClasses,
     sessionIncludeTrainer, sessionStatusFilter, sessionShowAdvanced, sessionExcludeHosted,
     sessionGrouping, sessionTopMetric, sessionBottomMetric, sessionTopCount, sessionBottomCount,
-    showMomTable, insightOpen, drillDownOpen, formatCompTab, presenterScrollY,
+    showMomTable, insightOpen, drillDownOpen, formatCompTab, monthViewMode, presenterScrollY,
   ]);
 
   // Apply incoming snapshot (viewer)
@@ -4490,9 +4490,18 @@ const StudioPulse = memo(() => {
     setInsightOpen(snap.insightOpen);
     setDrillDownOpen(snap.drillDownOpen);
     if (snap.formatCompTab) setFormatCompTab(snap.formatCompTab);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (snap.monthViewMode) next.set('mv', '1');
+      else next.delete('mv');
+      next.set('studio', snap.studio);
+      next.set('from', snap.dateRange.start);
+      next.set('to', snap.dateRange.end);
+      return next;
+    }, { replace: true });
     // scroll to presenter position smoothly
     window.scrollTo({ top: snap.scrollY, behavior: 'smooth' });
-  }, []);
+  }, [setSearchParams]);
 
   const handleJoinSession = useCallback((code: string, name: string) => {
     joinSession(code, name, applySnapshot);
