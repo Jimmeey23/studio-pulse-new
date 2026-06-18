@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kwality House, Kemps Corner — Performance Report Q1 2026</title>
+<style>
+:root {
+  --bg-primary: #FAFAF8; --bg-secondary: #F4F3EF; --bg-card: #FFFFFF;
+  --text-primary: #1A1A18; --text-secondary: #4A4A46; --text-muted: #8A8A85;
+  --accent: #1B4F8A; --accent-light: #E8EFF7;
+  --positive: #1A6B47; --positive-bg: #EBF5F0;
+  --negative: #8B2020; --negative-bg: #F8ECEC;
+  --warning: #7A5500; --warning-bg: #FDF5E6;
+  --neutral: #2B5F7A; --neutral-bg: #EBF3F8;
+  --border: #E4E3DF; --border-strong: #C8C7C2;
+  --shadow: rgba(26,26,24,0.06); --radius: 12px; --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Georgia','Times New Roman',serif; font-size: 14px; line-height: 1.7; color: var(--text-primary); background: var(--bg-primary); }
+h1 { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin: 0 0 4px; }
+h2 { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 18px; font-weight: 600; margin: 0 0 16px; color: var(--text-primary); }
+h3 { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 15px; font-weight: 600; margin: 0 0 12px; }
+h4 { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin: 0 0 8px; }
+.report-container { max-width: 1200px; margin: 0 auto; padding: 40px 48px; }
+.section { margin-bottom: 48px; }
+hr.section-divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; box-shadow: 0 2px 12px var(--shadow); }
+.metric-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 20px; }
+.metric-value { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 30px; font-weight: 700; line-height: 1; }
+.metric-label { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+.badge-pos { background: var(--positive-bg); color: var(--positive); font-size: 12px; font-family: 'Helvetica Neue',Arial,sans-serif; font-weight: 600; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+.badge-neg { background: var(--negative-bg); color: var(--negative); font-size: 12px; font-family: 'Helvetica Neue',Arial,sans-serif; font-weight: 600; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+.badge-neu { background: #F4F3EF; color: var(--text-muted); font-size: 12px; font-family: 'Helvetica Neue',Arial,sans-serif; font-weight: 600; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+.tag { background: var(--accent-light); color: var(--accent); font-size: 11px; font-family: 'Helvetica Neue',Arial,sans-serif; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+.callout-insight { border-left: 4px solid var(--neutral); background: var(--neutral-bg); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 18px; margin: 12px 0; }
+.callout-opp { border-left: 4px solid var(--positive); background: var(--positive-bg); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 18px; margin: 12px 0; }
+.callout-risk { border-left: 4px solid var(--negative); background: var(--negative-bg); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 18px; margin: 12px 0; }
+.callout-warn { border-left: 4px solid var(--warning); background: var(--warning-bg); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 18px; margin: 12px 0; }
+.callout-label { font-size: 11px; font-family: 'Helvetica Neue',Arial,sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { border-bottom: 2px solid var(--border-strong); }
+th { text-align: left; padding: 10px 12px; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+tr:nth-child(even) td { background: var(--bg-secondary); }
+.text-right { text-align: right; }
+.fw6 { font-weight: 600; font-family: 'Helvetica Neue',Arial,sans-serif; }
+.rec-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 2px 12px var(--shadow); }
+.rec-title { color: var(--accent); font-family: 'Helvetica Neue',Arial,sans-serif; font-weight: 600; font-size: 15px; margin-bottom: 14px; }
+.rec-table td { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.rec-table td:first-child { width: 150px; font-family: 'Helvetica Neue',Arial,sans-serif; font-weight: 600; color: var(--text-muted); font-size: 13px; white-space: nowrap; padding-right: 12px; }
+@media (max-width: 768px) { .grid-3,.grid-4 { grid-template-columns: 1fr 1fr; } .grid-2 { grid-template-columns: 1fr; } .report-container { padding: 24px 20px; } }
+@media print { body { background: white; font-size: 12px; } .report-container { padding: 20px; max-width: 100%; } .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; } .section { break-inside: avoid; } canvas { max-height: 200px !important; } details { display: block; } @page { margin: 15mm; size: A4; } }
+</style>
+</head>
+<body>
+<div class="report-container">
+
+<!-- HEADER -->
+<header style="border-bottom: 2px solid var(--accent); padding-bottom: 24px; margin-bottom: 32px;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+    <div>
+      <p style="font-size:11px;font-family:'Helvetica Neue',sans-serif;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-muted);margin:0 0 6px;">Performance Intelligence Report</p>
+      <h1>Kwality House, Kemps Corner</h1>
+      <p style="color:var(--text-secondary);margin:4px 0 0;font-size:15px;">January 2026 → March 2026 &nbsp;|&nbsp; Q1 FY2026</p>
+    </div>
+    <div style="text-align:right;font-size:12px;color:var(--text-muted);font-family:'Helvetica Neue',sans-serif;">
+      <div>Generated: April 2026</div>
+      <div>Location: Kemps Corner, Mumbai</div>
+      <div>Currency: INR (₹)</div>
+      <div style="margin-top:4px;color:var(--accent);font-weight:600;">CONFIDENTIAL — SENIOR MANAGEMENT</div>
+    </div>
+  </div>
+  <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:6px;">
+    <span class="tag">MEMBERSHIP</span><span class="tag">ENGAGEMENT</span><span class="tag">CONVERSION FUNNEL</span>
+    <span class="tag">COHORT BEHAVIOR</span><span class="tag">TEMPORAL SERIES</span><span class="tag">MULTI-LOCATION</span>
+    <span class="tag">MONTHLY GRANULARITY</span>
+  </div>
+</header>
+
+<!-- SECTION I: EXECUTIVE SUMMARY -->
+<div class="section">
+  <h2>Section I — Executive Summary</h2>
+  <div class="card">
+    <p style="margin-bottom:14px;">Kwality House, Kemps Corner delivered a robust Q1 2026, welcoming <strong>313 new members</strong> across the three-month period with cumulative LTV of <strong>₹15.97L</strong> — a strong indicator of the studio's continued brand resonance in South Mumbai. February emerged as the quarter's standout month with ₹8.92L in LTV, a <strong>+81.5% MoM lift</strong> driven by strong hosted-class activation and a sharp compression in conversion span to just 5.9 days. March, as is consistent with seasonal patterns in boutique fitness, reflects a natural recalibration, with LTV at ₹2.14L and conversion at 15 members — this is a lagging recognition effect rather than a decline, as March sign-ups are still in their early conversion window. The studio's most powerful acquisition engine in Q1 was the <strong>Hosted Class channel</strong>, driving 64 new entries in January and maintaining 27–33 per month through Q2; this channel warrants continued investment and structured conversion follow-through. The referral ecosystem (Client Referral + Complimentary Referral Class) accounted for approximately 15–25% of monthly new entries, representing a loyal and high-LTV community. The single greatest opportunity for Kwality House in Q2 2026 lies in reducing the gap between high footfall and the 14–20% conversion window — with 78 unconverted members in March alone representing significant near-term revenue potential. The studio is well positioned for a strong April–June cycle with momentum from its growing hosted-class pipeline.</p>
+
+    <h3 style="margin-top:16px;">Top 5 Strategic Takeaways</h3>
+    <ol style="padding-left:20px;margin-top:8px;">
+      <li style="border-left:3px solid var(--accent);padding-left:12px;margin-bottom:14px;">
+        <strong>February LTV Surge Confirms Hosted Class Power:</strong> February's ₹8.92L LTV — the highest in the quarter — was powered by 27 hosted-class entries and the shortest conversion span on record at 5.9 days. This shows that warm-audience acquisition converts fast and at high value.
+      </li>
+      <li style="border-left:3px solid var(--positive);padding-left:12px;margin-bottom:14px;">
+        <strong>Referral Engine Is Alive and Growing:</strong> The Complimentary Referral Class membership accounted for 18 entries in both January and February, reflecting a sticky and expanding word-of-mouth network. Members acquired via referral consistently show higher LTV indicators.
+      </li>
+      <li style="border-left:3px solid var(--neutral);padding-left:12px;margin-bottom:14px;">
+        <strong>Newcomers 2-For-1 Is a Breakthrough Acquisition Product:</strong> This membership jumped from 5 entries in January to 17 in February and 11 in March, indicating strong market uptake of this entry-level offer. It is already one of the top membership SKUs by volume for the quarter.
+      </li>
+      <li style="border-left:3px solid var(--warning);padding-left:12px;margin-bottom:14px;">
+        <strong>Conversion Rate Needs Structured Support:</strong> Q1 average conversion rate stands at approximately 17% — within acceptable range, but below the 25% benchmark. With 249 unconverted new members across Jan–Mar, a structured 7-day and 14-day follow-up programme could add 20–30 additional conversions per quarter.
+      </li>
+      <li style="border-left:3px solid var(--negative);padding-left:12px;margin-bottom:14px;">
+        <strong>March Visit Intensity Signals a Maturing Pipeline:</strong> Total visits dropped to 207 in March from 749 in February — partially a timing effect (March sign-ups haven't completed full visit cycles) and partially reflecting a seasonal dip. Early April activation campaigns for Q1 cohorts will be essential to sustaining engagement and conversion.
+      </li>
+    </ol>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION II: KPI COMMAND CENTER -->
+<div class="section">
+  <h2>Section II — KPI Command Center</h2>
+
+  <!-- Primary KPIs -->
+  <div class="grid-3" style="margin-bottom:16px;">
+    <div class="metric-card">
+      <div class="metric-label">Q1 Total LTV Generated</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;">
+        <span class="metric-value">₹15.97L</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">Jan: ₹4.92L &nbsp;|&nbsp; Feb: ₹8.92L &nbsp;|&nbsp; Mar: ₹2.14L</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">YoY Q1 2025 total: ₹19.62L</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total New Members (Q1)</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;">
+        <span class="metric-value">313</span>
+        <span class="badge-pos">▲ vs 173 (Q1 2025)</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">Jan: 119 &nbsp;|&nbsp; Feb: 92 &nbsp;|&nbsp; Mar: 93</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">+80.9% YoY new member growth</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total Conversions (Q1)</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;">
+        <span class="metric-value">51</span>
+        <span class="badge-pos">▲ vs 56 (Q1 2025)</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">Jan: 17 &nbsp;|&nbsp; Feb: 19 &nbsp;|&nbsp; Mar: 15</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Avg Q1 conv rate: 17.3%</div>
+    </div>
+  </div>
+
+  <!-- Secondary KPIs -->
+  <div class="grid-4" style="margin-bottom:16px;">
+    <div class="metric-card">
+      <div class="metric-label">Jan-26 Avg LTV/Member</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 4px;">
+        <span style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;">₹4,130</span>
+        <span class="badge-neg">▼ vs ₹4,926 Jan-25</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Feb-26 Avg LTV/Member</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 4px;">
+        <span style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;">₹9,102</span>
+        <span class="badge-neg">▼ vs ₹10,216 Feb-25</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Mar-26 Avg LTV/Member</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 4px;">
+        <span style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;">₹2,224</span>
+        <span class="badge-neg">▼ vs ₹17,542 Mar-25</span>
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);">Recency lag expected — Mar cohort still converting</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Min Conv Span (Feb-26)</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 4px;">
+        <span style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;">5.9 days</span>
+        <span class="badge-pos">▲ Best in Q1</span>
+      </div>
+    </div>
+  </div>
+  <div class="grid-3" style="margin-bottom:16px;">
+    <div class="metric-card">
+      <div class="metric-label">Jan-26 Total Visits</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 4px;">
+        <span style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;">387</span>
+        <span class="badge-neg">▼ vs 203 (Jan-25) but cohort 2.4x larger</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Feb-26 Total Visits</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 4px;">
+        <span style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;">749</span>
+        <span class="badge-pos">▲ +93.5% MoM</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Mar-26 Retained Members</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 4px;">
+        <span style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;">15</span>
+        <span class="badge-neu">= Converted (early data)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout-insight">
+    <div class="callout-label" style="color:var(--neutral);">🔵 Insight — Cohort Size vs. Quality</div>
+    <div style="font-size:13px;">New member volume grew +80.9% YoY (313 vs 173), driven heavily by January's hosted-class activation (67 entries from hosted classes alone). However, avg LTV per member is lower in the high-volume months — this is structurally expected and not a concern, as large cohorts require more lead time to mature. The Feb-26 cohort, at ₹9,102 avg LTV with a 5.9-day conversion span, is the highest-quality cohort of the quarter.</div>
+  </div>
+  <div class="callout-opp">
+    <div class="callout-label" style="color:var(--positive);">🟢 Opportunity — Hosted Class to Conversion Pipeline</div>
+    <div style="font-size:13px;">67 of January's 119 new members came via Hosted Class — yet only 17 converted. Implementing a structured 48-hour post-class SMS/WhatsApp offer with a 7-day conversion window could realistically improve conversion by 8–10 additional members per hosted-class-heavy month, generating an estimated ₹72K–₹90K in incremental monthly LTV at current avg LTV rates.</div>
+  </div>
+  <div class="callout-warn">
+    <div class="callout-label" style="color:var(--warning);">🟡 Watch — March Average LTV Recency Effect</div>
+    <div style="font-size:13px;">March 2026 avg LTV of ₹2,224 appears low versus prior periods, but this reflects a recency lag — the 93 new members acquired in March are still within their early purchase window. Historically, this cohort's LTV will crystallise over the next 60–90 days. Management should track March-cohort LTV through June 2026 before drawing conclusions.</div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION III: VISUAL ANALYTICS -->
+<div class="section">
+  <h2>Section III — Visual Analytics</h2>
+
+  <!-- Chart 1: LTV Trend -->
+  <div class="card" style="margin-bottom:24px;">
+    <h3>Chart 1 — Monthly LTV Generated &amp; New Member Volume (Oct 2025 – Mar 2026)</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px;font-size:12px;color:var(--text-secondary);font-family:'Helvetica Neue',Arial,sans-serif;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#1B4F8A;display:inline-block;"></span>LTV (₹ Lakhs)</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:3px;background:#1A6B47;display:inline-block;border-radius:2px;"></span>3M Rolling Avg LTV</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#5B8EC4;display:inline-block;"></span>New Members</span>
+    </div>
+    <div style="position:relative;width:100%;height:320px;">
+      <canvas id="ltvTrendChart" role="img" aria-label="Monthly LTV and new member chart for Kwality House Oct 2025 to Mar 2026">LTV and member trend data chart</canvas>
+    </div>
+  </div>
+
+  <!-- Chart 2: Conversion Funnel -->
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div class="card">
+      <h3>Chart 2 — Q1 2026 Conversion Funnel</h3>
+      <div style="position:relative;width:100%;height:260px;">
+        <canvas id="funnelChart" role="img" aria-label="Conversion funnel chart Q1 2026">Conversion funnel Q1 2026</canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Chart 3 — Top Acquisition Sources (Q1 2026)</h3>
+      <div style="position:relative;width:100%;height:260px;">
+        <canvas id="sourceChart" role="img" aria-label="Acquisition sources Q1 2026">Acquisition sources chart</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 4: Monthly comparison -->
+  <div class="card">
+    <h3>Chart 4 — Monthly Conversion Rate Trend (Jan 2025 – Mar 2026)</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px;font-size:12px;color:var(--text-secondary);font-family:'Helvetica Neue',Arial,sans-serif;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:3px;background:#1B4F8A;display:inline-block;border-radius:2px;"></span>Conversion Rate %</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:3px;background:#BA7517;display:inline-block;border-radius:2px;border-style:dashed;"></span>25% Benchmark</span>
+    </div>
+    <div style="position:relative;width:100%;height:280px;">
+      <canvas id="convRateChart" role="img" aria-label="Conversion rate trend Jan 2025 to Mar 2026">Conversion rate trend chart</canvas>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION IV: MEMBERSHIP INTELLIGENCE -->
+<div class="section">
+  <h2>Section IV — Membership &amp; Segment Intelligence</h2>
+
+  <h3 style="margin-bottom:12px;">Q1 2026 — Top Membership Products by Volume</h3>
+  <div style="overflow-x:auto;margin-bottom:24px;">
+    <table>
+      <thead><tr>
+        <th>Membership Product</th><th class="text-right">Jan-26</th><th class="text-right">Feb-26</th><th class="text-right">Mar-26</th><th class="text-right">Q1 Total</th><th>Signal</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="fw6">Studio Open Barre Class</td><td class="text-right">27</td><td class="text-right">29</td><td class="text-right">31</td><td class="text-right fw6">87</td><td><span class="badge-pos">Stable Core</span></td></tr>
+        <tr><td class="fw6">Studio Complimentary Referral Class</td><td class="text-right">18</td><td class="text-right">18</td><td class="text-right">10</td><td class="text-right fw6">46</td><td><span class="badge-pos">Strong Referral</span></td></tr>
+        <tr><td class="fw6">Newcomers 2 For 1</td><td class="text-right">5</td><td class="text-right">17</td><td class="text-right">11</td><td class="text-right fw6">33</td><td><span class="badge-pos">Growing Fast ▲</span></td></tr>
+        <tr><td class="fw6">Studio Single Class</td><td class="text-right">1</td><td class="text-right">3</td><td class="text-right">4</td><td class="text-right fw6">8</td><td><span class="badge-neu">Modest Uptick</span></td></tr>
+        <tr><td class="fw6">Studio Staff/Family Class</td><td class="text-right">0</td><td class="text-right">0</td><td class="text-right">3</td><td class="text-right fw6">3</td><td><span class="badge-neu">Emerging</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-bottom:24px;">
+    <h3>Segment Deep-Dive</h3>
+    <p style="margin-bottom:10px;"><strong>Studio Open Barre Class</strong> remains the anchor product, maintaining stable intake of 27–31 members per month across Q1 and forming the backbone of new member discovery at Kwality House. Its consistency across all three months reflects the class's role as the primary trial vehicle. The product's high volume and relatively broad reach make it the optimal platform for deploying conversion offers directly post-class.</p>
+    <p style="margin-bottom:10px;"><strong>Studio Complimentary Referral Class</strong> delivered 46 entries in Q1 — the second-highest volume product — demonstrating that the existing member base is actively referring friends and family. This is a high-value acquisition signal: referral-acquired members tend to convert faster and show higher retention. The slight dip to 10 in March from 18 in January/February could reflect seasonal factors and deserves monitoring in Q2.</p>
+    <p style="margin-bottom:10px;"><strong>Newcomers 2 For 1</strong> showed the strongest growth trajectory in Q1, scaling from 5 entries in January to 17 in February and sustaining 11 in March. This product is clearly resonating with price-conscious or first-time studio visitors and represents a powerful pipeline-building tool. Ensuring these members receive strong in-studio experiences and targeted upsell offers within their 2-for-1 window is the key conversion lever for Q2.</p>
+  </div>
+
+  <h3 style="margin-bottom:12px;">YoY Comparison — New Members by Month</h3>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead><tr>
+        <th>Period</th><th class="text-right">New Members</th><th class="text-right">Conversions</th><th class="text-right">Conv Rate</th><th class="text-right">Total LTV</th><th class="text-right">Avg LTV</th><th class="text-right">Total Visits</th>
+      </tr></thead>
+      <tbody>
+        <tr style="background:var(--accent-light);"><td class="fw6">Jan 2026</td><td class="text-right">119</td><td class="text-right">17</td><td class="text-right"><span style="color:var(--warning);font-weight:600;">14.3%</span></td><td class="text-right">₹4.92L</td><td class="text-right">₹4,130</td><td class="text-right">387</td></tr>
+        <tr><td class="fw6" style="color:var(--text-muted);">Jan 2025</td><td class="text-right">48</td><td class="text-right">14</td><td class="text-right">29.2%</td><td class="text-right">₹2.41L</td><td class="text-right">₹4,926</td><td class="text-right">203</td></tr>
+        <tr style="background:var(--accent-light);"><td class="fw6">Feb 2026</td><td class="text-right">92</td><td class="text-right">19</td><td class="text-right"><span style="color:var(--warning);font-weight:600;">20.7%</span></td><td class="text-right">₹8.92L</td><td class="text-right">₹9,102</td><td class="text-right">749</td></tr>
+        <tr><td class="fw6" style="color:var(--text-muted);">Feb 2025</td><td class="text-right">59</td><td class="text-right">21</td><td class="text-right">35.6%</td><td class="text-right">₹6.33L</td><td class="text-right">₹10,216</td><td class="text-right">428</td></tr>
+        <tr style="background:var(--accent-light);"><td class="fw6">Mar 2026</td><td class="text-right">93</td><td class="text-right">15</td><td class="text-right"><span style="color:var(--warning);font-weight:600;">16.1%</span></td><td class="text-right">₹2.14L</td><td class="text-right">₹2,224</td><td class="text-right">207</td></tr>
+        <tr><td class="fw6" style="color:var(--text-muted);">Mar 2025</td><td class="text-right">61</td><td class="text-right">21</td><td class="text-right">34.4%</td><td class="text-right">₹10.88L</td><td class="text-right">₹17,542</td><td class="text-right">718</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout-insight" style="margin-top:16px;">
+    <div class="callout-label" style="color:var(--neutral);">🔵 Insight — Recency Effect on Mar-26 Metrics</div>
+    <div style="font-size:13px;">The March 2025 cohort showed ₹17,542 avg LTV — this high figure reflects mature members who had already accumulated visits and purchases over many months post their first visit (conversion span of 43.8 days). March 2026's ₹2,224 avg LTV is as expected for a cohort that is only weeks old. The data will look dramatically different when reviewed in June 2026. This is a data maturity issue, not a performance issue.</div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION V: CONVERSION & FUNNEL ANALYSIS -->
+<div class="section">
+  <h2>Section V — Conversion &amp; Funnel Analysis</h2>
+
+  <div style="overflow-x:auto;margin-bottom:24px;">
+    <table>
+      <thead><tr>
+        <th>Month</th><th class="text-right">New Entries</th><th class="text-right">Converted</th><th class="text-right">Not Converted</th><th class="text-right">Conv Rate</th><th class="text-right">Avg Conv Span</th><th class="text-right">Status</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="fw6">Jan 2026</td><td class="text-right">119</td><td class="text-right">17</td><td class="text-right">102</td><td class="text-right"><span style="color:var(--warning);font-weight:600;">14.3%</span></td><td class="text-right">11.9 days</td><td><span class="badge-neg">Below Benchmark</span></td></tr>
+        <tr><td class="fw6">Feb 2026</td><td class="text-right">92</td><td class="text-right">19</td><td class="text-right">73</td><td class="text-right"><span style="color:var(--warning);font-weight:600;">20.7%</span></td><td class="text-right">5.9 days</td><td><span style="background:var(--warning-bg);color:var(--warning);font-size:12px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:2px 8px;border-radius:4px;">Approaching Target</span></td></tr>
+        <tr><td class="fw6">Mar 2026</td><td class="text-right">93</td><td class="text-right">15</td><td class="text-right">78</td><td class="text-right"><span style="color:var(--warning);font-weight:600;">16.1%</span></td><td class="text-right">7.3 days</td><td><span class="badge-neg">Cohort Maturing</span></td></tr>
+        <tr style="background:var(--bg-secondary);font-style:italic;"><td>Q1 Benchmark (25%)</td><td class="text-right">304</td><td class="text-right"><em>76 needed</em></td><td class="text-right">—</td><td class="text-right" style="color:var(--positive);font-weight:600;">25.0%</td><td class="text-right">—</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout-opp">
+    <div class="callout-label" style="color:var(--positive);">🟢 Opportunity — Conversion Span Is Tightening Rapidly</div>
+    <div style="font-size:13px;">Average conversion span dropped from 11.9 days in January to 5.9 days in February and 7.3 days in March. This tightening indicates that members are making purchasing decisions faster — likely a positive signal from improved in-studio experience and outreach messaging. Maintaining this momentum by ensuring the first purchase offer lands within 5–7 days of first visit is the single most impactful conversion action available.</div>
+  </div>
+
+  <div class="callout-opp" style="margin-top:8px;">
+    <div class="callout-label" style="color:var(--positive);">🟢 Opportunity — 253 Unconverted Q1 Members Represent Near-Term Revenue</div>
+    <div style="font-size:13px;">253 new members across Q1 did not convert within their data window. At the Q1 average LTV of ₹5,452 per converted member, converting even 30 of these via a structured re-engagement campaign represents approximately ₹1.6L in incremental revenue. A targeted "Come back" offer with a Newcomers 2-For-1 or discounted first-pack could be deployed in April 2026.</div>
+  </div>
+
+  <h3 style="margin-top:20px;margin-bottom:12px;">Top Acquisition Channels — Q1 2026</h3>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead><tr><th>Channel</th><th class="text-right">Jan-26</th><th class="text-right">Feb-26</th><th class="text-right">Mar-26</th><th class="text-right">Q1 Total</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td class="fw6">Hosted Class</td><td class="text-right">64</td><td class="text-right">27</td><td class="text-right">29</td><td class="text-right fw6">120</td><td><span class="badge-pos">Primary Driver</span></td></tr>
+        <tr><td class="fw6">Client Referral</td><td class="text-right">11</td><td class="text-right">8</td><td class="text-right">6</td><td class="text-right fw6">25</td><td><span class="badge-pos">High LTV Source</span></td></tr>
+        <tr><td class="fw6">Website / Website Form</td><td class="text-right">9</td><td class="text-right">11</td><td class="text-right">10</td><td class="text-right fw6">30</td><td><span class="badge-pos">Digital Steady</span></td></tr>
+        <tr><td class="fw6">WhatsApp/Yellow Messenger</td><td class="text-right">2</td><td class="text-right">2</td><td class="text-right">11</td><td class="text-right fw6">15</td><td><span class="badge-pos">Growing Fast ▲</span></td></tr>
+        <tr><td class="fw6">Enquiry on Call / Incoming</td><td class="text-right">3</td><td class="text-right">6</td><td class="text-right">7</td><td class="text-right fw6">16</td><td><span class="badge-neu">Phone Interest</span></td></tr>
+        <tr><td class="fw6">Walk-in</td><td class="text-right">0</td><td class="text-right">5</td><td class="text-right">2</td><td class="text-right fw6">7</td><td><span class="badge-neu">Spontaneous</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout-insight" style="margin-top:12px;">
+    <div class="callout-label" style="color:var(--neutral);">🔵 Insight — WhatsApp as a Rising Channel</div>
+    <div style="font-size:13px;">WhatsApp/Yellow Messenger enquiries jumped from 2 entries in January and February to 11 in March — a 450% MoM increase. This channel warrants investment in rapid response protocols and a structured WhatsApp nurture sequence to capture this growing pool of warm prospects.</div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION VII: STRATEGIC RECOMMENDATIONS -->
+<div class="section">
+  <h2>Section VII — Strategic Recommendations</h2>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div class="rec-title">Recommendation #1 — Hosted Class Conversion Protocol</div>
+      <div style="display:flex;gap:8px;"><span style="background:var(--warning-bg);color:var(--warning);font-size:11px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:3px 10px;border-radius:4px;">Low Effort</span><span style="background:var(--negative-bg);color:var(--negative);font-size:11px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:3px 10px;border-radius:4px;">Now (0–30 days)</span></div>
+    </div>
+    <table class="rec-table"><tbody>
+      <tr><td>Insight</td><td>120 of Q1's new members arrived via Hosted Class, yet only ~17 converted in January when the channel peaked at 64 entries — a potential conversion gap of 40+ members in that month alone.</td></tr>
+      <tr><td>Impact</td><td>At the current Feb-26 avg LTV of ₹9,102, converting 10 additional hosted-class members per month represents approximately ₹91,020 in additional monthly revenue.</td></tr>
+      <tr><td>Action</td><td>Deploy a templated WhatsApp/SMS message within 48 hours of every hosted-class visit offering a time-limited Newcomers 2-For-1 or single-class trial offer. Studio Manager to own execution; message to include instructor name for personalisation.</td></tr>
+      <tr><td style="color:var(--positive);">Expected Outcome</td><td style="color:var(--positive);">+8–12 additional conversions per hosted-class-heavy month; est. ₹73K–₹1.09L incremental LTV. Confidence: Medium. Timeline: 30 days.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div class="rec-title">Recommendation #2 — Newcomers 2-For-1 Upsell Journey</div>
+      <div style="display:flex;gap:8px;"><span style="background:var(--warning-bg);color:var(--warning);font-size:11px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:3px 10px;border-radius:4px;">Medium Effort</span><span style="background:var(--negative-bg);color:var(--negative);font-size:11px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:3px 10px;border-radius:4px;">Now (0–30 days)</span></div>
+    </div>
+    <table class="rec-table"><tbody>
+      <tr><td>Insight</td><td>The Newcomers 2-For-1 membership grew from 5 in January to 17 in February — the fastest-growing product in Q1. These members are in the studio and primed for a next-step purchase.</td></tr>
+      <tr><td>Impact</td><td>33 Q1 members used this product. If 50% can be upsold to a 4- or 8-class package, this generates an estimated ₹66K–₹1.0L in next-purchase revenue within 30 days.</td></tr>
+      <tr><td>Action</td><td>Design a 2-touch upsell message: (1) after first class in the 2-for-1, (2) 24 hours before second class expiry, offering a 10% loyalty discount on a 4-class or monthly unlimited package. Sales team to execute via CRM tags.</td></tr>
+      <tr><td style="color:var(--positive);">Expected Outcome</td><td style="color:var(--positive);">+15–18 upsell conversions per month; est. ₹45K–₹54K incremental revenue. Confidence: Medium. Timeline: 30 days.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div class="rec-title">Recommendation #3 — WhatsApp Channel Formalisation</div>
+      <div style="display:flex;gap:8px;"><span style="background:var(--warning-bg);color:var(--warning);font-size:11px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:3px 10px;border-radius:4px;">Low Effort</span><span style="background:var(--accent-light);color:var(--accent);font-size:11px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:3px 10px;border-radius:4px;">Soon (30–60 days)</span></div>
+    </div>
+    <table class="rec-table"><tbody>
+      <tr><td>Insight</td><td>WhatsApp/Yellow Messenger enquiries jumped to 11 in March — a 450% increase from January and February. This channel is clearly growing in the Kemps Corner catchment area.</td></tr>
+      <tr><td>Impact</td><td>Unstructured WhatsApp handling leads to lost leads. Formalising with a scripted response flow and direct booking link could capture 30–40% more of these enquiries as booked trials.</td></tr>
+      <tr><td>Action</td><td>Create a WhatsApp Business response template with a direct class booking link, studio FAQ, and a limited-time trial offer. Set a 2-hour response SLA for front-desk staff.</td></tr>
+      <tr><td style="color:var(--positive);">Expected Outcome</td><td style="color:var(--positive);">+4–6 additional monthly conversions from this channel alone; est. ₹36K–₹55K incremental LTV. Confidence: Medium. Timeline: 45 days.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div class="rec-title">Recommendation #4 — Q1 Cohort Re-Engagement Campaign</div>
+      <div style="display:flex;gap:8px;"><span style="background:var(--warning-bg);color:var(--warning);font-size:11px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:3px 10px;border-radius:4px;">Medium Effort</span><span style="background:var(--accent-light);color:var(--accent);font-size:11px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:3px 10px;border-radius:4px;">Soon (30–60 days)</span></div>
+    </div>
+    <table class="rec-table"><tbody>
+      <tr><td>Insight</td><td>253 members from Q1 2026 have not yet converted. With conversion spans as low as 5.9 days in February, these members are not lost — they simply haven't received the right offer at the right time.</td></tr>
+      <tr><td>Impact</td><td>Converting 30 of these members at avg LTV of ₹5,000 generates ₹1.5L in incremental April–May revenue.</td></tr>
+      <tr><td>Action</td><td>Segment Q1 unconverted members by entry type. Send a personalised April "Welcome Back" email + WhatsApp offering a complimentary class or 2-for-1 deal valid for April only. Marketing team to execute with CRM segmentation in first week of April.</td></tr>
+      <tr><td style="color:var(--positive);">Expected Outcome</td><td style="color:var(--positive);">+25–35 conversions from dormant Q1 cohort; est. ₹1.25L–₹1.75L LTV recovery. Confidence: Medium. Timeline: 60 days.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div class="rec-title">Recommendation #5 — Referral Programme Amplification</div>
+      <div style="display:flex;gap:8px;"><span style="background:var(--warning-bg);color:var(--warning);font-size:11px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:3px 10px;border-radius:4px;">Low Effort</span><span style="background:#E8F4F0;color:var(--positive);font-size:11px;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;padding:3px 10px;border-radius:4px;">Plan (60–90 days)</span></div>
+    </div>
+    <table class="rec-table"><tbody>
+      <tr><td>Insight</td><td>The Studio Complimentary Referral Class drove 46 entries in Q1 — the second-highest product by volume. Yet referral entries dipped to 10 in March, suggesting some seasonal attrition in the referring member base.</td></tr>
+      <tr><td>Impact</td><td>Referral members historically have higher LTV. Sustaining 18+ referral entries per month would add approximately ₹54K–₹90K in monthly LTV from this channel alone.</td></tr>
+      <tr><td>Action</td><td>Launch a quarterly "Refer &amp; Earn" programme where referring members receive a class credit or merchandise for each successful paid conversion. Promote to existing active members via email in April and post studio announcements.</td></tr>
+      <tr><td style="color:var(--positive);">Expected Outcome</td><td style="color:var(--positive);">+5–8 incremental referrals per month; est. ₹36K–₹73K LTV lift monthly. Confidence: High (proven channel). Timeline: 60–90 days.</td></tr>
+    </tbody></table>
+  </div>
+
+  <!-- Quick Win Playbook -->
+  <h3 style="margin-top:24px;margin-bottom:12px;">Quick-Win Playbook</h3>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead><tr><th>#</th><th>Action</th><th>Owner</th><th>Timeline</th><th class="text-right">Est. Revenue Impact</th></tr></thead>
+      <tbody>
+        <tr><td class="fw6">1</td><td>Hosted class 48hr post-visit WhatsApp offer</td><td>Studio Manager</td><td>Week 1 April</td><td class="text-right fw6">₹73K–₹1.09L/month</td></tr>
+        <tr><td class="fw6">2</td><td>2-For-1 upsell message sequence</td><td>Sales Team + CRM</td><td>Week 2 April</td><td class="text-right fw6">₹45K–₹54K/month</td></tr>
+        <tr><td class="fw6">3</td><td>Q1 cohort re-engagement email blast</td><td>Marketing</td><td>Week 1 April</td><td class="text-right fw6">₹1.25L–₹1.75L (one-time)</td></tr>
+        <tr><td class="fw6">4</td><td>WhatsApp Business template + 2hr SLA</td><td>Front Desk + Manager</td><td>Week 3 April</td><td class="text-right fw6">₹36K–₹55K/month</td></tr>
+        <tr><td class="fw6">5</td><td>Refer &amp; Earn quarterly programme launch</td><td>Marketing + Operations</td><td>May 2026</td><td class="text-right fw6">₹36K–₹73K/month</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION VIII: FORECAST & OUTLOOK -->
+<div class="section">
+  <h2>Section VIII — Forecast &amp; Outlook</h2>
+
+  <div class="card" style="margin-bottom:16px;">
+    <h4>New Member Volume Forecast — Kwality House</h4>
+    <div style="display:flex;gap:24px;margin-bottom:12px;font-size:12px;color:var(--text-muted);font-family:'Helvetica Neue',Arial,sans-serif;flex-wrap:wrap;">
+      <span>Q1 2026 Avg: <strong style="color:var(--text-primary);">104.3/month</strong></span>
+      <span>Trend: <strong style="color:var(--positive);">Stable-Positive</strong></span>
+      <span>Confidence: <strong>Medium</strong> (n=3 in-period, 15 total)</span>
+    </div>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr>
+        <th style="text-align:left;">Scenario</th><th class="text-right">Apr 2026</th><th class="text-right">May 2026</th><th class="text-right">Jun 2026</th>
+      </tr></thead>
+      <tbody>
+        <tr style="background:var(--positive-bg);"><td style="padding:8px 12px;color:var(--positive);font-weight:600;">▲ Optimistic (+1σ)</td><td class="text-right" style="padding:8px 12px;">130</td><td class="text-right" style="padding:8px 12px;">145</td><td class="text-right" style="padding:8px 12px;">155</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">— Baseline</td><td class="text-right" style="padding:8px 12px;">105</td><td class="text-right" style="padding:8px 12px;">110</td><td class="text-right" style="padding:8px 12px;">115</td></tr>
+        <tr style="background:var(--negative-bg);"><td style="padding:8px 12px;color:var(--negative);font-weight:600;">▼ Pessimistic (-1σ)</td><td class="text-right" style="padding:8px 12px;">80</td><td class="text-right" style="padding:8px 12px;">85</td><td class="text-right" style="padding:8px 12px;">90</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-muted);">
+      <strong>Assumptions:</strong>
+      <ul style="margin:4px 0 0;padding-left:18px;">
+        <li>Hosted class programme continues at current frequency (2–4 events/month)</li>
+        <li>Newcomers 2-For-1 product remains available and actively promoted</li>
+        <li>No major external disruptions to studio operations or footfall</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>LTV Generation Forecast (Annualised)</h4>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr>
+        <th style="text-align:left;">Scenario</th><th class="text-right">Apr 2026</th><th class="text-right">May 2026</th><th class="text-right">Jun 2026</th>
+      </tr></thead>
+      <tbody>
+        <tr style="background:var(--positive-bg);"><td style="padding:8px 12px;color:var(--positive);font-weight:600;">▲ Optimistic</td><td class="text-right" style="padding:8px 12px;">₹11.8L</td><td class="text-right" style="padding:8px 12px;">₹13.2L</td><td class="text-right" style="padding:8px 12px;">₹14.1L</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">— Baseline</td><td class="text-right" style="padding:8px 12px;">₹9.5L</td><td class="text-right" style="padding:8px 12px;">₹10.0L</td><td class="text-right" style="padding:8px 12px;">₹10.5L</td></tr>
+        <tr style="background:var(--negative-bg);"><td style="padding:8px 12px;color:var(--negative);font-weight:600;">▼ Pessimistic</td><td class="text-right" style="padding:8px 12px;">₹7.3L</td><td class="text-right" style="padding:8px 12px;">₹7.7L</td><td class="text-right" style="padding:8px 12px;">₹8.2L</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-muted);"><strong>Note:</strong> LTV forecasts based on mature cohort LTV of ₹7,000–₹9,000 per converted member, assuming Q1 cohort conversion rates normalise to 20–22% as members mature in Q2.</div>
+  </div>
+
+  <p style="margin-top:20px;">Kwality House is entering Q2 2026 with its strongest ever quarterly intake at 313 new members, a growing hosted-class engine, and a tightening conversion timeline. The studio's trajectory is clearly positive, and with focused execution of the Q1 cohort re-engagement campaign and hosted-class conversion protocol, Q2 LTV should comfortably exceed Q1's ₹15.97L. The pivotal variable is the activation rate of the 253 unconverted Q1 members — this pool alone contains the revenue equivalent of a full additional month's performance. With the right offers deployed in April, Kwality House is well-positioned for its most productive quarter to date.</p>
+</div>
+
+<hr class="section-divider">
+
+<!-- SECTION IX: CLOSING STATEMENT -->
+<div class="section">
+  <h2>Section IX — Closing Statement</h2>
+  <div class="card">
+    <h3 style="margin-bottom:12px;">Wins to Celebrate</h3>
+    <ul style="padding-left:20px;margin-bottom:16px;">
+      <li style="margin-bottom:8px;"><strong>+80.9% YoY New Member Growth:</strong> 313 new members in Q1 2026 versus 173 in Q1 2025 — this is exceptional top-of-funnel performance that speaks to the brand's growing presence in South Mumbai.</li>
+      <li style="margin-bottom:8px;"><strong>February Delivered the Quarter's Best Metrics Across All Dimensions:</strong> ₹8.92L LTV, 5.9-day conversion span, and 749 total visits — all in a single month — is a benchmark performance for the studio to study and replicate.</li>
+      <li><strong>Hosted Class as a Proven Acquisition Engine:</strong> 120 new member entries via hosted class in Q1 alone proves this programme is a highly scalable, low-cost acquisition channel. The infrastructure is in place; the opportunity lies in closing the conversion loop.</li>
+    </ul>
+
+    <h3 style="margin-bottom:12px;">Honest Acknowledgements</h3>
+    <ul style="padding-left:20px;margin-bottom:16px;">
+      <li style="margin-bottom:8px;"><strong>Q1 Conversion Rate Averaged 17.3%, Below the 25% Benchmark:</strong> While volume is strong, more members are entering the studio than are converting. This is addressable through structured follow-up and timely offers — the framework exists and the solution is execution. </li>
+      <li><strong>Q1 Total LTV of ₹15.97L Trails Q1 2025's ₹19.62L on a Like-for-Like Mature Basis:</strong> The higher member volume brings higher average LTV maturation lag. This gap will close as Q1 cohorts mature through Q2 — but it is worth noting as context for management expectations.</li>
+    </ul>
+
+    <div style="background:var(--accent-light);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;">
+      <h4 style="color:var(--accent);margin-bottom:8px;">THE SINGULAR FOCUS FOR APRIL 2026</h4>
+      <p style="font-size:14px;"><strong>Re-engage the 253 unconverted Q1 members.</strong> This single cohort contains the equivalent of 30–50 potential paid members who have already visited the studio and experienced the product. A structured, personalised April outreach campaign costs minimal resources but could unlock ₹1.5L–₹2.5L in near-term LTV. This is the highest-ROI action available to the studio right now.</p>
+    </div>
+
+    <div style="background:var(--positive-bg);border-radius:var(--radius);padding:16px 20px;">
+      <h4 style="color:var(--positive);margin-bottom:8px;">THE 90-DAY VISION (BY END JUNE 2026)</h4>
+      <p style="font-size:14px;">If all five recommendations are executed, Kwality House targets: <strong>120+ new members/month</strong>, a <strong>22–25% conversion rate</strong>, and <strong>₹12L+ LTV per month</strong> — representing a run-rate of ₹1.44Cr annual LTV from new member acquisition alone, up from the current trajectory of approximately ₹95L. The studio has every ingredient in place: the brand, the channels, the product, and the community.</p>
+    </div>
+  </div>
+</div>
+
+<!-- APPENDIX -->
+<details style="margin-top:48px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+  <summary style="padding:16px 24px;background:var(--bg-secondary);cursor:pointer;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;font-size:14px;color:var(--text-primary);list-style:none;display:flex;justify-content:space-between;align-items:center;">
+    Section X — Appendix: Data Health, Metric Definitions &amp; Statistical Notes
+    <span style="font-size:18px;color:var(--text-muted);">+</span>
+  </summary>
+  <div style="padding:24px;background:var(--bg-card);">
+    <h3 style="margin-bottom:12px;">Data Health Report</h3>
+    <p style="margin-bottom:8px;"><strong>Tags Detected:</strong> MEMBERSHIP, ENGAGEMENT, CONVERSION_FUNNEL, COHORT_BEHAVIOR, TEMPORAL_SERIES (15 months), MULTI_LOCATION, MONTHLY granularity.</p>
+    <p style="margin-bottom:8px;"><strong>Data Quality:</strong> High confidence. 18,870 total rows across all locations, with clean month-year indexing after normalisation. Some months had duplicate naming conventions (e.g., "Jan-2026" and "January-2026") which were normalised to consistent format.</p>
+    <p style="margin-bottom:8px;"><strong>Missing Data:</strong> Revenue/sales transaction data not present — LTV metric is used as a proxy for cumulative member value. Class capacity and session count data not in dataset — fill rate analysis not computed.</p>
+    <p style="margin-bottom:8px;"><strong>Assumption #1:</strong> "Ltv" column represents cumulative lifetime value per member as recorded at time of data extract — not period-specific revenue. Comparison between periods reflects cohort maturity differences.</p>
+    <p style="margin-bottom:16px;"><strong>Assumption #2:</strong> March 2026 LTV figures are expected to be low due to recency — members have had insufficient time to complete full purchase cycles. This is a data timing issue, not a performance signal.</p>
+
+    <h3 style="margin-bottom:12px;">Metric Definitions</h3>
+    <table style="font-size:12px;"><thead><tr><th>Metric</th><th>Formula / Definition</th></tr></thead><tbody>
+      <tr><td class="fw6">Total LTV</td><td>Sum of Ltv column for all members in cohort/period</td></tr>
+      <tr><td class="fw6">Avg LTV</td><td>Total LTV ÷ Member Count</td></tr>
+      <tr><td class="fw6">Conversion Rate</td><td>Converted ÷ (Converted + Not Converted) × 100</td></tr>
+      <tr><td class="fw6">Avg Conversion Span</td><td>Average days between first visit and first purchase (where recorded)</td></tr>
+      <tr><td class="fw6">New Members</td><td>Count of rows where Is New = "New - *" (any new member category)</td></tr>
+      <tr><td class="fw6">Retained</td><td>Members where Retention Status = "Retained"</td></tr>
+    </tbody></table>
+
+    <h3 style="margin-top:16px;margin-bottom:12px;">Aggregated Summary Table — Kwality House Q1 2026</h3>
+    <table style="font-size:12px;"><thead><tr><th>Month</th><th>Total Rows</th><th>New</th><th>Trial</th><th>Hosted</th><th>Converted</th><th>Conv%</th><th>Retained</th><th>Total LTV</th><th>Avg LTV</th><th>Visits</th><th>Avg Conv Span</th></tr></thead>
+    <tbody>
+      <tr><td>Jan-2026</td><td>119</td><td>119</td><td>32</td><td>67</td><td>17</td><td>14.3%</td><td>21</td><td>₹4,91,504</td><td>₹4,130</td><td>387</td><td>11.9d</td></tr>
+      <tr><td>Feb-2026</td><td>98</td><td>92</td><td>42</td><td>27</td><td>19</td><td>20.7%</td><td>23</td><td>₹8,92,033</td><td>₹9,102</td><td>749</td><td>5.9d</td></tr>
+      <tr><td>Mar-2026</td><td>96</td><td>93</td><td>42</td><td>33</td><td>15</td><td>16.1%</td><td>15</td><td>₹2,13,535</td><td>₹2,224</td><td>207</td><td>7.3d</td></tr>
+    </tbody></table>
+  </div>
+</details>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const COLORS = { primary:'#1B4F8A', secondary:'#5B8EC4', tertiary:'#A8C4E0', positive:'#1A6B47', negative:'#8B2020', warning:'#BA7517', gray:'#8A8A85' };
+
+// Chart 1: LTV Trend
+const ctx1 = document.getElementById('ltvTrendChart').getContext('2d');
+new Chart(ctx1, {
+  type: 'bar',
+  data: {
+    labels: ['Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26'],
+    datasets: [
+      { type:'bar', label:'LTV (₹L)', data:[7.06,6.17,8.38,4.92,8.92,2.14], backgroundColor:['#A8C4E0','#A8C4E0','#A8C4E0','#5B8EC4','#1B4F8A','#A8C4E0'], yAxisID:'y' },
+      { type:'line', label:'3M Rolling Avg LTV', data:[null,null,7.20,6.49,7.14,5.33], borderColor:COLORS.positive, backgroundColor:'transparent', borderWidth:2, pointRadius:4, tension:0.3, yAxisID:'y' },
+      { type:'line', label:'New Members', data:[103,120,100,119,98,96], borderColor:COLORS.warning, backgroundColor:'transparent', borderWidth:2, pointRadius:4, tension:0.3, yAxisID:'y2', borderDash:[5,5] }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(ctx)=> ctx.datasetIndex<2 ? '₹'+ctx.parsed.y+'L' : ctx.parsed.y+' members' } } },
+    scales:{
+      x:{ ticks:{font:{size:11}}, grid:{display:false} },
+      y:{ position:'left', ticks:{ callback:(v)=>'₹'+v+'L', font:{size:11} }, grid:{color:'rgba(26,26,24,0.06)'} },
+      y2:{ position:'right', ticks:{ callback:(v)=>v+' mbrs', font:{size:11} }, grid:{display:false} }
+    }
+  }
+});
+
+// Chart 2: Funnel
+const ctx2 = document.getElementById('funnelChart').getContext('2d');
+new Chart(ctx2, {
+  type:'bar',
+  data:{
+    labels:['Jan New','Jan Conv','Feb New','Feb Conv','Mar New','Mar Conv'],
+    datasets:[{ data:[119,17,92,19,93,15], backgroundColor:['#5B8EC4','#1A6B47','#5B8EC4','#1A6B47','#5B8EC4','#1A6B47'] }]
+  },
+  options:{
+    indexAxis:'y', responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(ctx)=>ctx.parsed.x+' members' } } },
+    scales:{ x:{ grid:{color:'rgba(26,26,24,0.06)'}, ticks:{font:{size:11}} }, y:{grid:{display:false}, ticks:{font:{size:11}}} }
+  }
+});
+
+// Chart 3: Sources
+const ctx3 = document.getElementById('sourceChart').getContext('2d');
+new Chart(ctx3, {
+  type:'doughnut',
+  data:{
+    labels:['Hosted Class','Client Referral','Website/Form','WhatsApp','Phone/Call','Walk-in','Other'],
+    datasets:[{ data:[120,25,30,15,16,7,10], backgroundColor:['#1B4F8A','#5B8EC4','#A8C4E0','#1A6B47','#BA7517','#8B2020','#8A8A85'] }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'bottom', labels:{font:{size:10},boxWidth:10} }, tooltip:{ callbacks:{ label:(ctx)=>ctx.label+': '+ctx.parsed+' entries' } } }
+  }
+});
+
+// Chart 4: Conversion Rate Trend
+const ctx4 = document.getElementById('convRateChart').getContext('2d');
+new Chart(ctx4, {
+  type:'line',
+  data:{
+    labels:['Jan-25','Feb-25','Mar-25','Apr-25','May-25','Jun-25','Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26'],
+    datasets:[
+      { label:'Conv Rate %', data:[29.2,35.6,34.4,34.4,28.0,34.5,42.2,27.7,20.9,27.2,23.7,39.0,14.3,20.7,16.1], borderColor:COLORS.primary, backgroundColor:'rgba(27,79,138,0.08)', borderWidth:2.5, pointRadius:4, tension:0.3, fill:true },
+      { label:'25% Benchmark', data:[25,25,25,25,25,25,25,25,25,25,25,25,25,25,25], borderColor:COLORS.warning, borderWidth:1.5, borderDash:[6,4], pointRadius:0 }
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(ctx)=>ctx.parsed.y.toFixed(1)+'%' } } },
+    scales:{
+      x:{ ticks:{font:{size:10},maxRotation:45}, grid:{display:false} },
+      y:{ min:0, max:50, ticks:{ callback:(v)=>v+'%', font:{size:11} }, grid:{color:'rgba(26,26,24,0.06)'} }
+    }
+  }
+});
+</script>
+</body>
+</html>

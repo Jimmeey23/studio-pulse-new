@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q1 2026 Funnel Report — Kenkere House</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0f1923;--color:#2d5016;--accent:#84b86b;--accent-l:#e8f5e9;--cream:#faf8f4;--white:#fff;--muted:#6b7280;--border:#e8e2d9;--green:#14532d;--green-m:#166534;--green-l:#dcfce7;--blue:#1e3a5f;--blue-l:#dbeafe;--amber:#92400e;--amber-l:#fef3c7;--red:#991b1b;--red-l:#fee2e2;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;}
+.cover{background:var(--color);padding:60px 72px 52px;position:relative;overflow:hidden;}
+.cover::before{content:'';position:absolute;top:-100px;right:-80px;width:480px;height:480px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.12);}
+.cover-eye{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:16px;}
+.cover-title{font-family:'Playfair Display',serif;font-size:40px;color:#fff;font-weight:700;line-height:1.15;max-width:560px;}
+.cover-sub{margin-top:12px;color:rgba(255,255,255,0.45);font-size:13px;}
+.cover-kpis{margin-top:44px;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid rgba(255,255,255,0.12);padding-top:28px;}
+.ck label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-bottom:5px;}
+.ck strong{font-family:'Playfair Display',serif;font-size:22px;color:#fff;}
+.ck span{display:block;font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.C{max-width:1120px;margin:0 auto;padding:60px 40px;}
+.eye{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+.st{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+.sd{color:var(--muted);font-size:13px;margin-bottom:26px;}
+.div{height:1px;background:var(--border);margin:48px 0;}
+.fw{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:32px;margin-bottom:28px;}
+.fs{display:flex;align-items:center;gap:16px;margin-bottom:8px;}
+.fl{width:190px;font-size:13px;font-weight:500;text-align:right;flex-shrink:0;}
+.fbw{flex:1;}
+.fc{width:52px;text-align:right;font-size:13px;font-weight:600;flex-shrink:0;}
+.fp{width:48px;text-align:right;font-size:12px;color:var(--muted);flex-shrink:0;}
+.ft{height:34px;background:var(--border);border-radius:6px;overflow:hidden;}
+.ff{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:12px;color:#fff;font-weight:600;}
+.fa{text-align:center;font-size:16px;color:var(--border);margin:1px 0 1px 206px;}
+.kr{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px;}
+.kc{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:22px 18px;position:relative;overflow:hidden;border-top:3px solid var(--accent);}
+.kl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.kv{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--ink);}
+.ks{font-size:11px;color:var(--muted);margin-top:3px;}
+.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px;}
+.mc{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:22px;}
+.mn{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:var(--ink);margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--accent-l);}
+.ms{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.ms:last-child{border-bottom:none;}
+.ms label{color:var(--muted);}.ms strong{font-weight:600;}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;}
+.cd{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:26px;}
+.ct{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;margin-bottom:4px;}
+.cs{font-size:12px;color:var(--muted);margin-bottom:18px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:9px 11px;border-bottom:2px solid var(--border);text-align:left;white-space:nowrap;}
+td{padding:10px 11px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--cream);}
+.b{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+.b.g{background:var(--green-l);color:var(--green-m)}.b.go{background:#fef3c7;color:#92400e}.b.bl{background:var(--blue-l);color:var(--blue)}.b.r{background:var(--red-l);color:var(--red)}.b.am{background:#fef3c7;color:#92400e}
+.br{margin-bottom:13px;}
+.bm{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
+.bt{height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
+.bf{height:100%;border-radius:4px;}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+.ic{border-radius:12px;padding:18px;display:flex;gap:12px;}
+.ic.po{background:var(--green-l);border:1px solid #86efac;}
+.ic.op{background:#fef3c7;border:1px solid #fde68a;}
+.ic.fl{background:var(--blue-l);border:1px solid #93c5fd;}
+.ii{font-size:19px;flex-shrink:0;}
+.it{font-weight:600;font-size:13px;margin-bottom:3px;}
+.ix{font-size:12px;color:#374151;line-height:1.6;}
+.rl{list-style:none;}
+.rl li{display:flex;gap:13px;padding:14px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.rl li:last-child{border-bottom:none;}
+.rn{width:27px;height:27px;border-radius:50%;background:var(--color);color:rgba(255,255,255,0.9);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.rt strong{color:var(--color);}.rt{line-height:1.6;}
+.hl{background:var(--color);color:#fff;border-radius:12px;padding:22px 26px;margin-bottom:26px;}
+.hl h3{font-family:'Playfair Display',serif;font-size:16px;color:var(--accent);margin-bottom:6px;}
+.hl p{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.7;}
+.footer{background:var(--color);padding:30px 72px;display:flex;justify-content:space-between;align-items:center;}
+.fb{font-family:'Playfair Display',serif;font-size:16px;color:#84b86b;}
+.fi{font-size:11px;color:rgba(255,255,255,0.35);text-align:right;}
+</style>
+</head>
+<body>
+<div class="cover">
+  <div class="cover-eye">Q1 2026 · Funnel &amp; New Client Conversion Report</div>
+  <div class="cover-title">Kenkere House</div>
+  <div class="cover-sub">New Client Acquisition · Funnel Performance · Hosted Classes · Trainer Conversion · Senior Management</div>
+  <div class="cover-kpis">
+    <div class="ck"><label>New Clients</label><strong>492</strong><span>Q1 Total</span></div>
+    <div class="ck"><label>Converted</label><strong>49</strong><span>10.0% rate</span></div>
+    <div class="ck"><label>Retained</label><strong>59</strong><span>12.0% rate</span></div>
+    <div class="ck"><label>Avg LTV (Conv.)</label><strong>&#8377;15,846</strong><span>per converted client</span></div>
+    <div class="ck"><label>Conv. Speed</label><strong>0.3 days</strong><span>trial to purchase</span></div>
+  </div>
+</div>
+<div class="C">
+
+<div class="eye">Acquisition Funnel</div>
+<div class="st">Q1 2026 New Client Funnel</div>
+<div class="sd">End-to-end view from first visit through to paid conversion and sustained retention.</div>
+<div class="fw">
+  <div class="fs"><div class="fl">Total New Visits</div><div class="fbw"><div class="ft"><div class="ff" style="width:100%;background:var(--color)">492</div></div></div><div class="fc">492</div><div class="fp">100%</div></div>
+  <div class="fa">&#8595;</div>
+  <div class="fs"><div class="fl">Retained (Return Visits)</div><div class="fbw"><div class="ft"><div class="ff" style="width:12.0%;background:var(--green-m)">59</div></div></div><div class="fc">59</div><div class="fp">12.0%</div></div>
+  <div class="fa">&#8595;</div>
+  <div class="fs"><div class="fl">Converted (Paid Purchase)</div><div class="fbw"><div class="ft"><div class="ff" style="width:10.0%;background:var(--accent)">49</div></div></div><div class="fc">49</div><div class="fp">10.0%</div></div>
+</div>
+<div class="kr">
+  <div class="kc"><div class="kl">Conversion Rate</div><div class="kv">10.0%</div><div class="ks">49 of 492 new clients purchased</div></div>
+  <div class="kc"><div class="kl">Retention Rate</div><div class="kv">12.0%</div><div class="ks">59 returned for further visits</div></div>
+  <div class="kc"><div class="kl">Avg LTV — Converted</div><div class="kv">&#8377;15,846</div><div class="ks">vs &#8377;1,667 avg all new clients</div></div>
+  <div class="kc"><div class="kl">Avg Conversion Speed</div><div class="kv">0.3 days</div><div class="ks">First visit to first purchase</div></div>
+</div>
+
+<div class="eye">Monthly Funnel</div>
+<div class="st">Month-on-Month Breakdown</div>
+<div class="sd">How new client flow and conversion evolved across January, February and March.</div>
+<div class="mg"><div class="mc"><div class="mn">January 2026</div>
+    <div class="ms"><label>New Clients</label><strong>252</strong></div>
+    <div class="ms"><label>Converted</label><strong>15 (6.0%)</strong></div>
+    <div class="ms"><label>Retained</label><strong>27 (10.7%)</strong></div>
+    <div class="ms"><label>Not Converted</label><strong>237</strong></div>
+    </div>
+<div class="mc"><div class="mn">February 2026</div>
+    <div class="ms"><label>New Clients</label><strong>137</strong></div>
+    <div class="ms"><label>Converted</label><strong>14 (10.2%)</strong></div>
+    <div class="ms"><label>Retained</label><strong>15 (10.9%)</strong></div>
+    <div class="ms"><label>Not Converted</label><strong>123</strong></div>
+    </div>
+<div class="mc"><div class="mn">March 2026</div>
+    <div class="ms"><label>New Clients</label><strong>103</strong></div>
+    <div class="ms"><label>Converted</label><strong>20 (19.4%)</strong></div>
+    <div class="ms"><label>Retained</label><strong>17 (16.5%)</strong></div>
+    <div class="ms"><label>Not Converted</label><strong>83</strong></div>
+    </div>
+</div>
+<div class="hl"><h3>&#128200; Monthly Trend</h3><p>January brought a remarkable 252 new clients — driven largely by the Peakst8 outdoor class series — but converted at just 6.0%. This reflects that outdoor/hosted events attract volume but require a nurture bridge to the studio. February and March show a strong and encouraging pattern: as outdoor class volume normalised, conversion rates improved dramatically — reaching 19.4% in March, the highest of the quarter. This is the healthy shape of a maturing funnel: volume drops, quality rises. March's trajectory points to a much stronger Q2.</p></div>
+<div class="div"></div>
+
+<div class="eye">New Client Type Analysis</div>
+<div class="st">Performance by Entry Channel</div>
+<div class="sd">How each type of new client converts, retains, and generates lifetime value.</div>
+<div class="cd" style="margin-bottom:26px;">
+<table>
+<thead><tr><th>Entry Type</th><th>Clients</th><th>Converted</th><th>Conv. Rate</th><th>Retained</th><th>Ret. Rate</th><th>Avg LTV</th><th>Avg Visits</th><th>Conv. Speed</th></tr></thead>
+<tbody><tr><td><strong>Trial Class</strong></td><td>111</td><td>21</td>
+    <td><span class="b go">18.9%</span></td><td>23</td>
+    <td><span class="b go">20.7%</span></td><td>₹4,554</td><td>4.9</td><td>5.2 days</td></tr>
+<tr><td><strong>Referral Class</strong></td><td>32</td><td>6</td>
+    <td><span class="b go">18.8%</span></td><td>6</td>
+    <td><span class="b go">18.8%</span></td><td>₹2,676</td><td>2.8</td><td>4.8 days</td></tr>
+<tr><td><strong>Paid First Visit</strong></td><td>10</td><td>4</td>
+    <td><span class="b g">40.0%</span></td><td>6</td>
+    <td><span class="b g">60.0%</span></td><td>₹5,912</td><td>3.7</td><td>Immediate</td></tr>
+<tr><td><strong>Hosted Class</strong></td><td>280</td><td>1</td>
+    <td><span class="b r">0.4%</span></td><td>12</td>
+    <td><span class="b r">4.3%</span></td><td>₹62</td><td>1.1</td><td>—</td></tr>
+<tr><td><strong>Influencer Sign Up</strong></td><td>10</td><td>0</td>
+    <td><span class="b r">0.0%</span></td><td>0</td>
+    <td><span class="b r">0.0%</span></td><td>₹33</td><td>1.0</td><td>—</td></tr>
+<tr><td><strong>Others</strong></td><td>49</td><td>17</td>
+    <td><span class="b g">34.7%</span></td><td>12</td>
+    <td><span class="b go">24.5%</span></td><td>₹3,107</td><td>1.9</td><td>Immediate</td></tr>
+</tbody>
+</table>
+</div>
+<div class="ig"><div class="ic po"><div class="ii">📈</div><div><div class="it">March Conversion Rate Is a Breakout Signal</div><div class="ix">March's 19.4% conversion rate is nearly 3× January's rate — and is the highest single-month conversion rate at this location all quarter. As the new client mix shifts from bulk outdoor events toward more targeted studio trials, the funnel is maturing rapidly.</div></div></div>
+<div class="ic po"><div class="ii">🏃</div><div><div class="it">Outdoor / Peakst8 Programme — Massive Brand Reach</div><div class="ix">The Peakst8 and Avg Run Club partnerships brought 200+ new clients through outdoor activations — a unique, community-first acquisition channel not replicated elsewhere in the network. This is an extraordinary brand-building asset that seeds future studio members.</div></div></div>
+<div class="ic op"><div class="ii">💡</div><div><div class="it">Outdoor Leads Need a Studio Conversion Bridge</div><div class="ix">280 hosted/outdoor class visitors converted at just 0.4–4.3%. These clients enjoy the brand in a low-commitment setting. A structured 'Come to the Studio' incentive — e.g. a ₹500 first studio class offer — sent within 48 hours of an outdoor event is the missing link in the funnel.</div></div></div>
+<div class="ic po"><div class="ii">💰</div><div><div class="it">Paid First Visit Has the Strongest Conversion Here</div><div class="ix">40% conversion and 60% retention for paid first visit clients — the highest at this location. With a growing member base becoming aware of the studio, promoting a paid first visit product to outdoor event participants could be transformative.</div></div></div>
+<div class="ic fl"><div class="ii">🚀</div><div><div class="it">Kajol & Pushyank Drive Hosted Class Volume</div><div class="ix">Between them, Kajol Kanchan (103) and Pushyank Nahar (94) delivered 197 hosted/outdoor class introductions — extraordinary outreach volume. While their overall conversion rates are below average (partly a reflection of the outdoor class mix), their community-building work is laying the foundation for long-term growth.</div></div></div>
+<div class="ic op"><div class="ii">📊</div><div><div class="it">'Others' Category Has Surprisingly High Conversion</div><div class="ix">49 clients tagged as 'Others' converted at 34.7% — the second-highest rate after Paid First Visit. Understanding what this source represents (corporate events? specific campaigns?) will help replicate and scale it deliberately.</div></div></div>
+</div>
+<div class="div"></div>
+
+<div class="eye">Hosted Class Performance</div>
+<div class="st">Hosted Class Analysis</div>
+<div class="sd">Which hosted events brought the most new faces, and which trainers delivered them.</div>
+<div class="tc">
+  <div class="cd"><div class="ct">Top Hosted Classes — New Clients Brought In</div><div class="cs">Ranked by first-time visitor count</div><div class="br"><div class="bm"><span>KRC x Avg Run Club Session</span><span style="font-weight:600">51</span></div><div class="bt"><div class="bf" style="width:100%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Peakst8 x Physique 57 (5)</span><span style="font-weight:600">35</span></div><div class="bt"><div class="bf" style="width:69%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Peakst8 x Physique 57 (2)</span><span style="font-weight:600">25</span></div><div class="bt"><div class="bf" style="width:49%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Peakst8 x Physique 57 (3)</span><span style="font-weight:600">24</span></div><div class="bt"><div class="bf" style="width:47%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Peakst8 x Physique 57 (4)</span><span style="font-weight:600">23</span></div><div class="bt"><div class="bf" style="width:45%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Peakst8 x Physique 57 (6)</span><span style="font-weight:600">23</span></div><div class="bt"><div class="bf" style="width:45%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Peakst8 x Physique 57 (1)</span><span style="font-weight:600">19</span></div><div class="bt"><div class="bf" style="width:37%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Drizzl x Physique 57</span><span style="font-weight:600">12</span></div><div class="bt"><div class="bf" style="width:24%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Cava Athleisure Galentine's Run</span><span style="font-weight:600">12</span></div><div class="bt"><div class="bf" style="width:24%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>She Strides Hosted Class</span><span style="font-weight:600">10</span></div><div class="bt"><div class="bf" style="width:20%;background:#84b86b"></div></div></div>
+</div>
+  <div class="cd"><div class="ct">Trainers Delivering Hosted Classes</div><div class="cs">New clients introduced per trainer across hosted sessions</div><div class="br"><div class="bm"><span><strong>Kajol Kanchan</strong></span><span style="font-weight:600">103</span></div><div class="bt"><div class="bf" style="width:100%;background:#2d5016"></div></div></div>
+<div class="br"><div class="bm"><span><strong>Pushyank Nahar</strong></span><span style="font-weight:600">94</span></div><div class="bt"><div class="bf" style="width:91%;background:#2d5016"></div></div></div>
+<div class="br"><div class="bm"><span><strong>Shruti Kulkarni</strong></span><span style="font-weight:600">68</span></div><div class="bt"><div class="bf" style="width:66%;background:#2d5016"></div></div></div>
+<div class="br"><div class="bm"><span><strong>Siddhartha Kusuma</strong></span><span style="font-weight:600">15</span></div><div class="bt"><div class="bf" style="width:15%;background:#2d5016"></div></div></div>
+</div>
+</div>
+<div class="div"></div>
+
+<div class="eye">Trainer Conversion Performance</div>
+<div class="st">New Client Conversion by Trainer</div>
+<div class="sd">Which trainers most effectively convert new visitors into paying members.</div>
+<div class="cd" style="margin-bottom:28px;">
+<table>
+<thead><tr><th>Trainer</th><th>New Clients Seen</th><th>Converted</th><th>Conversion Rate</th><th>Performance Tier</th></tr></thead>
+<tbody><tr><td><strong>Siddhartha Kusuma</strong></td><td>36</td><td>6</td><td><span class='b go'>16.7%</span></td><td><span class='b go'>Above Avg</span></td></tr>
+<tr><td><strong>Chaitanya Nahar</strong></td><td>46</td><td>7</td><td><span class='b bl'>15.2%</span></td><td><span class='b bl'>On Track</span></td></tr>
+<tr><td><strong>Shruti Kulkarni</strong></td><td>118</td><td>14</td><td><span class='b bl'>11.9%</span></td><td><span class='b bl'>On Track</span></td></tr>
+<tr><td><strong>Pushyank Nahar</strong></td><td>116</td><td>9</td><td><span class='b am'>7.8%</span></td><td><span class='b am'>Developing</span></td></tr>
+<tr><td><strong>Kajol Kanchan</strong></td><td>168</td><td>13</td><td><span class='b am'>7.7%</span></td><td><span class='b am'>Developing</span></td></tr>
+<tr><td><strong>Veena Narasimhan</strong></td><td>8</td><td>0</td><td><span class='b r'>0.0%</span></td><td><span class='b r'>Needs Support</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="eye">Acquisition Sources</div>
+<div class="st">Where New Clients Are Coming From</div>
+<div class="sd">Lead generation channels driving new client traffic in Q1 2026.</div>
+<div class="cd" style="margin-bottom:28px;"><div class="br"><div class="bm"><span>Outdoor Class</span><span style="color:#6b7280">200</span></div><div class="bt"><div class="bf" style="width:100%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Client Referral</span><span style="color:#6b7280">85</span></div><div class="bt"><div class="bf" style="width:42%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Hosted Class</span><span style="color:#6b7280">55</span></div><div class="bt"><div class="bf" style="width:27%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Website</span><span style="color:#6b7280">50</span></div><div class="bt"><div class="bf" style="width:25%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Website Form</span><span style="color:#6b7280">30</span></div><div class="bt"><div class="bf" style="width:15%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Dashboard</span><span style="color:#6b7280">15</span></div><div class="bt"><div class="bf" style="width:7%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Incoming Call</span><span style="color:#6b7280">10</span></div><div class="bt"><div class="bf" style="width:5%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Walk-in</span><span style="color:#6b7280">8</span></div><div class="bt"><div class="bf" style="width:4%;background:#84b86b"></div></div></div>
+<div class="br"><div class="bm"><span>Influencer Marketing</span><span style="color:#6b7280">7</span></div><div class="bt"><div class="bf" style="width:3%;background:#84b86b"></div></div></div>
+</div>
+<div class="div"></div>
+
+<div class="eye">Q2 2026 Recommendations</div>
+<div class="st">Strategic Action Plan</div>
+<div class="sd">Prioritised actions to maximise new client conversion and retention heading into Q2.</div>
+<div class="cd"><ul class="rl"><li><div class="rn">1</div><div class="rt"><strong>Build a Studio-to-Outdoor Conversion Bridge:</strong> Create a structured follow-up for all outdoor/hosted class participants: a 24-hour personalised message from the attending trainer, a ₹499–₹999 'First Studio Class' offer, and a 7-day reminder. Even converting 5% of the 280 hosted class visitors (14 clients) would add ~₹85K+ in incremental revenue at current LTV rates.</div></li>
+<li><div class="rn">2</div><div class="rt"><strong>Replicate March's Conversion Performance in Q2:</strong> March delivered a 19.4% conversion rate — the best of the quarter and a clear proof point that the team can convert at a high level when the client mix is right. Build on this momentum: document what changed in March (was it a campaign? follow-up change? client mix?), and carry it into April and May.</div></li>
+<li><div class="rn">3</div><div class="rt"><strong>Scale the Paid First Visit Pathway Through Outdoor Participants:</strong> Paid first visits convert at 40% and retain at 60% — the strongest signals in the funnel. Target outdoor event participants with a direct paid-entry offer: 'Loved the outdoor class? Book your first studio session for ₹999.' This bridges the outdoor-to-studio gap in the most commercially efficient way.</div></li>
+<li><div class="rn">4</div><div class="rt"><strong>Investigate and Scale the 'Others' Source:</strong> 49 clients from unspecified 'Others' sources converted at 34.7% — far above the studio average. Understanding what drives this group (specific campaigns, corporate tie-ins, instructor referrals?) will allow the team to replicate and scale this channel deliberately in Q2.</div></li>
+<li><div class="rn">5</div><div class="rt"><strong>Coach Kajol and Pushyank on Studio Conversion:</strong> Both trainers manage the highest new client volumes at the studio, but their conversion rates (7.7% and 7.8%) reflect the outdoor-to-studio challenge rather than poor performance. Equip them with a post-class conversion toolkit — follow-up message templates, studio trial vouchers — so they can bridge the gap from outdoor engagement to studio membership.</div></li>
+</ul></div>
+
+</div>
+<div class="footer">
+  <div class="fb">Physique 57 India</div>
+  <div class="fi">Kenkere House · Q1 2026 Funnel &amp; Conversion Report<br>Confidential — Senior Management Use Only</div>
+</div>
+</body>
+</html>

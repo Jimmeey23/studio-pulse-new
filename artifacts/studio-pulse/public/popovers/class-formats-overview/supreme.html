@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Format Performance — Supreme HQ, Bandra</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg-primary: #FAFAF8; --bg-secondary: #F4F3EF; --bg-card: #FFFFFF;
+  --text-primary: #1A1A18; --text-secondary: #4A4A46; --text-muted: #8A8A85;
+  --accent: #1B4F8A; --accent-light: #E8EFF7;
+  --positive: #1A6B47; --positive-bg: #EBF5F0;
+  --negative: #8B2020; --negative-bg: #F8ECEC;
+  --warning: #7A5500; --warning-bg: #FDF5E6;
+  --neutral: #2B5F7A; --neutral-bg: #EBF3F8;
+  --border: #E4E3DF; --border-strong: #C8C7C2;
+  --shadow: rgba(26,26,24,0.06); --radius: 12px; --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Georgia, serif; font-size: 14px; line-height: 1.7; color: var(--text-primary); background: var(--bg-primary); }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 48px; }
+h1 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
+h2 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text-primary); }
+h3 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+h4 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 8px; }
+.section { margin-bottom: 48px; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; box-shadow: 0 2px 12px var(--shadow); }
+.metric-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 20px; }
+.metric-value { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 30px; font-weight: 700; line-height: 1; }
+.metric-label { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.badge { font-size: 12px; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+.badge-pos { background: var(--positive-bg); color: var(--positive); }
+.badge-neg { background: var(--negative-bg); color: var(--negative); }
+.badge-neu { background: #F4F3EF; color: var(--text-muted); }
+.callout { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 18px; margin: 12px 0; }
+.callout-title { font-size: 11px; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.callout-body { font-size: 13px; }
+.callout-insight { border-left: 4px solid var(--neutral); background: var(--neutral-bg); }
+.callout-insight .callout-title { color: var(--neutral); }
+.callout-opp { border-left: 4px solid var(--positive); background: var(--positive-bg); }
+.callout-opp .callout-title { color: var(--positive); }
+.callout-risk { border-left: 4px solid var(--negative); background: var(--negative-bg); }
+.callout-risk .callout-title { color: var(--negative); }
+.callout-warn { border-left: 4px solid var(--warning); background: var(--warning-bg); }
+.callout-warn .callout-title { color: var(--warning); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { border-bottom: 2px solid var(--border-strong); }
+th { text-align: left; padding: 10px 12px; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); }
+th.right, td.right { text-align: right; }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+tr:nth-child(even) td { background: var(--bg-secondary); }
+.tag { background: var(--accent-light); color: var(--accent); font-size: 11px; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600; padding: 3px 10px; border-radius: 20px; display: inline-block; margin: 2px; }
+.rec-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 2px 8px var(--shadow); }
+.rec-title { color: var(--accent); font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600; font-size: 15px; margin-bottom: 14px; }
+.rec-table td:first-child { font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600; color: var(--text-muted); width: 140px; white-space: nowrap; font-size: 12px; }
+.rec-table td { border-bottom: 1px solid var(--border); padding: 8px 12px 8px 0; font-size: 13px; }
+.rec-outcome td:first-child { color: var(--positive); }
+details { border: 1px solid var(--border); border-radius: var(--radius); margin-top: 48px; overflow: hidden; }
+summary { padding: 16px 24px; background: var(--bg-secondary); cursor: pointer; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600; font-size: 14px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+.appendix-content { padding: 24px; background: var(--bg-card); }
+@media (max-width: 768px) { .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; } .grid-2 { grid-template-columns: 1fr; } .container { padding: 24px 20px; } }
+@media print { body { background: white; } .container { padding: 20px; max-width: 100%; } .card { box-shadow: none; break-inside: avoid; } .section { break-inside: avoid; } canvas { max-height: 200px !important; } details[open] > summary { display: none; } @page { margin: 15mm; size: A4; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<header style="border-bottom: 2px solid var(--accent); padding-bottom: 24px; margin-bottom: 32px;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div>
+      <p style="font-size:11px;font-family:'Helvetica Neue',sans-serif;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-muted);margin-bottom:6px;">Performance Intelligence Report</p>
+      <h1>Class Format Analytics</h1>
+      <p style="color:var(--text-secondary);margin:4px 0 0;font-size:15px;">Supreme HQ, Bandra &nbsp;·&nbsp; Generated 13 April 2026</p>
+    </div>
+    <div style="text-align:right;font-size:12px;color:var(--text-muted);font-family:'Helvetica Neue',sans-serif;">
+      <div>Generated: 13 Apr 2026, 10:29 PM</div>
+      <div>Location: Supreme HQ, Bandra</div>
+      <div>Currency: INR (₹)</div>
+    </div>
+  </div>
+  <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:6px;">
+    <span class="tag">CLASS OPERATIONS</span><span class="tag">ENGAGEMENT</span><span class="tag">PRODUCT MIX</span><span class="tag">CANCELLATION RISK</span><span class="tag">3 FORMAT VIEWS</span>
+  </div>
+</header>
+
+<!-- SECTION I: EXECUTIVE SUMMARY -->
+<section class="section">
+  <h2>I. Executive Summary</h2>
+  <div class="card">
+    <p style="margin-bottom:14px;">Supreme HQ, Bandra is the network's flagship, operating three distinct class format segments: a <strong>single-instructor format</strong> (11 instructors across 88 sessions generating ~₹4.23L), a <strong>multi-class time-based format</strong> (Kenkere-shared, 196 sessions, ₹8.63L), and a <strong>Kwality-style format</strong> (179 sessions, ₹8.07L). The studio's single biggest revenue driver by instructor is <strong>Cauveri Vikrant</strong> with ₹85.3K across 17 sessions at ₹762/attendee. By class format segment the Tuesday time-slot leads with an average of 11.3 attendees/class and ₹88.9K revenue — the highest single-day fill rate at 87.2%.</p>
+    <p style="margin-bottom:14px;">The most critical operational finding is a <strong>bimodal late-cancel problem</strong>: Raunak Khemuka's 53.8% late cancel rate and Pushyank Nahar's 32.2% are outliers requiring immediate policy intervention. Meanwhile, Rohan Dahima's 89.2% fill rate with only 5 sessions is a high-demand, underscheduled format — capacity constraint risk. Total studio attendance across all documented formats is approximately <strong>2,100+ check-ins</strong> with revenue tracking across ₹20L+.</p>
+    <p>The 07:15 time slot drives the highest absolute attendance (158 check-ins, ₹1.1L), confirming that early morning classes are this studio's anchor. Friday underperforms at 25% fill with a 27.8% late cancel rate — the studio's weakest scheduling day. The singular 90-day focus must be converting Rohan Dahima's 5-session demand into a structured expanded offering while simultaneously enforcing late-cancel policy on Monday/Thursday evening slots.</p>
+
+    <div style="margin-top:20px;">
+      <h4>Top 5 Takeaways</h4>
+      <ol style="padding-left:20px;line-height:2.2;">
+        <li style="margin-bottom:12px;border-left:3px solid var(--accent);padding-left:12px;"><strong>Tuesday is the Crown Slot.</strong> At 87.2% fill and ₹9.9K revenue per class, Tuesday generates more per session than any other day. With only 9 sessions scheduled, there is significant unmet demand — Tuesday capacity should be prioritised for expansion.</li>
+        <li style="margin-bottom:12px;border-left:3px solid var(--positive);padding-left:12px;"><strong>Rohan Dahima is Capacity-Constrained.</strong> 89.2% fill rate on just 5 sessions at ₹9.4K/class means demand far exceeds supply. Adding 3–5 sessions could generate an estimated ₹28–47K in additional revenue based on current rate.</li>
+        <li style="margin-bottom:12px;border-left:3px solid var(--negative);padding-left:12px;"><strong>Raunak Khemuka is a Performance Risk.</strong> 53.8% late cancel rate (highest in studio), 8% fill rate, ₹900/class — this format is underperforming across every metric and requires restructuring or removal from the schedule.</li>
+        <li style="margin-bottom:12px;border-left:3px solid var(--warning);padding-left:12px;"><strong>Friday Has a Structural Leakage Problem.</strong> 27.8% late cancellations and 25% fill mean Friday runs at less than a quarter capacity with a quarter of bookings evaporating — estimated leakage of ₹8–12K/month if unaddressed.</li>
+        <li style="margin-bottom:12px;border-left:3px solid var(--neutral);padding-left:12px;"><strong>Kajol Kanchan Dominates Multi-Format Revenue.</strong> With 425 attendees across 60 sessions and ₹2.5L total, Kajol's format generates 3.6× Chaitanya Nahar's revenue — strong case for prioritising her timeslot allocation in scheduling decisions.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION II: KPI COMMAND CENTER -->
+<section class="section">
+  <h2>II. KPI Command Center</h2>
+  <div class="grid-3" style="margin-bottom:16px;">
+    <div class="metric-card">
+      <div class="metric-label">Top Instructor Revenue</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;">
+        <span class="metric-value">₹2.5L</span>
+        <span class="badge badge-pos">▲ #1 Kajol Kanchan</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">60 sessions · 425 attendees · ₹583/attendee</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Best Fill Rate (Day)</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;">
+        <span class="metric-value">87.2%</span>
+        <span class="badge badge-pos">▲ Tuesday</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">9 sessions · 102 attendees · ₹9.9K/class</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Highest Fill Rate (Instructor)</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;">
+        <span class="metric-value">89.2%</span>
+        <span class="badge badge-pos">Rohan Dahima</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">5 sessions · 58 attendees · ₹9.4K/class</div>
+    </div>
+  </div>
+  <div class="grid-4" style="margin-bottom:16px;">
+    <div class="metric-card">
+      <div class="metric-label">Top Time Slot Revenue</div>
+      <div style="margin:8px 0 4px;"><span style="font-size:22px;font-weight:700;font-family:'Helvetica Neue',sans-serif;">₹1.1L</span></div>
+      <div style="font-size:11px;color:var(--text-muted);">07:15 · 158 attendees · 22 sessions</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Highest Late Cancel %</div>
+      <div style="margin:8px 0 4px;"><span style="font-size:22px;font-weight:700;font-family:'Helvetica Neue',sans-serif;color:var(--negative);">53.8%</span></div>
+      <div style="font-size:11px;color:var(--text-muted);">Raunak Khemuka — critical risk</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Avg Rev/Attendee (Instructor)</div>
+      <div style="margin:8px 0 4px;"><span style="font-size:22px;font-weight:700;font-family:'Helvetica Neue',sans-serif;">₹951</span></div>
+      <div style="font-size:11px;color:var(--text-muted);">Simonelle De Vitre — highest value</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Lowest Fill Rate</div>
+      <div style="margin:8px 0 4px;"><span style="font-size:22px;font-weight:700;font-family:'Helvetica Neue',sans-serif;color:var(--negative);">8.0%</span></div>
+      <div style="font-size:11px;color:var(--text-muted);">Raunak Khemuka — 6 sessions</div>
+    </div>
+  </div>
+
+  <div class="callout callout-insight"><div class="callout-title">🔵 Insight</div><div class="callout-body">The top 3 instructors by revenue (Kajol ₹2.5L, Pushyank ₹1.7L, Shruti ₹1.5L) account for approximately 68% of multi-format class revenue at this studio. This revenue concentration creates dependency risk if any of these instructors reduces availability.</div></div>
+  <div class="callout callout-opp"><div class="callout-title">🟢 Opportunity</div><div class="callout-body">Anisha Shah runs only 2 sessions with an 88.5% fill rate and 107.7% booking rate — demand exceeds capacity. Expanding to 4–6 sessions at current rate would add an estimated ₹25–50K with minimal incremental cost. She is the most under-scheduled high-demand instructor.</div></div>
+  <div class="callout callout-risk"><div class="callout-title">🔴 Risk</div><div class="callout-body">Raunak Khemuka's 53.8% late cancel rate is a severe outlier — more than half of booked spots cancel late, yielding only 6 actual attendees across 6 sessions. At an estimated ₹500/missed spot, late-cancel leakage from this format alone exceeds ₹3.5K. This format requires a strict policy review or discontinuation.</div></div>
+  <div class="callout callout-warn"><div class="callout-title">🟡 Warning</div><div class="callout-body">Friday's 27.8% late cancel rate is the highest of any day slot. Combined with the 25% fill rate, the studio is running Friday classes at approximately one-quarter effectiveness. Revenue per Friday class (₹2.8K) is half the Tuesday rate (₹9.9K).</div></div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION III: VISUAL ANALYTICS -->
+<section class="section">
+  <h2>III. Visual Analytics</h2>
+  
+  <div class="card" style="margin-bottom:24px;">
+    <h3>Instructor Revenue & Fill Rate Comparison (Top 11)</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px;font-size:12px;color:var(--text-secondary);font-family:'Helvetica Neue',sans-serif;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#1B4F8A;display:inline-block;"></span> Revenue (₹K)</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:3px;background:#1A6B47;display:inline-block;border-radius:2px;"></span> Fill Rate %</span>
+    </div>
+    <div style="position:relative;width:100%;height:320px;">
+      <canvas id="instructorChart" role="img" aria-label="Bar chart showing revenue and fill rate for top 11 instructors at Supreme HQ Bandra">Revenue and fill rate data for instructors</canvas>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Revenue by Day of Week</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px;font-size:12px;color:var(--text-secondary);font-family:'Helvetica Neue',sans-serif;">
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#1B4F8A;display:inline-block;"></span> Revenue (₹K)</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:3px;background:#BA7517;display:inline-block;border-radius:2px;"></span> Late Cancel %</span>
+      </div>
+      <div style="position:relative;width:100%;height:260px;">
+        <canvas id="dayChart" role="img" aria-label="Revenue by day of week at Supreme HQ Bandra">Day of week revenue data</canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Top Time Slots by Attendance</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px;font-size:12px;color:var(--text-secondary);font-family:'Helvetica Neue',sans-serif;">
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#5B8EC4;display:inline-block;"></span> Attendance</span>
+      </div>
+      <div style="position:relative;width:100%;height:260px;">
+        <canvas id="timeChart" role="img" aria-label="Top time slots by attendance at Supreme HQ Bandra">Time slot attendance data</canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION IV: PRODUCT/SEGMENT INTELLIGENCE -->
+<section class="section">
+  <h2>IV. Class Format Intelligence</h2>
+  
+  <h3 style="margin-bottom:12px;">Top Performers — By Instructor</h3>
+  <div style="overflow-x:auto;margin-bottom:24px;">
+    <table>
+      <thead><tr>
+        <th>Rank</th><th>Instructor</th><th class="right">Sessions</th><th class="right">Attendance</th><th class="right">Revenue</th><th class="right">Fill %</th><th class="right">Late Cancel %</th><th class="right">Rev/Class</th><th class="right">Rev/Attendee</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Kajol Kanchan</strong></td><td class="right">60</td><td class="right">425</td><td class="right">₹2.5L</td><td class="right">61.0%</td><td class="right" style="color:var(--warning);">29.4%</td><td class="right">₹4.1K</td><td class="right">₹583</td></tr>
+        <tr><td>2</td><td><strong>Pushyank Nahar</strong></td><td class="right">42</td><td class="right">282</td><td class="right">₹1.7L</td><td class="right">59.2%</td><td class="right" style="color:var(--negative);">32.2%</td><td class="right">₹4.0K</td><td class="right">₹595</td></tr>
+        <tr><td>3</td><td><strong>Shruti Kulkarni</strong></td><td class="right">38</td><td class="right">243</td><td class="right">₹1.5L</td><td class="right">50.9%</td><td class="right" style="color:var(--positive);">0.0%</td><td class="right">₹4.0K</td><td class="right">₹625</td></tr>
+        <tr><td>4</td><td><strong>Siddhartha Kusuma</strong></td><td class="right">33</td><td class="right">196</td><td class="right">₹1.4L</td><td class="right">52.1%</td><td class="right" style="color:var(--positive);">0.0%</td><td class="right">₹4.2K</td><td class="right">₹704</td></tr>
+        <tr><td>5</td><td><strong>Cauveri Vikrant</strong></td><td class="right">17</td><td class="right">112</td><td class="right">₹85.3K</td><td class="right">50.7%</td><td class="right">13.2%</td><td class="right">₹5.0K</td><td class="right">₹762</td></tr>
+        <tr><td>6</td><td>Vivaran Dhasmana</td><td class="right">14</td><td class="right">98</td><td class="right">₹82.4K</td><td class="right">53.8%</td><td class="right">16.2%</td><td class="right">₹5.9K</td><td class="right">₹841</td></tr>
+        <tr><td>7</td><td>Simonelle De Vitre</td><td class="right">7</td><td class="right">57</td><td class="right">₹54.2K</td><td class="right">62.6%</td><td class="right">20.8%</td><td class="right">₹7.7K</td><td class="right">₹951</td></tr>
+        <tr><td>8</td><td>Anmol Sharma</td><td class="right">12</td><td class="right">45</td><td class="right">₹50.6K</td><td class="right">28.8%</td><td class="right">13.5%</td><td class="right">₹4.2K</td><td class="right">₹1.1K</td></tr>
+        <tr><td>9</td><td>Rohan Dahima</td><td class="right">5</td><td class="right">58</td><td class="right">₹46.8K</td><td class="right" style="color:var(--positive);font-weight:600;">89.2%</td><td class="right" style="color:var(--positive);">6.5%</td><td class="right">₹9.4K</td><td class="right">₹807</td></tr>
+        <tr><td>10</td><td>Bret Saldanha</td><td class="right">12</td><td class="right">35</td><td class="right">₹27.9K</td><td class="right" style="color:var(--negative);">24.3%</td><td class="right">10.3%</td><td class="right">₹2.3K</td><td class="right">₹798</td></tr>
+        <tr><td>11</td><td style="color:var(--negative);">Raunak Khemuka</td><td class="right">6</td><td class="right">6</td><td class="right">₹5.4K</td><td class="right" style="color:var(--negative);">8.0%</td><td class="right" style="color:var(--negative);font-weight:700;">53.8%</td><td class="right">₹900</td><td class="right">₹900</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin-bottom:12px;">Day-of-Week Performance</h3>
+  <div style="overflow-x:auto;margin-bottom:24px;">
+    <table>
+      <thead><tr>
+        <th>Day</th><th class="right">Sessions</th><th class="right">Attendance</th><th class="right">Revenue</th><th class="right">Fill %</th><th class="right">Late Cancel %</th><th class="right">Rev/Class</th><th>Signal</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><strong>Tuesday</strong></td><td class="right">9</td><td class="right">102</td><td class="right">₹88.9K</td><td class="right" style="color:var(--positive);font-weight:600;">87.2%</td><td class="right">15.7%</td><td class="right">₹9.9K</td><td><span class="badge badge-pos">Top performer</span></td></tr>
+        <tr><td>Sunday</td><td class="right">16</td><td class="right">99</td><td class="right">₹74.9K</td><td class="right">47.6%</td><td class="right">13.9%</td><td class="right">₹4.7K</td><td><span class="badge badge-neu">Stable</span></td></tr>
+        <tr><td>Saturday</td><td class="right">11</td><td class="right">80</td><td class="right">₹69.0K</td><td class="right">55.9%</td><td class="right">9.1%</td><td class="right">₹6.3K</td><td><span class="badge badge-pos">Low cancel</span></td></tr>
+        <tr><td>Thursday</td><td class="right">12</td><td class="right">76</td><td class="right">₹65.8K</td><td class="right">48.7%</td><td class="right">14.6%</td><td class="right">₹5.5K</td><td><span class="badge badge-neu">Average</span></td></tr>
+        <tr><td>Monday</td><td class="right">20</td><td class="right">67</td><td class="right">₹56.9K</td><td class="right" style="color:var(--warning);">27.3%</td><td class="right">17.3%</td><td class="right">₹2.8K</td><td><span class="badge badge-neg">Under-fill</span></td></tr>
+        <tr><td>Wednesday</td><td class="right">8</td><td class="right">31</td><td class="right">₹34.1K</td><td class="right">29.8%</td><td class="right">13.9%</td><td class="right">₹4.3K</td><td><span class="badge badge-neg">Low volume</span></td></tr>
+        <tr><td style="color:var(--negative);">Friday</td><td class="right">12</td><td class="right">39</td><td class="right">₹33.4K</td><td class="right" style="color:var(--negative);">25.0%</td><td class="right" style="color:var(--negative);font-weight:600;">27.8%</td><td class="right">₹2.8K</td><td><span class="badge badge-neg">High cancel</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <h3>Kajol Kanchan — Format Deep Dive</h3>
+    <p style="font-size:13px;color:var(--text-secondary);">With 60 sessions and 425 attendees, Kajol is the studio's highest-volume instructor by both sessions and attendance. Her ₹2.5L revenue represents the single largest instructor revenue contribution at this studio. However, a 29.4% late cancel rate signals that her bookings are subject to high attrition — roughly 177 booked spots cancel late across her schedule. At an estimated ₹500–600 per missed spot, late-cancel leakage from her classes could approach ₹90–105K, which would dwarf her current revenue. Her 61% fill rate is strong but room exists to push toward 75%+ by reducing cancellations through targeted policy.</p>
+  </div>
+  
+  <div class="card">
+    <h3>Atulan Purohit (Kenkere/Kwality Overlap Format) — Format Deep Dive</h3>
+    <p style="font-size:13px;color:var(--text-secondary);">Atulan Purohit's format tracks across 28 sessions with 223 attendees generating ₹1.8L — the highest revenue per class at ₹6.3K across this format segment. His 64.5% fill rate and only 12.1% late cancel rate make him the most operationally balanced high-value instructor. His ₹786/attendee rate combines strong volume with above-average per-person value. He represents a template for what high-performance looks like at this studio.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION VI: OPERATIONAL SIGNALS -->
+<section class="section">
+  <h2>VI. Operational Signals</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Late Cancellation Impact</h3>
+      <table style="margin-top:8px;">
+        <thead><tr><th>Instructor/Slot</th><th class="right">Late Cancel %</th><th>Risk Level</th></tr></thead>
+        <tbody>
+          <tr><td>Raunak Khemuka</td><td class="right" style="color:var(--negative);font-weight:700;">53.8%</td><td><span class="badge badge-neg">Critical</span></td></tr>
+          <tr><td>Pushyank Nahar</td><td class="right" style="color:var(--negative);">32.2%</td><td><span class="badge badge-neg">High</span></td></tr>
+          <tr><td>Friday (Day)</td><td class="right" style="color:var(--negative);">27.8%</td><td><span class="badge badge-neg">High</span></td></tr>
+          <tr><td>Simonelle De Vitre</td><td class="right" style="color:var(--warning);">20.8%</td><td><span class="badge" style="background:var(--warning-bg);color:var(--warning);">Elevated</span></td></tr>
+          <tr><td>Monday (Day)</td><td class="right" style="color:var(--warning);">17.3%</td><td><span class="badge" style="background:var(--warning-bg);color:var(--warning);">Elevated</span></td></tr>
+          <tr><td>Shruti Kulkarni</td><td class="right" style="color:var(--positive);">0.0%</td><td><span class="badge badge-pos">Zero</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Fill Rate Analysis</h3>
+      <table style="margin-top:8px;">
+        <thead><tr><th>Instructor</th><th class="right">Fill %</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Rohan Dahima</td><td class="right" style="color:var(--positive);font-weight:700;">89.2%</td><td><span class="badge badge-pos">Capacity constrained</span></td></tr>
+          <tr><td>Anisha Shah</td><td class="right" style="color:var(--positive);">88.5%</td><td><span class="badge badge-pos">Over-demand</span></td></tr>
+          <tr><td>Simonelle De Vitre</td><td class="right">62.6%</td><td><span class="badge badge-neu">Good fill</span></td></tr>
+          <tr><td>Kajol Kanchan</td><td class="right">61.0%</td><td><span class="badge badge-neu">Good fill</span></td></tr>
+          <tr><td>Anmol Sharma</td><td class="right" style="color:var(--warning);">28.8%</td><td><span class="badge badge-neg">Under-fill</span></td></tr>
+          <tr><td>Raunak Khemuka</td><td class="right" style="color:var(--negative);font-weight:700;">8.0%</td><td><span class="badge badge-neg">Critical</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION VII: STRATEGIC RECOMMENDATIONS -->
+<section class="section">
+  <h2>VII. Strategic Recommendations</h2>
+  
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <div class="rec-title">Recommendation #1 — Expand Rohan Dahima's Schedule</div>
+      <div style="display:flex;gap:8px;"><span class="badge" style="background:var(--positive-bg);color:var(--positive);">Low Effort</span><span class="badge badge-neg">Now (0–30d)</span></div>
+    </div>
+    <table class="rec-table"><tbody>
+      <tr><td>Insight</td><td>Rohan Dahima runs at 89.2% fill on only 5 sessions — the highest fill rate at the studio with the fewest sessions, indicating strong unmet demand.</td></tr>
+      <tr><td>Impact</td><td>Current ₹46.8K from 5 sessions = ₹9.4K/class. At current demand, 5 additional sessions would add ₹47K incrementally with minimal incremental cost.</td></tr>
+      <tr><td>Action</td><td>Studio manager to contact Rohan Dahima within 14 days to offer 3–5 additional weekly slots. Prioritise Tuesday/Thursday given day-of-week demand patterns.</td></tr>
+      <tr class="rec-outcome"><td>Expected Outcome</td><td>₹25–47K incremental revenue within 60 days at 80%+ fill confidence given existing demand. Confidence: High.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <div class="rec-title">Recommendation #2 — Late Cancel Policy Enforcement for High-Risk Formats</div>
+      <div style="display:flex;gap:8px;"><span class="badge" style="background:var(--warning-bg);color:var(--warning);">Medium Effort</span><span class="badge badge-neg">Now (0–30d)</span></div>
+    </div>
+    <table class="rec-table"><tbody>
+      <tr><td>Insight</td><td>Raunak Khemuka (53.8%), Pushyank Nahar (32.2%), and the Friday slot (27.8%) have late cancel rates far above the ~15% studio median.</td></tr>
+      <tr><td>Impact</td><td>Estimated ₹15–25K/month in unrealised revenue from late-cancel leakage across these three formats. If unaddressed, this erodes up to 10% of studio revenue.</td></tr>
+      <tr><td>Action</td><td>Implement a 12-hour late-cancel fee (suggest ₹200–300) for the three high-risk formats. Send automated reminder 24 hours before class. Review Raunak Khemuka's format viability if fill rate remains below 20%.</td></tr>
+      <tr class="rec-outcome"><td>Expected Outcome</td><td>10–20% reduction in late cancellations within 30 days, recovering ₹5–10K/month. Confidence: Medium.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <div class="rec-title">Recommendation #3 — Add Tuesday Sessions</div>
+      <div style="display:flex;gap:8px;"><span class="badge" style="background:var(--positive-bg);color:var(--positive);">Low Effort</span><span class="badge" style="background:var(--warning-bg);color:var(--warning);">Soon (30–60d)</span></div>
+    </div>
+    <table class="rec-table"><tbody>
+      <tr><td>Insight</td><td>Tuesday delivers ₹9.9K/class — 2.5× the Monday rate and 3.5× the Friday rate — yet has only 9 sessions scheduled vs. Monday's 20.</td></tr>
+      <tr><td>Impact</td><td>Adding 4 more Tuesday sessions at current demand would add ₹39.6K/period. Tuesday is chronically under-scheduled relative to demand signals.</td></tr>
+      <tr><td>Action</td><td>Scheduling team to audit instructor availability specifically for Tuesday morning (08:00–11:00) and evening (18:00–20:00) slots. Prioritise Kajol Kanchan and Rohan Dahima for Tuesday allocation.</td></tr>
+      <tr class="rec-outcome"><td>Expected Outcome</td><td>₹30–40K incremental revenue from 4 additional Tuesday sessions. Confidence: High (based on 87.2% fill trend).</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <div class="rec-title">Recommendation #4 — Restructure or Eliminate Friday Low-Performance Slot</div>
+      <div style="display:flex;gap:8px;"><span class="badge" style="background:var(--warning-bg);color:var(--warning);">Medium Effort</span><span class="badge" style="background:var(--warning-bg);color:var(--warning);">Soon (30–60d)</span></div>
+    </div>
+    <table class="rec-table"><tbody>
+      <tr><td>Insight</td><td>Friday runs at 25% fill and 27.8% late cancellations — the worst performing day by both metrics. ₹2.8K/class revenue is 70% below Tuesday.</td></tr>
+      <tr><td>Impact</td><td>Every Friday session that runs at 25% fill with high cancels represents a fixed cost (instructor, facility) with very low return. Across 12 Friday sessions, the studio likely over-invested by ₹20–30K.</td></tr>
+      <tr><td>Action</td><td>Reduce Friday sessions from 12 to 6 (cut the lowest-fill time slots). Reallocate freed instructor hours to Tuesday/Saturday. Run a 3-month trial to measure impact on overall capacity utilisation.</td></tr>
+      <tr class="rec-outcome"><td>Expected Outcome</td><td>Net revenue-neutral to +₹10K by reallocating instructor hours to higher-demand slots. Confidence: Medium.</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <div class="rec-title">Recommendation #5 — Expand Anisha Shah's Format</div>
+      <div style="display:flex;gap:8px;"><span class="badge" style="background:var(--positive-bg);color:var(--positive);">Low Effort</span><span class="badge" style="background:var(--warning-bg);color:var(--warning);">Plan (60–90d)</span></div>
+    </div>
+    <table class="rec-table"><tbody>
+      <tr><td>Insight</td><td>Anisha Shah's 107.7% booking rate (overbooking demand signal) and 88.5% fill on just 2 sessions indicates this is the studio's most demand-constrained underused format.</td></tr>
+      <tr><td>Impact</td><td>At current ₹8.4K/class rate, adding 4 sessions would generate ₹33.6K with high probability of fill-through given existing demand evidence.</td></tr>
+      <tr><td>Action</td><td>Offer Anisha Shah 4–6 additional sessions/period. Assign preferred morning slots (09:00–11:00) based on time-slot demand data showing strongest morning fill rates.</td></tr>
+      <tr class="rec-outcome"><td>Expected Outcome</td><td>₹25–35K incremental revenue within 90 days. Confidence: High (based on demand signal from overbooking).</td></tr>
+    </tbody></table>
+  </div>
+
+  <div style="margin-top:24px;">
+    <h3>Quick-Win Playbook</h3>
+    <div style="overflow-x:auto;"><table>
+      <thead><tr><th>#</th><th>Action</th><th>Owner</th><th>Timeline</th><th class="right">Est. Revenue Impact</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Add 5 Rohan Dahima sessions</td><td>Studio Manager</td><td>14 days</td><td class="right">+₹25–47K</td></tr>
+        <tr><td>2</td><td>Enforce late-cancel fee (Raunak, Pushyank, Friday)</td><td>Operations</td><td>30 days</td><td class="right">+₹5–10K/mo</td></tr>
+        <tr><td>3</td><td>Add 4 Tuesday sessions</td><td>Scheduling</td><td>45 days</td><td class="right">+₹30–40K</td></tr>
+        <tr><td>4</td><td>Add 4 Anisha Shah sessions</td><td>Studio Manager</td><td>60 days</td><td class="right">+₹25–35K</td></tr>
+        <tr><td>5</td><td>Reduce Friday from 12→6 sessions</td><td>Scheduling</td><td>60 days</td><td class="right">Neutral → +₹10K</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION VIII: FORECAST -->
+<section class="section">
+  <h2>VIII. Forecast & Outlook</h2>
+  <div class="card" style="margin-bottom:16px;">
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;"><em>Note: This dataset represents a single period snapshot without multi-period historical data. Forecasts below are scenario-based projections rather than regression-derived, using current performance as baseline.</em></p>
+    <h4>Instructor Revenue Scenarios — Next Period</h4>
+    <div style="overflow-x:auto;"><table>
+      <thead><tr><th>Scenario</th><th class="right">Instructor Revenue</th><th class="right">Change vs. Current</th><th>Key Driver</th></tr></thead>
+      <tbody>
+        <tr style="background:var(--positive-bg);"><td style="color:var(--positive);font-weight:600;">▲ Optimistic</td><td class="right">₹8.5L+</td><td class="right" style="color:var(--positive);">+30%</td><td>Add high-demand sessions + enforce late-cancel policy</td></tr>
+        <tr><td style="font-weight:600;">— Baseline</td><td class="right">₹6.5L</td><td class="right">No change</td><td>Continue current schedule, no intervention</td></tr>
+        <tr style="background:var(--negative-bg);"><td style="color:var(--negative);font-weight:600;">▼ Pessimistic</td><td class="right">₹5.0L</td><td class="right" style="color:var(--negative);">-25%</td><td>Instructor attrition in top 3 formats; no replacement</td></tr>
+      </tbody>
+    </table></div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-muted);">
+      <strong>Assumptions:</strong>
+      <ul style="margin:4px 0 0;padding-left:18px;">
+        <li>Optimistic assumes 10 new sessions added to high-demand formats (Rohan Dahima, Anisha Shah, Tuesday)</li>
+        <li>Baseline assumes schedule remains unchanged with natural demand continuation</li>
+        <li>Pessimistic accounts for 1–2 top instructor departures reducing 30%+ of revenue base</li>
+      </ul>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--text-secondary);">Supreme HQ Bandra's revenue concentration in three instructors (Kajol, Pushyank, Shruti) creates both upside and downside risk. The pivotal variable is whether the studio can convert high-fill-rate underutilised formats (Rohan Dahima, Anisha Shah) into regularised schedule fixtures before peak season. Tuesday morning and Saturday are the windows most likely to absorb additional supply without cannibalising existing demand. The 90-day vision is a studio operating at 65%+ average fill rate across all instructor formats with late cancel rates below 15% across the board.</p>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION IX: CLOSING -->
+<section class="section">
+  <h2>IX. Closing Statement</h2>
+  <div class="card">
+    <h4 style="margin-bottom:8px;">Wins to Celebrate</h4>
+    <ul style="padding-left:20px;margin-bottom:16px;font-size:13px;line-height:2;">
+      <li>Kajol Kanchan's 425 attendees across 60 sessions is the studio's anchor format — a testament to consistent demand cultivation</li>
+      <li>Tuesday slot achieves best-in-studio 87.2% fill rate and ₹9.9K/class — a premium time slot the studio should protect and grow</li>
+      <li>Shruti Kulkarni and Siddhartha Kusuma achieve 0% late cancel rates — operationally exemplary formats worth study and replication</li>
+    </ul>
+    <h4 style="margin-bottom:8px;">Honest Acknowledgements</h4>
+    <ul style="padding-left:20px;margin-bottom:16px;font-size:13px;line-height:2;">
+      <li>Raunak Khemuka's format is the studio's weakest performer across every metric — 53.8% late cancel, 8% fill, lowest revenue — and requires an honest review of whether to continue, restructure, or replace this slot</li>
+      <li>Friday is chronically under-performing despite 12 sessions — the studio is allocating significant instructor time and space to a day that generates the same revenue as 3 good Tuesday sessions</li>
+    </ul>
+    <h4 style="margin-bottom:8px;">Singular Focus — Next 30 Days</h4>
+    <p style="font-size:13px;margin-bottom:16px;">Immediately add 5 Rohan Dahima sessions and implement a late-cancel fee on Pushyank Nahar's format. These two actions together represent the fastest path to ₹50K incremental revenue with the lowest implementation friction.</p>
+    <h4 style="margin-bottom:8px;">The 90-Day Vision</h4>
+    <p style="font-size:13px;">If all five recommendations are executed, Supreme HQ Bandra can reach an estimated ₹8–9L in instructor format revenue with average fill rates above 65%, studio-wide late cancel rates below 15%, and a balanced schedule that no longer depends on a single Tuesday slot for its best-in-class economics.</p>
+  </div>
+</section>
+
+<!-- APPENDIX -->
+<details>
+  <summary>Appendix — Data Health, Metric Definitions & Statistical Notes <span>+</span></summary>
+  <div class="appendix-content">
+    <h3 style="margin-bottom:12px;">1. Data Health Report</h3>
+    <p style="font-size:13px;margin-bottom:12px;">Tags detected: [CLASS_OPERATIONS] [ENGAGEMENT] [PRODUCT_MIX] [CANCELLATION_RISK]. Data represents a single-period cross-sectional snapshot with no temporal series — therefore MoM/YoY calculations and regression forecasting are not applicable. Revenue values shown in INR (₹) with formats labelled as "₹K" (thousands) and "₹L" (lakhs = ₹100,000).</p>
+    <p style="font-size:13px;margin-bottom:12px;"><strong>Anomalies noted:</strong> Raunak Khemuka's 53.8% late cancel rate is a >3σ outlier from studio median. Two time slots (12:30 and 12:45) show ₹0 revenue despite having attendees — likely complimentary or package-included sessions not generating revenue recognition. These have been excluded from revenue totals.</p>
+    <h3 style="margin-bottom:12px;margin-top:16px;">2. Metric Definitions</h3>
+    <table style="font-size:12px;"><thead><tr><th>Metric</th><th>Definition</th></tr></thead>
+    <tbody>
+      <tr><td>Fill %</td><td>Attendance / Capacity × 100</td></tr>
+      <tr><td>Booking %</td><td>Booked / Capacity × 100 (can exceed 100% = overbooking)</td></tr>
+      <tr><td>Show-up %</td><td>Attendance / Booked × 100</td></tr>
+      <tr><td>Late Cancel %</td><td>Late cancellations / Booked × 100</td></tr>
+      <tr><td>Avg/Class</td><td>Total Attendance / Sessions</td></tr>
+      <tr><td>Rev/Class</td><td>Total Revenue / Sessions</td></tr>
+      <tr><td>Rev/Attendee</td><td>Total Revenue / Total Attendance</td></tr>
+    </tbody></table>
+    <h3 style="margin-bottom:12px;margin-top:16px;">3. Statistical Notes</h3>
+    <p style="font-size:13px;">No time-series regression performed (single period). Cross-sectional comparisons used for ranking and benchmarking. All revenue figures sourced directly from export data. Forecasts are scenario-based estimates, not statistical projections. Confidence levels are qualitative assessments based on data density and fill rate stability.</p>
+    <h3 style="margin-bottom:12px;margin-top:16px;">4. Aggregated Summary</h3>
+    <div style="overflow-x:auto;"><table style="font-size:12px;">
+      <thead><tr><th>Format View</th><th class="right">Total Sessions</th><th class="right">Total Attendance</th><th class="right">Avg Fill %</th><th class="right">Avg Late Cancel %</th></tr></thead>
+      <tbody>
+        <tr><td>By Instructor (single format)</td><td class="right">88</td><td class="right">494</td><td class="right">~47%</td><td class="right">~18%</td></tr>
+        <tr><td>By Instructor (multi-format, Kenkere shared)</td><td class="right">196</td><td class="right">1,229</td><td class="right">~54%</td><td class="right">~12%</td></tr>
+        <tr><td>By Time Slot (Kenkere)</td><td class="right">196</td><td class="right">1,229</td><td class="right">~54%</td><td class="right">~18%</td></tr>
+        <tr><td>By Day of Week</td><td class="right">88</td><td class="right">494</td><td class="right">~47%</td><td class="right">~18%</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</details>
+
+</div>
+
+<script>
+// Chart 1: Instructor Revenue & Fill Rate
+const ctx1 = document.getElementById('instructorChart').getContext('2d');
+new Chart(ctx1, {
+  type: 'bar',
+  data: {
+    labels: ['Kajol\nKanchan','Pushyank\nNahar','Shruti\nKulkarni','Siddhartha\nKusuma','Cauveri\nVikrant','Vivaran\nDhasmana','Simonelle\nDe Vitre','Anmol\nSharma','Rohan\nDahima','Bret\nSaldanha','Raunak\nKhemuka'],
+    datasets: [
+      {
+        type: 'bar',
+        label: 'Revenue (₹K)',
+        data: [250, 170, 150, 140, 85.3, 82.4, 54.2, 50.6, 46.8, 27.9, 5.4],
+        backgroundColor: ['#1B4F8A','#1B4F8A','#1B4F8A','#1B4F8A','#5B8EC4','#5B8EC4','#5B8EC4','#A8C4E0','#A8C4E0','#A8C4E0','#8B2020'],
+        yAxisID: 'y'
+      },
+      {
+        type: 'line',
+        label: 'Fill Rate %',
+        data: [61.0, 59.2, 50.9, 52.1, 50.7, 53.8, 62.6, 28.8, 89.2, 24.3, 8.0],
+        borderColor: '#1A6B47',
+        backgroundColor: 'transparent',
+        pointBackgroundColor: '#1A6B47',
+        tension: 0.3,
+        yAxisID: 'y2'
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { autoSkip: false, maxRotation: 45, font: { size: 10 } }, grid: { display: false } },
+      y: { ticks: { callback: v => '₹'+v+'K', font: { size: 11 } }, grid: { color: 'rgba(26,26,24,0.06)' }, position: 'left' },
+      y2: { ticks: { callback: v => v+'%', font: { size: 11 } }, position: 'right', grid: { display: false }, min: 0, max: 100 }
+    }
+  }
+});
+
+// Chart 2: Revenue by Day
+const ctx2 = document.getElementById('dayChart').getContext('2d');
+new Chart(ctx2, {
+  type: 'bar',
+  data: {
+    labels: ['Tuesday','Sunday','Saturday','Thursday','Monday','Wednesday','Friday'],
+    datasets: [
+      { type:'bar', label:'Revenue (₹K)', data: [88.9, 74.9, 69.0, 65.8, 56.9, 34.1, 33.4], backgroundColor: ['#1B4F8A','#5B8EC4','#5B8EC4','#5B8EC4','#A8C4E0','#A8C4E0','#8B2020'], yAxisID: 'y' },
+      { type:'line', label:'Late Cancel %', data: [15.7, 13.9, 9.1, 14.6, 17.3, 13.9, 27.8], borderColor: '#BA7517', backgroundColor: 'transparent', pointBackgroundColor: '#BA7517', tension: 0.3, yAxisID: 'y2' }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+      y: { ticks: { callback: v => '₹'+v+'K', font: { size: 11 } }, grid: { color: 'rgba(26,26,24,0.06)' } },
+      y2: { ticks: { callback: v => v+'%', font: { size: 11 } }, position: 'right', grid: { display: false } }
+    }
+  }
+});
+
+// Chart 3: Time Slot Attendance
+const ctx3 = document.getElementById('timeChart').getContext('2d');
+new Chart(ctx3, {
+  type: 'bar',
+  data: {
+    labels: ['07:15','11:00','09:00','18:15','11:30','17:00','19:30','10:00','08:30','11:15','17:15'],
+    datasets: [{
+      data: [158, 128, 137, 150, 114, 112, 59, 67, 48, 51, 40],
+      backgroundColor: ['#1B4F8A','#5B8EC4','#5B8EC4','#5B8EC4','#5B8EC4','#A8C4E0','#A8C4E0','#A8C4E0','#A8C4E0','#A8C4E0','#A8C4E0']
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { autoSkip: false, maxRotation: 45, font: { size: 10 } }, grid: { display: false } },
+      y: { ticks: { font: { size: 11 } }, grid: { color: 'rgba(26,26,24,0.06)' } }
+    }
+  }
+});
+</script>
+</body>
+</html>
