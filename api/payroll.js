@@ -6,9 +6,9 @@
 // - GOOGLE_SHEETS_SPREADSHEET_ID
 
 async function getAccessToken() {
-  const clientId = process.env.GOOGLE_CLIENT_ID || '';
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
-  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN || '';
+  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '';
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.VITE_GOOGLE_CLIENT_SECRET || '';
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN || process.env.VITE_GOOGLE_REFRESH_TOKEN || '';
   
   const params = new URLSearchParams({
     client_id: clientId,
@@ -136,9 +136,13 @@ export default async function handler(req, res) {
   }
 
   // Fall back to the same default the client uses when no env var is set
-  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID || '149ILDqovzZA6FRUJKOwzutWdVqmqWBtWPfzG3A0zxTI';
+  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID || process.env.VITE_PAYROLL_SPREADSHEET_ID || '149ILDqovzZA6FRUJKOwzutWdVqmqWBtWPfzG3A0zxTI';
   
-  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_REFRESH_TOKEN) {
+  if (
+    !(process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID) ||
+    !(process.env.GOOGLE_CLIENT_SECRET || process.env.VITE_GOOGLE_CLIENT_SECRET) ||
+    !(process.env.GOOGLE_REFRESH_TOKEN || process.env.VITE_GOOGLE_REFRESH_TOKEN)
+  ) {
     res.status(500).json({ error: 'Missing required Google API environment variables' });
     return;
   }

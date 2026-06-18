@@ -1,5 +1,15 @@
 {
   "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/studio-pulse",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/location-report",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/assets/(.*\\.js)",
