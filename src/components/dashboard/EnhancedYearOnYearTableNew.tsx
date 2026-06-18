@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight, Calendar, TrendingUp, TrendingDown, BarChart
 import { Button } from '@/components/ui/button';
 import { shallowEqual } from '@/utils/performanceUtils';
 import { useTableCopyContext } from '@/hooks/useTableCopyContext';
+import { parseDate as parseDashboardDate } from '@/utils/dateUtils';
 
 const groupDataByCategory = (data: SalesData[]) => {
   return data.reduce((acc: Record<string, any>, item) => {
@@ -51,14 +52,7 @@ export const EnhancedYearOnYearTableNewComponent: React.FC<EnhancedYearOnYearTab
   const copyContext = useTableCopyContext();
 
   const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
-    const ddmmyyyy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (ddmmyyyy) {
-      const [, day, month, year] = ddmmyyyy;
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    }
-    const date = new Date(dateStr);
-    return isNaN(date.getTime()) ? null : date;
+    return parseDashboardDate(dateStr);
   };
 
   const getMetricValue = (items: SalesData[], metric: YearOnYearMetricType) => {
@@ -183,42 +177,39 @@ export const EnhancedYearOnYearTableNewComponent: React.FC<EnhancedYearOnYearTab
     });
   }, [data, filters]);
 
-  // Generate YoY month pairs sorted by month (Jan-Dec), with year pairs (2024, 2025) for each month
+  // Generate YoY month pairs from the actual years present in the current sales data.
   const monthlyData = useMemo(() => {
     const months: { key: string; display: string; year: number; month: number }[] = [];
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
-    
-    // Generate from Jan 2024 to current month, sorted by month number
+    const years = Array.from(
+      new Set(
+        allHistoricData
+          .map(item => parseDate(item.paymentDate)?.getFullYear())
+          .filter((year): year is number => typeof year === 'number')
+      )
+    ).sort((a, b) => a - b);
+
     for (let monthNum = 1; monthNum <= 12; monthNum++) {
-      const monthName = new Date(2024, monthNum - 1, 1).toLocaleDateString('en-US', { month: 'short' });
-      
-      // Only include months up to current month in current year
-      if (monthNum > currentMonth && currentYear === now.getFullYear()) {
-        continue;
-      }
-      
-      // Add 2024 entry
-      months.push({
-        key: `2024-${String(monthNum).padStart(2, '0')}`,
-        display: `${monthName} 2024`,
-        year: 2024,
-        month: monthNum
-      });
-      
-      // Add 2025 entry if month has occurred
-      if (monthNum <= currentMonth) {
-        months.push({
-          key: `${currentYear}-${String(monthNum).padStart(2, '0')}`,
-          display: `${monthName} ${currentYear}`,
-          year: currentYear,
-          month: monthNum
+      const monthName = new Date(2000, monthNum - 1, 1).toLocaleDateString('en-US', { month: 'short' });
+
+      years.forEach(year => {
+        const key = `${year}-${String(monthNum).padStart(2, '0')}`;
+        const hasRows = allHistoricData.some(item => {
+          const itemDate = parseDate(item.paymentDate);
+          return itemDate && itemDate.getFullYear() === year && itemDate.getMonth() + 1 === monthNum;
         });
-      }
+
+        if (hasRows) {
+          months.push({
+            key,
+            display: `${monthName} ${year}`,
+            year,
+            month: monthNum
+          });
+        }
+      });
     }
     return months;
-  }, []);
+  }, [allHistoricData]);
 
   const visibleMonths = useMemo(() => monthlyData, [monthlyData]);
 
@@ -365,11 +356,12 @@ export const EnhancedYearOnYearTableNewComponent: React.FC<EnhancedYearOnYearTab
         });
 
         const categoryMonthlyValues: Record<string, number> = {};
-        monthlyData.forEach(({ key }) => {
-          categoryMonthlyValues[key] = categoryProducts.reduce(
-            (sum, product) => sum + (product.monthlyValues[key] || 0),
-            0
-          );
+        monthlyData.forEach(({ key, year, month }) => {
+          const monthItems = (items as SalesData[]).filter(item => {
+            const itemDate = parseDate(item.paymentDate);
+            return itemDate && itemDate.getFullYear() === year && itemDate.getMonth() + 1 === month;
+          });
+          categoryMonthlyValues[key] = getMetricValue(monthItems, metric);
         });
 
         return {

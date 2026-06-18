@@ -6,7 +6,7 @@ import { formatCurrency, formatNumber } from '@/utils/formatters';
 import { logger } from '@/utils/logger';
 import { ChevronDown, ChevronRight, ShoppingCart, TrendingUp, TrendingDown, BarChart3, DollarSign, Users, Target, Trophy, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { generateStandardMonthRange } from '@/utils/dateUtils';
+import { generateStandardMonthRange, parseDate as parseDashboardDate } from '@/utils/dateUtils';
 import { shallowEqual } from '@/utils/performanceUtils';
 import { useTableCopyContext } from '@/hooks/useTableCopyContext';
 
@@ -43,14 +43,7 @@ export const ProductPerformanceTableNewComponent: React.FC<ProductPerformanceTab
   const copyContext = useTableCopyContext();
 
   const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
-    const ddmmyyyy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (ddmmyyyy) {
-      const [, day, month, year] = ddmmyyyy;
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    }
-    const date = new Date(dateStr);
-    return isNaN(date.getTime()) ? null : date;
+    return parseDashboardDate(dateStr);
   };
 
   const getMetricValue = (items: SalesData[], metric: YearOnYearMetricType) => {
@@ -92,7 +85,7 @@ export const ProductPerformanceTableNewComponent: React.FC<ProductPerformanceTab
         const [, day, month, year] = ddmmyyyy;
         return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       }
-      return new Date(dateStr);
+      return parseDate(dateStr);
     }).filter((date): date is Date => date !== null && !isNaN(date.getTime())).sort((a, b) => a.getTime() - b.getTime());
     
     let purchaseFrequency = 0;
@@ -197,8 +190,12 @@ export const ProductPerformanceTableNewComponent: React.FC<ProductPerformanceTab
 
       // Calculate category totals
       const categoryMonthlyValues: Record<string, number> = {};
-      monthlyData.forEach(({ key }) => {
-        categoryMonthlyValues[key] = productData.reduce((sum, p) => sum + (p.monthlyValues[key] || 0), 0);
+      monthlyData.forEach(({ key, year, month }) => {
+        const monthItems = Object.values(products).flat().filter(item => {
+          const itemDate = parseDate(item.paymentDate);
+          return itemDate && itemDate.getFullYear() === year && itemDate.getMonth() + 1 === month;
+        });
+        categoryMonthlyValues[key] = getMetricValue(monthItems, selectedMetric);
       });
 
       const sortedProducts = productData.sort((a, b) => {

@@ -28,7 +28,7 @@ import { useSectionNavigation } from '@/contexts/SectionNavigationContext';
 import { ModernSalesTable } from './ModernSalesTable';
 import { SalesData, FilterOptions, MetricCardData, YearOnYearMetricType } from '@/types/dashboard';
 import { formatCurrency, formatNumber, formatPercentage, formatDiscount } from '@/utils/formatters';
-import { getDashboardDefaultDateRange } from '@/utils/dateUtils';
+import { getDashboardDefaultDateRange, parseDate as parseDashboardDate } from '@/utils/dateUtils';
 import { cn } from '@/lib/utils';
 import { createLogger } from '@/utils/logger';
 import { AdvancedExportButton } from '@/components/ui/AdvancedExportButton';
@@ -149,28 +149,7 @@ export const SalesAnalyticsSection: React.FC<SalesAnalyticsSectionProps> = ({ da
       filtered = filtered.filter(item => {
         if (!item.paymentDate) return false;
 
-        let itemDate: Date | null = null;
-
-        // Try DD/MM/YYYY format first
-        const ddmmyyyy = item.paymentDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        if (ddmmyyyy) {
-          const [, day, month, year] = ddmmyyyy;
-          itemDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        } else {
-          // Try other formats
-          const formats = [
-            new Date(item.paymentDate), 
-            new Date(item.paymentDate.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1')), 
-            new Date(item.paymentDate.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3'))
-          ];
-          
-          for (const date of formats) {
-            if (!isNaN(date.getTime()) && date.getFullYear() > 1900 && date.getFullYear() < 2100) {
-              itemDate = date;
-              break;
-            }
-          }
-        }
+        const itemDate = parseDashboardDate(item.paymentDate);
 
         if (!itemDate || isNaN(itemDate.getTime())) return false;
         if (startDate && itemDate < startDate) return false;
@@ -290,7 +269,8 @@ export const SalesAnalyticsSection: React.FC<SalesAnalyticsSectionProps> = ({ da
         specificFilteredData = baseData.filter(item => {
           if (!item.paymentDate) return false;
           
-          const itemDate = new Date(item.paymentDate);
+          const itemDate = parseDashboardDate(item.paymentDate);
+          if (!itemDate) return false;
           const year = itemDate.getFullYear();
           const month = itemDate.getMonth() + 1;
           const itemKey = `${year}-${String(month).padStart(2, '0')}`;
@@ -329,7 +309,8 @@ export const SalesAnalyticsSection: React.FC<SalesAnalyticsSectionProps> = ({ da
         specificFilteredData = baseData.filter(item => {
           if (!item.paymentDate) return false;
           
-          const itemDate = new Date(item.paymentDate);
+          const itemDate = parseDashboardDate(item.paymentDate);
+          if (!itemDate) return false;
           const year = itemDate.getFullYear();
           const month = itemDate.getMonth() + 1;
           const itemKey = `${year}-${String(month).padStart(2, '0')}`;
@@ -346,7 +327,8 @@ export const SalesAnalyticsSection: React.FC<SalesAnalyticsSectionProps> = ({ da
         specificFilteredData = baseData.filter(item => {
           if (!item.paymentDate) return false;
           
-          const itemDate = new Date(item.paymentDate);
+          const itemDate = parseDashboardDate(item.paymentDate);
+          if (!itemDate) return false;
           const year = itemDate.getFullYear();
           const month = itemDate.getMonth() + 1;
           const itemKey = `${year}-${String(month).padStart(2, '0')}`;
@@ -363,7 +345,8 @@ export const SalesAnalyticsSection: React.FC<SalesAnalyticsSectionProps> = ({ da
         specificFilteredData = baseData.filter(item => {
           if (!item.paymentDate) return false;
           
-          const itemDate = new Date(item.paymentDate);
+          const itemDate = parseDashboardDate(item.paymentDate);
+          if (!itemDate) return false;
           const year = itemDate.getFullYear();
           const month = itemDate.getMonth() + 1;
           const itemKey = `${year}-${String(month).padStart(2, '0')}`;
@@ -380,7 +363,8 @@ export const SalesAnalyticsSection: React.FC<SalesAnalyticsSectionProps> = ({ da
         specificFilteredData = baseData.filter(item => {
           if (!item.paymentDate) return false;
           
-          const itemDate = new Date(item.paymentDate);
+          const itemDate = parseDashboardDate(item.paymentDate);
+          if (!itemDate) return false;
           const year = itemDate.getFullYear();
           const month = itemDate.getMonth() + 1;
           const itemKey = `${year}-${String(month).padStart(2, '0')}`;

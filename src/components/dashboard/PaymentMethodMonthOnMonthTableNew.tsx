@@ -4,7 +4,7 @@ import { ModernTableWrapper, ModernGroupBadge, ModernMetricTabs, STANDARD_METRIC
 import { PersistentTableFooter } from '@/components/dashboard/PersistentTableFooter';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
 import { CreditCard, TrendingUp, TrendingDown, Star } from 'lucide-react';
-import { generateStandardMonthRange } from '@/utils/dateUtils';
+import { generateStandardMonthRange, parseDate as parseDashboardDate } from '@/utils/dateUtils';
 import { shallowEqual } from '@/utils/performanceUtils';
 import { useTableCopyContext } from '@/hooks/useTableCopyContext';
 
@@ -38,14 +38,7 @@ export const PaymentMethodMonthOnMonthTableNewComponent: React.FC<PaymentMethodM
   const previousMonthKey = getPreviousMonthKey();
 
   const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
-    const ddmmyyyy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (ddmmyyyy) {
-      const [, day, month, year] = ddmmyyyy;
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    }
-    const date = new Date(dateStr);
-    return isNaN(date.getTime()) ? null : date;
+    return parseDashboardDate(dateStr);
   };
 
   const getMetricValue = (items: SalesData[], metric: YearOnYearMetricType) => {
@@ -81,7 +74,7 @@ export const PaymentMethodMonthOnMonthTableNewComponent: React.FC<PaymentMethodM
         const [, day, month, year] = ddmmyyyy;
         return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       }
-      return new Date(dateStr);
+      return parseDate(dateStr);
     }).filter((date): date is Date => date !== null && !isNaN(date.getTime())).sort((a, b) => a.getTime() - b.getTime());
     
     let purchaseFrequency = 0;

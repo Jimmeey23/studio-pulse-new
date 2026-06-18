@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight, Calendar, TrendingUp, TrendingDown, Star } f
 import { Button } from '@/components/ui/button';
 import { shallowEqual } from '@/utils/performanceUtils';
 import { useTableCopyContext } from '@/hooks/useTableCopyContext';
+import { parseDate as parseDashboardDate } from '@/utils/dateUtils';
 
 interface MonthOnMonthTableNewProps {
   data: SalesData[];
@@ -91,14 +92,7 @@ const MonthOnMonthTableNewComponent: React.FC<MonthOnMonthTableNewProps> = ({
   const previousMonthKey = getPreviousMonthKey();
 
   const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
-    const ddmmyyyy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (ddmmyyyy) {
-      const [, day, month, year] = ddmmyyyy;
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    }
-    const date = new Date(dateStr);
-    return isNaN(date.getTime()) ? null : date;
+    return parseDashboardDate(dateStr);
   };
 
   const getMetricValue = (items: SalesData[], metric: YearOnYearMetricType) => {
@@ -417,11 +411,12 @@ const MonthOnMonthTableNewComponent: React.FC<MonthOnMonthTableNewProps> = ({
         });
 
         const categoryMonthlyValues: Record<string, number> = {};
-        monthlyData.forEach(({ key }) => {
-          categoryMonthlyValues[key] = categoryProducts.reduce(
-            (sum, product) => sum + (product.monthlyValues[key] || 0),
-            0
-          );
+        monthlyData.forEach(({ key, year, month }) => {
+          const monthItems = (items as SalesData[]).filter(item => {
+            const itemDate = parseDate(item.paymentDate);
+            return itemDate && itemDate.getFullYear() === year && itemDate.getMonth() + 1 === month;
+          });
+          categoryMonthlyValues[key] = getMetricValue(monthItems, metric);
         });
 
         return {

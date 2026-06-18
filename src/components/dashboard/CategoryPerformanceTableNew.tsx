@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight, FolderOpen, TrendingUp, TrendingDown, BarCha
 import { Button } from '@/components/ui/button';
 import { shallowEqual } from '@/utils/performanceUtils';
 import { useTableCopyContext } from '@/hooks/useTableCopyContext';
+import { parseDate as parseDashboardDate } from '@/utils/dateUtils';
 
 interface CategoryPerformanceTableNewProps {
   data: SalesData[];
@@ -39,14 +40,7 @@ export const CategoryPerformanceTableNewComponent: React.FC<CategoryPerformanceT
   const previousMonthKey = getPreviousMonthKey();
 
   const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
-    const ddmmyyyy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (ddmmyyyy) {
-      const [, day, month, year] = ddmmyyyy;
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    }
-    const date = new Date(dateStr);
-    return isNaN(date.getTime()) ? null : date;
+    return parseDashboardDate(dateStr);
   };
 
   const getMetricValue = (items: SalesData[], metric: YearOnYearMetricType) => {
@@ -88,7 +82,7 @@ export const CategoryPerformanceTableNewComponent: React.FC<CategoryPerformanceT
         const [, day, month, year] = ddmmyyyy;
         return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       }
-      return new Date(dateStr);
+      return parseDate(dateStr);
     }).filter((date): date is Date => date !== null && !isNaN(date.getTime())).sort((a, b) => a.getTime() - b.getTime());
     
     let purchaseFrequency = 0;

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { getRankingDisplay } from '@/utils/rankingUtils';
 import { shallowEqual } from '@/utils/performanceUtils';
 import { useTableCopyContext } from '@/hooks/useTableCopyContext';
-import { generateStandardMonthRange } from '@/utils/dateUtils';
+import { generateStandardMonthRange, parseDate as parseDashboardDate } from '@/utils/dateUtils';
 import { cn } from '@/lib/utils';
 
 interface SoldByMonthOnMonthTableNewProps {
@@ -34,14 +34,7 @@ export const SoldByMonthOnMonthTableNewComponent: React.FC<SoldByMonthOnMonthTab
   const copyContext = useTableCopyContext();
 
   const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
-    const ddmmyyyy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (ddmmyyyy) {
-      const [, day, month, year] = ddmmyyyy;
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    }
-    const date = new Date(dateStr);
-    return isNaN(date.getTime()) ? null : date;
+    return parseDashboardDate(dateStr);
   };
 
   const getMetricValue = (items: SalesData[], metric: YearOnYearMetricType) => {
