@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, ChevronDown, ChevronRight } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
 import { NewClientData } from '@/types/dashboard';
@@ -335,13 +335,10 @@ interface MembershipPurchasesTableProps {
   onRowClick?: (row: any) => void;
 }
 
-// Return the raw isNew value directly — preserve every unique category from the sheet
 function memberTypeLabel(isNew: string | undefined | null): string {
-  const v = (isNew || '').trim();
-  return v || 'Unknown';
+  return (isNew || '').trim() || 'Unknown';
 }
 
-// Deterministic colour per raw isNew value
 const IS_NEW_PALETTE = [
   'bg-emerald-50 text-emerald-800 border border-emerald-200',
   'bg-sky-50 text-sky-800 border border-sky-200',
@@ -363,80 +360,114 @@ const memberTypeBadge = (() => {
   };
 })();
 
+interface ParentRow {
+  memberType: string;
+  total: number;
+  newTrials: number;
+  otherTrials: number;
+  retained: number;
+  retentionPct: number;
+  converted: number;
+  conversionPct: number;
+  avgLtv: number;
+  avgPurchaseCountPostTrial: number;
+  avgConvSpan: number | null;
+}
+
+interface ChildRow {
+  membership: string;
+  members: number;
+  unitsSold: number;
+  totalLtv: number;
+  avgConvDays: number | null;
+}
+
 export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTableProps> = ({ data, onRowClick }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const registry = useMetricsTablesRegistry();
   const tableId = 'New Client Membership Purchases';
+  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
 
-  // Only converted members — their first purchase is what we want
-  const convertedMembers = useMemo(() => data.filter((c) => isConvertedInCohort(c)), [data]);
-
-  const rows = useMemo(() => {
-    type Bucket = {
-      memberType: string;
-      members: Set<string>;
-      totalLtv: number;
-      totalUnits: number;
-      totalPurchaseCount: number;
-      totalConvSpan: number;
-      convSpanCount: number;
-      totalVisits: number;
-      visitCount: number;
-    };
-    const grouped: Record<string, Bucket> = {};
-
-    convertedMembers.forEach((c) => {
-      const memberType = memberTypeLabel((c as any).isNew);
-      const membership = (c.firstPurchaseItem || c.membershipsBoughtPostTrial || 'Unknown').trim() || 'Unknown';
-      // Composite key: memberType + membership
-      const key = `${memberType}|||${membership}`;
-      if (!grouped[key]) grouped[key] = { memberType, members: new Set(), totalLtv: 0, totalUnits: 0, totalPurchaseCount: 0, totalConvSpan: 0, convSpanCount: 0, totalVisits: 0, visitCount: 0 };
-      const g = grouped[key];
-      const memberId = c.memberId || c.email || String(Math.random());
-      g.members.add(memberId);
-      g.totalLtv += Number(c.ltv) || 0;
-      g.totalUnits += 1;
-      g.totalPurchaseCount += Number(c.purchaseCountPostTrial) || 1;
-      if ((c.conversionSpan || 0) > 0) { g.totalConvSpan += c.conversionSpan; g.convSpanCount += 1; }
-      if ((c.visitsPostTrial || 0) > 0) { g.totalVisits += c.visitsPostTrial; g.visitCount += 1; }
+  const toggleType = (mt: string) => {
+    setExpandedTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(mt)) { next.delete(mt); } else { next.add(mt); }
+      return next;
     });
+  };
 
-    return Object.entries(grouped)
-      .map(([key, g]) => {
-        const [memberType, membership] = key.split('|||');
-        const uniqueMembers = g.members.size;
-        const totalLtv = g.totalLtv;
-        const unitsSold = g.totalUnits;
-        const atv = unitsSold > 0 ? totalLtv / unitsSold : 0;
-        const auv = uniqueMembers > 0 ? totalLtv / uniqueMembers : 0;
-        const purchaseFreq = uniqueMembers > 0 ? g.totalPurchaseCount / uniqueMembers : 0;
-        const avgConvDays = g.convSpanCount > 0 ? g.totalConvSpan / g.convSpanCount : null;
-        const avgVisits = g.visitCount > 0 ? g.totalVisits / g.visitCount : 0;
-        return { key, memberType, membership, uniqueMembers, unitsSold, totalLtv, atv, auv, purchaseFreq, avgConvDays, avgVisits };
-      })
-      .sort((a, b) => {
-        if (a.memberType !== b.memberType) return a.memberType.localeCompare(b.memberType);
-        return b.uniqueMembers - a.uniqueMembers;
+  const memberTypes = useMemo(() => Array.from(new Set(data.map((c) => memberTypeLabel((c as any).isNew)))), [data]);
+
+  const parentRows = useMemo((): ParentRow[] => {
+    return memberTypes.map((mt) => {
+      const group = data.filter((c) => memberTypeLabel((c as any).isNew) === mt);
+      const total = group.length;
+      const newTrials = group.filter((c) => isInNewClientCohort(c)).length;
+      const otherTrials = total - newTrials;
+      const retainedMembers = group.filter((c) => isRetainedInCohort(c));
+      const retained = retainedMembers.length;
+      const retentionPct = total > 0 ? (retained / total) * 100 : 0;
+      const convertedMembers = group.filter((c) => isConvertedInCohort(c));
+      const converted = convertedMembers.length;
+      const conversionPct = total > 0 ? (converted / total) * 100 : 0;
+      const avgLtv = converted > 0 ? convertedMembers.reduce((s, c) => s + (Number(c.ltv) || 0), 0) / converted : 0;
+      const avgPurchaseCountPostTrial = converted > 0
+        ? convertedMembers.reduce((s, c) => s + (Number(c.purchaseCountPostTrial) || 0), 0) / converted
+        : 0;
+      const convSpanMembers = convertedMembers.filter((c) => (c.conversionSpan || 0) > 0);
+      const avgConvSpan = convSpanMembers.length > 0
+        ? convSpanMembers.reduce((s, c) => s + c.conversionSpan, 0) / convSpanMembers.length
+        : null;
+      return { memberType: mt, total, newTrials, otherTrials, retained, retentionPct, converted, conversionPct, avgLtv, avgPurchaseCountPostTrial, avgConvSpan };
+    });
+  }, [data, memberTypes]);
+
+  const childRowsByType = useMemo((): Record<string, ChildRow[]> => {
+    const result: Record<string, ChildRow[]> = {};
+    memberTypes.forEach((mt) => {
+      const convertedInType = data.filter((c) => memberTypeLabel((c as any).isNew) === mt && isConvertedInCohort(c));
+      const grouped: Record<string, { members: Set<string>; unitsSold: number; totalLtv: number; totalConvSpan: number; convSpanCount: number }> = {};
+      convertedInType.forEach((c) => {
+        const membership = (c.firstPurchaseItem || c.membershipsBoughtPostTrial || 'Unknown').trim() || 'Unknown';
+        if (!grouped[membership]) grouped[membership] = { members: new Set(), unitsSold: 0, totalLtv: 0, totalConvSpan: 0, convSpanCount: 0 };
+        const g = grouped[membership];
+        g.members.add(c.memberId || c.email || String(c));
+        g.unitsSold += 1;
+        g.totalLtv += Number(c.ltv) || 0;
+        if ((c.conversionSpan || 0) > 0) { g.totalConvSpan += c.conversionSpan; g.convSpanCount += 1; }
       });
-  }, [convertedMembers]);
+      result[mt] = Object.entries(grouped)
+        .map(([membership, g]) => ({
+          membership,
+          members: g.members.size,
+          unitsSold: g.unitsSold,
+          totalLtv: g.totalLtv,
+          avgConvDays: g.convSpanCount > 0 ? g.totalConvSpan / g.convSpanCount : null,
+        }))
+        .sort((a, b) => b.members - a.members);
+    });
+    return result;
+  }, [data, memberTypes]);
 
   const totals = useMemo(() => {
-    const uniqueMembers = new Set(convertedMembers.map((c) => c.memberId || c.email)).size;
-    const totalLtv = rows.reduce((s, r) => s + r.totalLtv, 0);
-    const unitsSold = rows.reduce((s, r) => s + r.unitsSold, 0);
-    const atv = unitsSold > 0 ? totalLtv / unitsSold : 0;
-    const auv = uniqueMembers > 0 ? totalLtv / uniqueMembers : 0;
-    const purchaseFreqRows = rows.filter((r) => r.uniqueMembers > 0);
-    const purchaseFreq = purchaseFreqRows.length > 0 ? purchaseFreqRows.reduce((s, r) => s + r.purchaseFreq, 0) / purchaseFreqRows.length : 0;
-    const convDayRows = rows.filter((r) => r.avgConvDays !== null);
-    const avgConvDays = convDayRows.length > 0 ? convDayRows.reduce((s, r) => s + (r.avgConvDays ?? 0), 0) / convDayRows.length : null;
-    const avgVisitsRows = rows.filter((r) => r.avgVisits > 0);
-    const avgVisits = avgVisitsRows.length > 0 ? avgVisitsRows.reduce((s, r) => s + r.avgVisits, 0) / avgVisitsRows.length : 0;
-    return { uniqueMembers, unitsSold, totalLtv, atv, auv, purchaseFreq, avgConvDays, avgVisits };
-  }, [rows, convertedMembers]);
-
-  // Group rows by member type for visual grouping
-  const memberTypes = useMemo(() => Array.from(new Set(rows.map((r) => r.memberType))), [rows]);
+    const total = data.length;
+    const newTrials = data.filter((c) => isInNewClientCohort(c)).length;
+    const otherTrials = total - newTrials;
+    const retained = data.filter((c) => isRetainedInCohort(c)).length;
+    const converted = data.filter((c) => isConvertedInCohort(c)).length;
+    const retentionPct = total > 0 ? (retained / total) * 100 : 0;
+    const conversionPct = total > 0 ? (converted / total) * 100 : 0;
+    const convertedMembers = data.filter((c) => isConvertedInCohort(c));
+    const avgLtv = converted > 0 ? convertedMembers.reduce((s, c) => s + (Number(c.ltv) || 0), 0) / converted : 0;
+    const avgPurchaseCountPostTrial = converted > 0
+      ? convertedMembers.reduce((s, c) => s + (Number(c.purchaseCountPostTrial) || 0), 0) / converted
+      : 0;
+    const convSpanMembers = convertedMembers.filter((c) => (c.conversionSpan || 0) > 0);
+    const avgConvSpan = convSpanMembers.length > 0
+      ? convSpanMembers.reduce((s, c) => s + c.conversionSpan, 0) / convSpanMembers.length
+      : null;
+    return { total, newTrials, otherTrials, retained, retentionPct, converted, conversionPct, avgLtv, avgPurchaseCountPostTrial, avgConvSpan };
+  }, [data]);
 
   useEffect(() => {
     if (!registry || !containerRef.current) return;
@@ -451,11 +482,10 @@ export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTabl
     };
     registry.register({ id: tableId, getTextContent });
     return () => registry.unregister(tableId);
-  }, [registry, tableId, rows]);
+  }, [registry, tableId, parentRows]);
 
   return (
     <div ref={containerRef} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_4px_24px_rgba(15,23,42,0.08)]">
-      {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-5 py-4">
         <div>
           <div className="flex items-center gap-2">
@@ -465,77 +495,90 @@ export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTabl
               <path d="M16 10a4 4 0 01-8 0" />
             </svg>
             <span className="text-[15px] font-bold text-white">New Client Membership Purchases</span>
-            <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-white/80">{totals.uniqueMembers} Converted Members</span>
+            <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-white/80">{totals.converted} Converted</span>
             <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-white/80">{memberTypes.length} Member Types</span>
           </div>
-          <p className="mt-1 text-[12px] text-slate-400">First purchases by converted members — grouped by member type and membership purchased.</p>
+          <p className="mt-1 text-[12px] text-slate-400">Trial cohort breakdown by member type — click a row to expand membership details.</p>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="max-h-[520px] overflow-auto">
+      <div className="max-h-[600px] overflow-auto">
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-slate-950">
             <TableRow className="border-slate-800 hover:bg-slate-950">
-              <TableHead className="sticky left-0 z-30 min-w-[150px] bg-slate-950 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-white">
-                Member Type
-              </TableHead>
-              <TableHead className="sticky left-[150px] z-30 min-w-[200px] bg-slate-950 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-white">
-                Membership Purchased
-              </TableHead>
-              <TableHead className="bg-slate-950 py-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-white">Members</TableHead>
-              <TableHead className="bg-slate-950 py-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-white">Units Sold</TableHead>
-              <TableHead className="bg-slate-950 py-3 pr-4 text-right text-xs font-semibold uppercase tracking-wide text-white">Total LTV</TableHead>
-              <TableHead className="bg-slate-950 py-3 pr-4 text-right text-xs font-semibold uppercase tracking-wide text-white">ATV</TableHead>
-              <TableHead className="bg-slate-950 py-3 pr-4 text-right text-xs font-semibold uppercase tracking-wide text-white">AUV</TableHead>
-              <TableHead className="bg-slate-950 py-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-white">Purch. Freq</TableHead>
-              <TableHead className="bg-slate-950 py-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-white">Avg Conv Days</TableHead>
-              <TableHead className="bg-slate-950 py-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-white">Avg Visits</TableHead>
+              <TableHead className="sticky left-0 z-30 min-w-[180px] bg-slate-950 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-white">Member Type</TableHead>
+              <TableHead className="bg-slate-950 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wide text-white">New Trials</TableHead>
+              <TableHead className="bg-slate-950 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wide text-white">Other Trials</TableHead>
+              <TableHead className="bg-slate-950 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wide text-white">Retained</TableHead>
+              <TableHead className="bg-slate-950 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wide text-white">Retention %</TableHead>
+              <TableHead className="bg-slate-950 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wide text-white">Converted</TableHead>
+              <TableHead className="bg-slate-950 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wide text-white">Conversion %</TableHead>
+              <TableHead className="bg-slate-950 py-3 px-3 text-right text-xs font-semibold uppercase tracking-wide text-white">LTV</TableHead>
+              <TableHead className="bg-slate-950 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wide text-white">Purch Post Trial</TableHead>
+              <TableHead className="bg-slate-950 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wide text-white">Avg Conv Span</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {memberTypes.map((mt) => {
-              const typeRows = rows.filter((r) => r.memberType === mt);
-              const badge = memberTypeBadge(mt);
-              return typeRows.map((row, j) => (
-                <TableRow
-                  key={row.key}
-                  className={`cursor-pointer border-b border-slate-100 transition-colors hover:bg-slate-50 ${j % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
-                  onClick={() => onRowClick?.(row)}
-                >
-                  {/* Member type — only shown on first row of each group */}
-                  {j === 0 ? (
-                    <TableCell
-                      className={`sticky left-0 z-10 min-w-[150px] px-4 py-3 align-top font-semibold text-[12px] ${j % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
-                      rowSpan={typeRows.length}
-                    >
-                      <span className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-bold leading-tight ${badge}`}>{mt}</span>
+            {parentRows.map((row) => {
+              const badge = memberTypeBadge(row.memberType);
+              const isExpanded = expandedTypes.has(row.memberType);
+              const children = childRowsByType[row.memberType] ?? [];
+              return (
+                <React.Fragment key={row.memberType}>
+                  <TableRow
+                    className="cursor-pointer border-b border-slate-100 bg-white transition-colors hover:bg-slate-50"
+                    onClick={() => { toggleType(row.memberType); onRowClick?.(row); }}
+                  >
+                    <TableCell className="sticky left-0 z-10 min-w-[180px] bg-white px-4 py-3 text-[12px] font-semibold">
+                      <div className="flex items-center gap-2">
+                        {children.length > 0
+                          ? isExpanded
+                            ? <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+                            : <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+                          : <span className="w-3.5" />
+                        }
+                        <span className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-bold leading-tight ${badge}`}>{row.memberType}</span>
+                      </div>
                     </TableCell>
-                  ) : null}
-                  <TableCell className={`sticky left-[150px] z-10 min-w-[200px] px-4 py-3 text-[13px] font-medium text-slate-900 ${j % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}>{row.membership}</TableCell>
-                  <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.uniqueMembers)}</TableCell>
-                  <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.unitsSold)}</TableCell>
-                  <TableCell className="py-3 text-right text-[13px] font-medium text-slate-800">{formatCurrency(row.totalLtv)}</TableCell>
-                  <TableCell className="py-3 text-right text-[13px] font-medium text-slate-800">{formatCurrency(row.atv)}</TableCell>
-                  <TableCell className="py-3 text-right text-[13px] font-medium text-slate-800">{formatCurrency(row.auv)}</TableCell>
-                  <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{row.purchaseFreq.toFixed(1)}×</TableCell>
-                  <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{row.avgConvDays !== null ? `${row.avgConvDays.toFixed(0)}d` : '—'}</TableCell>
-                  <TableCell className="py-3 text-center text-[13px] font-medium text-slate-800">{row.avgVisits.toFixed(1)}</TableCell>
-                </TableRow>
-              ));
+                    <TableCell className="py-3 px-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.newTrials)}</TableCell>
+                    <TableCell className="py-3 px-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.otherTrials)}</TableCell>
+                    <TableCell className="py-3 px-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.retained)}</TableCell>
+                    <TableCell className="py-3 px-3 text-center text-[13px] font-medium text-slate-800">{row.retentionPct.toFixed(1)}%</TableCell>
+                    <TableCell className="py-3 px-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.converted)}</TableCell>
+                    <TableCell className="py-3 px-3 text-center text-[13px] font-medium text-slate-800">{row.conversionPct.toFixed(1)}%</TableCell>
+                    <TableCell className="py-3 px-3 text-right text-[13px] font-medium text-slate-800">{formatCurrency(row.avgLtv)}</TableCell>
+                    <TableCell className="py-3 px-3 text-center text-[13px] font-medium text-slate-800">{row.avgPurchaseCountPostTrial.toFixed(1)}</TableCell>
+                    <TableCell className="py-3 px-3 text-center text-[13px] font-medium text-slate-800">{row.avgConvSpan !== null ? `${row.avgConvSpan.toFixed(0)}d` : '—'}</TableCell>
+                  </TableRow>
+
+                  {isExpanded && children.map((child) => (
+                    <TableRow key={`${row.memberType}|||${child.membership}`} className="border-b border-slate-100 bg-slate-50">
+                      <TableCell className="sticky left-0 z-10 min-w-[180px] bg-slate-50 pl-10 pr-4 py-2.5 text-[12px] font-medium text-slate-700">{child.membership}</TableCell>
+                      <TableCell className="py-2.5 px-3 text-center text-[12px] text-slate-600" colSpan={2}>{formatNumber(child.members)} members</TableCell>
+                      <TableCell className="py-2.5 px-3 text-center text-[12px] text-slate-600">{formatNumber(child.unitsSold)}</TableCell>
+                      <TableCell className="py-2.5 px-3 text-center text-[12px] text-slate-600" />
+                      <TableCell className="py-2.5 px-3 text-center text-[12px] text-slate-600" />
+                      <TableCell className="py-2.5 px-3 text-center text-[12px] text-slate-600" />
+                      <TableCell className="py-2.5 px-3 text-right text-[12px] text-slate-600">{formatCurrency(child.totalLtv)}</TableCell>
+                      <TableCell className="py-2.5 px-3 text-center text-[12px] text-slate-600" />
+                      <TableCell className="py-2.5 px-3 text-center text-[12px] text-slate-600">{child.avgConvDays !== null ? `${child.avgConvDays.toFixed(0)}d` : '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </React.Fragment>
+              );
             })}
 
-            {/* Totals */}
             <TableRow className="sticky bottom-0 z-10 border-t-2 border-slate-800 bg-slate-900 hover:bg-slate-800">
-              <TableCell className="sticky left-0 z-20 bg-slate-900 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white" colSpan={2}>Total</TableCell>
-              <TableCell className="py-3 text-center text-[13px] font-bold text-white">{formatNumber(totals.uniqueMembers)}</TableCell>
-              <TableCell className="py-3 text-center text-[13px] font-bold text-white">{formatNumber(totals.unitsSold)}</TableCell>
-              <TableCell className="py-3 text-right text-[13px] font-bold text-white">{formatCurrency(totals.totalLtv)}</TableCell>
-              <TableCell className="py-3 text-right text-[13px] font-bold text-white">{formatCurrency(totals.atv)}</TableCell>
-              <TableCell className="py-3 text-right text-[13px] font-bold text-white">{formatCurrency(totals.auv)}</TableCell>
-              <TableCell className="py-3 text-center text-[13px] font-bold text-white">{totals.purchaseFreq.toFixed(1)}×</TableCell>
-              <TableCell className="py-3 text-center text-[13px] font-bold text-white">{totals.avgConvDays !== null ? `${totals.avgConvDays.toFixed(0)}d` : '—'}</TableCell>
-              <TableCell className="py-3 text-center text-[13px] font-bold text-white">{totals.avgVisits.toFixed(1)}</TableCell>
+              <TableCell className="sticky left-0 z-20 bg-slate-900 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white">Total</TableCell>
+              <TableCell className="py-3 px-3 text-center text-[13px] font-bold text-white">{formatNumber(totals.newTrials)}</TableCell>
+              <TableCell className="py-3 px-3 text-center text-[13px] font-bold text-white">{formatNumber(totals.otherTrials)}</TableCell>
+              <TableCell className="py-3 px-3 text-center text-[13px] font-bold text-white">{formatNumber(totals.retained)}</TableCell>
+              <TableCell className="py-3 px-3 text-center text-[13px] font-bold text-white">{totals.retentionPct.toFixed(1)}%</TableCell>
+              <TableCell className="py-3 px-3 text-center text-[13px] font-bold text-white">{formatNumber(totals.converted)}</TableCell>
+              <TableCell className="py-3 px-3 text-center text-[13px] font-bold text-white">{totals.conversionPct.toFixed(1)}%</TableCell>
+              <TableCell className="py-3 px-3 text-right text-[13px] font-bold text-white">{formatCurrency(totals.avgLtv)}</TableCell>
+              <TableCell className="py-3 px-3 text-center text-[13px] font-bold text-white">{totals.avgPurchaseCountPostTrial.toFixed(1)}</TableCell>
+              <TableCell className="py-3 px-3 text-center text-[13px] font-bold text-white">{totals.avgConvSpan !== null ? `${totals.avgConvSpan.toFixed(0)}d` : '—'}</TableCell>
             </TableRow>
           </TableBody>
         </Table>

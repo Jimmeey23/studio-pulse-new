@@ -707,6 +707,49 @@ const csvSafeValue = (value: any) => {
   return String(value);
 };
 
+/**
+ * Normalise a formatted cell value (₹1.2K, ₹3.5L, ₹1.2Cr, 45.3%, 1,234) into
+ * a raw JS number for clean spreadsheet cells. Returns the original string if
+ * it cannot be parsed as a number (e.g. names, dates, mixed text).
+ */
+const deformatCellValue = (value: any): number | string => {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'number') return value;
+  if (typeof value !== 'string') return csvSafeValue(value);
+  let s = value.trim();
+  if (!s || s === '—' || s === '-' || s === 'N/A') return s;
+  // Detect intent
+  const isCurrency = s.startsWith('₹') || s.startsWith('Rs') || s.startsWith('INR');
+  const isPct = s.endsWith('%');
+  if (isCurrency) s = s.replace(/^(₹|Rs\.?|INR)\s*/, '');
+  if (isPct) s = s.slice(0, -1).trim();
+  // Suffix multipliers (must check Cr before L before K)
+  let multiplier = 1;
+  if (/Cr$/i.test(s)) { multiplier = 10_000_000; s = s.replace(/Cr$/i, '').trim(); }
+  else if (/Lk?$/i.test(s)) { multiplier = 100_000; s = s.replace(/Lk?$/i, '').trim(); }
+  else if (/K$/i.test(s)) { multiplier = 1_000; s = s.replace(/K$/i, '').trim(); }
+  // Strip thousands separators (Indian: 1,23,456 or Western: 1,234,567)
+  s = s.replace(/,/g, '');
+  const n = parseFloat(s);
+  if (!isFinite(n)) return value; // unparseable — keep original string
+  const result = n * multiplier;
+  // Return integer when there's no meaningful decimal part
+  return isPct ? result : (Number.isInteger(result) ? result : parseFloat(result.toFixed(2)));
+};
+
+/** Returns true if a registry-table row is a grouped/total/summary row that should be excluded. */
+const isGroupOrTotalRow = (row: string[], headerCount: number): boolean => {
+  const first = (row[0] || '').trim().toLowerCase();
+  // Named total/summary rows
+  if (/^(total|grand total|subtotal|all studios|all|sum|average|avg|overall)\b/i.test(first)) return true;
+  // Group header rows: non-empty cells concentrated in first column, rest blank
+  const nonEmpty = row.filter((c) => c.trim() !== '').length;
+  if (nonEmpty === 1 && headerCount > 2) return true;
+  // Separator rows (all dashes)
+  if (row.every((c) => /^-+$/.test(c.trim()) || c.trim() === '')) return true;
+  return false;
+};
+
 const camelToHeader = (key: string): string =>
   key
     .replace(/([A-Z])/g, ' $1')
@@ -3838,14 +3881,188 @@ const StudioPulse = memo(() => {
 
     const filenameBase = `studio-pulse-${studio}-${dateRange.start}-to-${dateRange.end}`.replace(/[^a-zA-Z0-9-_.]+/g, '-');
     const locationLabel = studio === 'all' ? 'All Studios' : activeStudio.name;
+    const filterMeta = `Location: ${locationLabel}  |  Date Range: ${dateRange.start} to ${dateRange.end}`;
+
+    // ── Inline breakdown tables (computed from already-filtered data) ──────────
+    const _salesProdMap: Record<string, { revenue: number; units: number; discount: number }> = {};
+    filteredSales.forEach((d) => {
+      const p = d.cleanedProduct || 'Other';
+      _salesProdMap[p] = _salesProdMap[p] || { revenue: 0, units: 0, discount: 0 };
+      _salesProdMap[p].revenue += (Number(d.paymentValue) || 0) - (Number(d.paymentVAT) || 0);
+      _salesProdMap[p].units += 1;
+      _salesProdMap[p].discount += Number(d.discountAmount) || 0;
+    });
+    const salesByProduct = Object.entries(_salesProdMap)
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .map(([name, v]) => ({ name, revenue: Math.round(v.revenue), units: v.units, discount: Math.round(v.discount) }));
+
+    const _salesCatMap: Record<string, { revenue: number; units: number }> = {};
+    filteredSales.forEach((d) => {
+      const c = d.cleanedCategory || 'Other';
+      _salesCatMap[c] = _salesCatMap[c] || { revenue: 0, units: 0 };
+      _salesCatMap[c].revenue += (Number(d.paymentValue) || 0) - (Number(d.paymentVAT) || 0);
+      _salesCatMap[c].units += 1;
+    });
+    const salesByCategory = Object.entries(_salesCatMap)
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .map(([name, v]) => ({ name, revenue: Math.round(v.revenue), units: v.units }));
+
+    const _salesSellerMap: Record<string, { revenue: number; units: number }> = {};
+    filteredSales.forEach((d) => {
+      const s = d.soldBy || 'Unknown';
+      _salesSellerMap[s] = _salesSellerMap[s] || { revenue: 0, units: 0 };
+      _salesSellerMap[s].revenue += (Number(d.paymentValue) || 0) - (Number(d.paymentVAT) || 0);
+      _salesSellerMap[s].units += 1;
+    });
+    const salesBySeller = Object.entries(_salesSellerMap)
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .map(([name, v]) => ({ name, revenue: Math.round(v.revenue), units: v.units }));
+
+    const _salesPayMethodMap: Record<string, { revenue: number; units: number }> = {};
+    filteredSales.forEach((d) => {
+      const pm = d.paymentMethod || 'Unknown';
+      _salesPayMethodMap[pm] = _salesPayMethodMap[pm] || { revenue: 0, units: 0 };
+      _salesPayMethodMap[pm].revenue += (Number(d.paymentValue) || 0) - (Number(d.paymentVAT) || 0);
+      _salesPayMethodMap[pm].units += 1;
+    });
+    const salesByPaymentMethod = Object.entries(_salesPayMethodMap)
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .map(([name, v]) => ({ name, revenue: Math.round(v.revenue), units: v.units }));
+
+    const _fmtMap: Record<string, { sessions: number; visits: number; cap: number }> = {};
+    filteredSessions.forEach((s) => {
+      const fmt = classifyFormat(s.cleanedClass || s.classType);
+      _fmtMap[fmt] = _fmtMap[fmt] || { sessions: 0, visits: 0, cap: 0 };
+      _fmtMap[fmt].sessions += 1;
+      _fmtMap[fmt].visits += Number(s.checkedInCount) || 0;
+      _fmtMap[fmt].cap += Number(s.capacity) || 0;
+    });
+    const sessionsByFormat = Object.entries(_fmtMap)
+      .sort((a, b) => b[1].visits - a[1].visits)
+      .map(([format, v]) => ({ format, sessions: v.sessions, visits: v.visits, avgFill: v.cap > 0 ? Math.round((v.visits / v.cap) * 100) : 0 }));
+
+    const _lcTeacherMap: Record<string, { count: number; sameDay: number; penalty: number }> = {};
+    filteredLateCancels.forEach((d) => {
+      const t = (d as any).teacherName || (d as any).trainerName || 'Unknown';
+      _lcTeacherMap[t] = _lcTeacherMap[t] || { count: 0, sameDay: 0, penalty: 0 };
+      _lcTeacherMap[t].count += 1;
+      if ((d as any).isSameDayCancellation) _lcTeacherMap[t].sameDay += 1;
+      _lcTeacherMap[t].penalty += Number((d as any).chargedPenaltyAmount || (d as any).penaltyAmount) || 0;
+    });
+    const lcByTeacher = Object.entries(_lcTeacherMap)
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([name, v]) => ({ name, count: v.count, sameDay: v.sameDay, penalty: Math.round(v.penalty) }));
+
+    const _lcMemberMap: Record<string, { count: number; penalty: number }> = {};
+    filteredLateCancels.forEach((d) => {
+      const m = (d as any).memberId || 'Unknown';
+      _lcMemberMap[m] = _lcMemberMap[m] || { count: 0, penalty: 0 };
+      _lcMemberMap[m].count += 1;
+      _lcMemberMap[m].penalty += Number((d as any).chargedPenaltyAmount || (d as any).penaltyAmount) || 0;
+    });
+    const lcByMember = Object.entries(_lcMemberMap)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 100)
+      .map(([memberId, v]) => ({ memberId, count: v.count, penalty: Math.round(v.penalty) }));
+
+    const _leadSrcMap: Record<string, { count: number; converted: number }> = {};
+    filteredLeads.forEach((l) => {
+      const src = l.source || 'Unknown';
+      _leadSrcMap[src] = _leadSrcMap[src] || { count: 0, converted: 0 };
+      _leadSrcMap[src].count += 1;
+      if (isLeadConverted(l)) _leadSrcMap[src].converted += 1;
+    });
+    const leadSources = Object.entries(_leadSrcMap)
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([source, v]) => ({ source, count: v.count, converted: v.converted, conversionRate: v.count ? Math.round((v.converted / v.count) * 100) : 0 }));
+
+    const leadTrials = filteredLeads.filter((l) => { const t = (l.trialStatus || '').toLowerCase(); return t.includes('completed') || t.includes('trial') || t.includes('attended'); }).length;
+    const leadConverted = filteredLeads.filter((l) => isLeadConverted(l)).length;
+    const leadFunnel = [
+      { stage: 'Leads', count: filteredLeads.length, pctOfTop: 100 },
+      { stage: 'Trials', count: leadTrials, pctOfTop: filteredLeads.length ? Math.round((leadTrials / filteredLeads.length) * 100) : 0 },
+      { stage: 'Converted', count: leadConverted, pctOfTop: filteredLeads.length ? Math.round((leadConverted / filteredLeads.length) * 100) : 0 },
+    ];
+
+    const fmtPct = (v: number | null | undefined) => v === null || v === undefined ? 'N/A' : `${v > 0 ? '+' : ''}${v.toFixed(1)}%`;
+
+    const totalSalesNet = filteredSales.reduce((s, d) => s + (Number(d.paymentValue) || 0) - (Number(d.paymentVAT) || 0), 0);
+    const totalSalesGross = filteredSales.reduce((s, d) => s + (Number(d.paymentValue) || 0), 0);
+    const totalDiscount = filteredSales.reduce((s, d) => s + (Number(d.discountAmount) || 0), 0);
+    const discountedTxns = filteredSales.filter((d) => (Number(d.discountAmount) || 0) > 0).length;
+    const uniqueMembers = new Set(filteredSales.map((d) => d.memberId).filter(Boolean)).size;
+    const totalAttendance = filteredSessions.reduce((s, d) => s + (Number(d.checkedInCount) || 0), 0);
+    const totalCapacity = filteredSessions.reduce((s, d) => s + (Number(d.capacity) || 0), 0);
+    const emptyCount = filteredSessions.filter((s) => (Number(s.checkedInCount) || 0) === 0).length;
+    const totalSessions = filteredSessions.length;
+    const avgFillRate = totalCapacity > 0 ? (totalAttendance / totalCapacity) * 100 : 0;
+    const classAvg = totalSessions > 0 ? totalAttendance / Math.max(totalSessions - emptyCount, 1) : 0;
+    const revPerVisit = totalAttendance > 0 ? totalSalesNet / totalAttendance : 0;
+    const newClients = filteredClients.filter((c) => isInNewClientCohort(c));
+    const convertedClients = newClients.filter((c) => c.conversionStatus === 'Converted').length;
+    const retainedClients = newClients.filter((c) => c.retentionStatus === 'Retained').length;
+    const lapsedMembers = filteredExpirations.length;
+    const lcTotal = filteredLateCancels.length;
+    const lcSameDay = filteredLateCancels.filter((d) => (d as any).isSameDayCancellation).length;
+    const lcPenalty = filteredLateCancels.reduce((s, d) => s + (Number((d as any).chargedPenaltyAmount || (d as any).penaltyAmount) || 0), 0);
+
+    const metricCardRows = [
+      // Studio Overview section
+      { section: 'Studio Overview', metric: 'Net Sales', value: formatCurrency(Math.round(totalSalesNet)), momGrowth: fmtPct(salesStats.growth.net), yoyGrowth: fmtPct(salesStats.yoyGrowth.net), note: `Gross ${formatCurrency(Math.round(totalSalesGross))} · Discount ${formatCurrency(Math.round(totalDiscount))}` },
+      { section: 'Studio Overview', metric: 'Units Sold', value: formatNumber(filteredSales.length), momGrowth: fmtPct(salesStats.growth.txns), yoyGrowth: fmtPct(salesStats.yoyGrowth.txns), note: `ATV ${formatCurrency(filteredSales.length ? Math.round(totalSalesNet / filteredSales.length) : 0)} · ${discountedTxns} discounted txns` },
+      { section: 'Studio Overview', metric: 'Unique Members', value: formatNumber(uniqueMembers), momGrowth: fmtPct(salesStats.growth.members), yoyGrowth: fmtPct(salesStats.yoyGrowth.members), note: 'Unique buyers in the active period' },
+      { section: 'Studio Overview', metric: 'Lapsed Members', value: formatNumber(lapsedMembers), momGrowth: fmtPct(expirationStats.momGrowth), yoyGrowth: fmtPct(expirationStats.yoyGrowth), note: `${expirationStats.churned} churned` },
+      { section: 'Studio Overview', metric: 'Visits', value: formatNumber(totalAttendance), momGrowth: fmtPct(sessionStats.growth.attendance), yoyGrowth: fmtPct(sessionStats.yoyGrowth.attendance), note: `${totalSessions} sessions conducted` },
+      { section: 'Studio Overview', metric: 'Sessions Conducted', value: formatNumber(totalSessions), momGrowth: fmtPct(sessionStats.growth.totalSessions), yoyGrowth: fmtPct(sessionStats.yoyGrowth.totalSessions), note: `Fill rate ${avgFillRate.toFixed(1)}% · ${emptyCount} empty sessions` },
+      { section: 'Studio Overview', metric: 'Class Average', value: classAvg.toFixed(1), momGrowth: fmtPct(sessionStats.growth.classAvg), yoyGrowth: fmtPct(sessionStats.yoyGrowth.classAvg), note: 'Avg check-ins per non-empty class' },
+      { section: 'Studio Overview', metric: 'Fill Rate', value: `${avgFillRate.toFixed(1)}%`, momGrowth: fmtPct(sessionStats.growth.avgFill), yoyGrowth: fmtPct(sessionStats.yoyGrowth.avgFill), note: 'Capacity utilization across all sessions' },
+      { section: 'Studio Overview', metric: 'Revenue / Visit', value: formatCurrency(Math.round(revPerVisit)), momGrowth: fmtPct(revenuePerVisitStats.momGrowth), yoyGrowth: fmtPct(revenuePerVisitStats.yoyGrowth), note: `${formatNumber(totalAttendance)} visits · ${formatNumber(totalSessions)} sessions` },
+      { section: 'Studio Overview', metric: 'Late Cancellations', value: formatNumber(lcTotal), momGrowth: fmtPct(lcStats.growth.total), yoyGrowth: 'N/A', note: `${lcSameDay} same-day · Penalties ${formatCurrency(Math.round(lcPenalty))}` },
+      { section: 'Studio Overview', metric: 'Rev / New Client', value: formatCurrency(newClients.length ? Math.round(totalSalesNet / newClients.length) : 0), momGrowth: fmtPct(revenuePerNewClientStats.momGrowth), yoyGrowth: fmtPct(revenuePerNewClientStats.yoyGrowth), note: `${newClients.length} new clients` },
+      { section: 'Studio Overview', metric: 'Discount Efficiency', value: `₹${discountEfficiency.efficiency.toFixed(2)}`, momGrowth: fmtPct(discountEfficiency.momGrowth), yoyGrowth: fmtPct(discountEfficiency.yoyGrowth), note: 'Net revenue generated per ₹1 discounted' },
+      { section: 'Studio Overview', metric: 'Package Sell-through', value: `${packageSellThrough.rate.toFixed(1)}%`, momGrowth: fmtPct(packageSellThrough.momGrowth), yoyGrowth: fmtPct(packageSellThrough.yoyGrowth), note: `${packageSellThrough.usedClasses} used of ${packageSellThrough.totalClasses} purchased` },
+      { section: 'Studio Overview', metric: 'Repeat Purchase Rate', value: `${repeatPurchaseRate.rate.toFixed(1)}%`, momGrowth: fmtPct(repeatPurchaseRate.momGrowth), yoyGrowth: fmtPct(repeatPurchaseRate.yoyGrowth), note: `${repeatPurchaseRate.repeaters} of ${repeatPurchaseRate.total} members` },
+      { section: 'Studio Overview', metric: 'Avg Order Value', value: formatCurrency(Math.round(avgOrderValue.value)), momGrowth: fmtPct(avgOrderValue.momGrowth), yoyGrowth: fmtPct(avgOrderValue.yoyGrowth), note: 'Avg gross order value per transaction' },
+      // Funnel section
+      { section: 'Funnel', metric: 'Leads Received', value: formatNumber(filteredLeads.length), momGrowth: fmtPct(leadStats.growth.total), yoyGrowth: fmtPct(leadStats.yoyGrowth.total), note: 'All leads in the active period' },
+      { section: 'Funnel', metric: 'Trials / First Visits', value: formatNumber(newClients.length), momGrowth: fmtPct(clientStats.growth.newClients), yoyGrowth: fmtPct(clientStats.yoyGrowth.newClients), note: 'Unique first visits from New sheet' },
+      { section: 'Funnel', metric: 'Converted Members', value: formatNumber(convertedClients), momGrowth: fmtPct(clientStats.growth.converted), yoyGrowth: fmtPct(clientStats.yoyGrowth.converted), note: `${newClients.length ? ((convertedClients / newClients.length) * 100).toFixed(1) : 0}% conversion rate` },
+      { section: 'Funnel', metric: 'Retained Members', value: formatNumber(retainedClients), momGrowth: fmtPct(clientStats.growth.retained), yoyGrowth: fmtPct(clientStats.yoyGrowth.retained), note: `${newClients.length ? ((retainedClients / newClients.length) * 100).toFixed(1) : 0}% retention rate · Avg LTV ${formatCurrency(clientStats.avgLtv)}` },
+      // Lapsed section
+      { section: 'Lapsed', metric: 'Lapsed Members', value: formatNumber(expirationStats.total), momGrowth: fmtPct(expirationStats.momGrowth), yoyGrowth: fmtPct(expirationStats.yoyGrowth), note: `${expirationStats.churned} churned · ${expirationStats.renewed} renewed · ${expirationStats.frozen} frozen` },
+      { section: 'Lapsed', metric: 'Churn Rate', value: `${expirationStats.churnRate.toFixed(1)}%`, momGrowth: fmtPct(expirationStats.churnRateMomGrowth), yoyGrowth: fmtPct(expirationStats.churnRateYoyGrowth), note: `${expirationStats.churned} of ${expirationStats.total} lapsed` },
+      { section: 'Lapsed', metric: 'Avg LTV (Lapsed)', value: formatCurrency(Math.round(expirationStats.avgLtvLapsed)), momGrowth: fmtPct(expirationStats.avgLtvMomGrowth), yoyGrowth: fmtPct(expirationStats.avgLtvYoyGrowth), note: 'Average amount paid by lapsed members' },
+      // Attendance section
+      { section: 'Attendance', metric: 'Visits', value: formatNumber(totalAttendance), momGrowth: fmtPct(sessionStats.growth.attendance), yoyGrowth: fmtPct(sessionStats.yoyGrowth.attendance), note: `${totalSessions} sessions · ${avgFillRate.toFixed(1)}% fill` },
+      { section: 'Attendance', metric: 'Avg Class Size', value: classAvg.toFixed(1), momGrowth: fmtPct(sessionStats.growth.classAvg), yoyGrowth: fmtPct(sessionStats.yoyGrowth.classAvg), note: `${((emptyCount / Math.max(totalSessions, 1)) * 100).toFixed(1)}% empty-session share` },
+      { section: 'Attendance', metric: 'Fill Rate', value: `${avgFillRate.toFixed(1)}%`, momGrowth: fmtPct(sessionStats.growth.avgFill), yoyGrowth: fmtPct(sessionStats.yoyGrowth.avgFill), note: 'Capacity utilization across all sessions' },
+      { section: 'Attendance', metric: 'Sessions Conducted', value: formatNumber(totalSessions), momGrowth: fmtPct(sessionStats.growth.totalSessions), yoyGrowth: fmtPct(sessionStats.yoyGrowth.totalSessions), note: `${((emptyCount / Math.max(totalSessions, 1)) * 100).toFixed(1)}% empty share` },
+    ];
 
     const workbookSections = [
-      { title: 'Filtered Sales', columns: ['paymentDate', 'calculatedLocation', 'memberId', 'cleanedProduct', 'cleanedCategory', 'paymentValue', 'paymentVAT', 'discountAmount', 'soldBy', 'paymentMethod'], rows: filteredSales },
-      { title: 'Filtered Sessions', columns: ['date', 'location', 'sessionName', 'cleanedClass', 'trainerName', 'checkedInCount', 'capacity', 'revenue', 'lateCancelledCount'], rows: filteredSessions },
-      { title: 'Filtered Clients', columns: ['firstVisitDate', 'firstVisitLocation', 'firstVisitEntityName', 'memberId', 'email', 'conversionStatus', 'retentionStatus', 'ltv'], rows: filteredClients },
-      { title: 'Filtered Leads', columns: ['createdAt', 'center', 'source', 'stage', 'classType', 'memberId', 'email', 'conversionStatus', 'ltv'], rows: filteredLeads },
-      { title: 'Filtered Late Cancels', columns: ['dateIST', 'sessionDateIST', 'location', 'teacherName', 'memberId', 'sessionName', 'penaltyAmount'], rows: filteredLateCancels },
-      { title: 'Filtered Expirations', columns: ['endDate', 'primaryLocation', 'homeLocation', 'membershipName', 'memberId', 'status', 'sessionsUsedPct', 'avgSessionsPerMonth', 'daysActive'], rows: filteredExpirations },
+      // ── Metric card KPI summary ──────────────────────────────────────────────
+      { title: 'Metric Cards', columns: ['section', 'metric', 'value', 'momGrowth', 'yoyGrowth', 'note'], rows: metricCardRows },
+      // ── Raw filtered data ────────────────────────────────────────────────────
+      { title: 'Sales (Raw Data)', columns: ['paymentDate', 'calculatedLocation', 'memberId', 'cleanedProduct', 'cleanedCategory', 'paymentValue', 'paymentVAT', 'discountAmount', 'soldBy', 'paymentMethod'], rows: filteredSales },
+      { title: 'Sessions (Raw Data)', columns: ['date', 'location', 'sessionName', 'cleanedClass', 'trainerName', 'checkedInCount', 'capacity', 'revenue', 'lateCancelledCount'], rows: filteredSessions },
+      { title: 'Clients (Raw Data)', columns: ['firstVisitDate', 'firstVisitLocation', 'firstVisitEntityName', 'memberId', 'email', 'conversionStatus', 'retentionStatus', 'ltv'], rows: filteredClients },
+      { title: 'Leads (Raw Data)', columns: ['createdAt', 'center', 'source', 'stage', 'classType', 'memberId', 'email', 'conversionStatus', 'ltv'], rows: filteredLeads },
+      { title: 'Late Cancels (Raw Data)', columns: ['dateIST', 'sessionDateIST', 'location', 'teacherName', 'memberId', 'sessionName', 'penaltyAmount'], rows: filteredLateCancels },
+      { title: 'Expirations (Raw Data)', columns: ['endDate', 'primaryLocation', 'homeLocation', 'membershipName', 'memberId', 'status', 'sessionsUsedPct', 'avgSessionsPerMonth', 'daysActive'], rows: filteredExpirations },
+      // ── Sales breakdowns ─────────────────────────────────────────────────────
+      { title: 'Sales by Product', columns: ['name', 'revenue', 'units', 'discount'], rows: salesByProduct },
+      { title: 'Sales by Category', columns: ['name', 'revenue', 'units'], rows: salesByCategory },
+      { title: 'Sales by Seller', columns: ['name', 'revenue', 'units'], rows: salesBySeller },
+      { title: 'Sales by Payment Method', columns: ['name', 'revenue', 'units'], rows: salesByPaymentMethod },
+      // ── Session breakdowns ───────────────────────────────────────────────────
+      { title: 'Sessions by Format', columns: ['format', 'sessions', 'visits', 'avgFill'], rows: sessionsByFormat },
+      // ── Funnel breakdowns ────────────────────────────────────────────────────
+      { title: 'Lead Funnel', columns: ['stage', 'count', 'pctOfTop'], rows: leadFunnel },
+      { title: 'Lead Sources', columns: ['source', 'count', 'converted', 'conversionRate'], rows: leadSources },
+      // ── Late cancel breakdowns ───────────────────────────────────────────────
+      { title: 'Late Cancels by Teacher', columns: ['name', 'count', 'sameDay', 'penalty'], rows: lcByTeacher },
+      { title: 'Late Cancels by Member', columns: ['memberId', 'count', 'penalty'], rows: lcByMember },
+      // ── Computed analytics tables ────────────────────────────────────────────
       { title: 'Sales Metrics Matrix', columns: ['label', ...salesMetricsMatrix.months.map((m) => salesMetricsMatrix.monthLabels[m])], rows: salesMetricsMatrix.metricRows.map((row) => ({
         label: row.label,
         ...Object.fromEntries(salesMetricsMatrix.months.map((month) => [salesMetricsMatrix.monthLabels[month], row.values[month] ?? 0])),
@@ -3865,29 +4082,64 @@ const StudioPulse = memo(() => {
           ['Location', locationLabel],
           ['Date Range', `${dateRange.start} to ${dateRange.end}`],
           ['Generated At', new Date().toLocaleString()],
+          [],
+          ['Sheet', 'Description'],
+          ['Metric Cards', 'All KPI metric card values with MoM and YoY growth'],
+          ['Sales (Raw Data)', 'Filtered sales transactions'],
+          ['Sessions (Raw Data)', 'Filtered session records'],
+          ['Clients (Raw Data)', 'Filtered client records'],
+          ['Leads (Raw Data)', 'Filtered lead records'],
+          ['Late Cancels (Raw Data)', 'Filtered late cancellation records'],
+          ['Expirations (Raw Data)', 'Filtered expiration / lapsed records'],
+          ['Sales by Product', 'Revenue and units breakdown by product'],
+          ['Sales by Category', 'Revenue and units breakdown by category'],
+          ['Sales by Seller', 'Revenue and units breakdown by seller / trainer'],
+          ['Sales by Payment Method', 'Revenue and units by payment method'],
+          ['Sessions by Format', 'Sessions, visits, and fill rate by class format'],
+          ['Lead Funnel', 'Leads → Trials → Converted funnel counts'],
+          ['Lead Sources', 'Lead count and conversion rate by source'],
+          ['Late Cancels by Teacher', 'Late cancellation count and penalty by teacher'],
+          ['Late Cancels by Member', 'Top members by late cancellation count'],
+          ['Sales Metrics Matrix', 'Month-on-month sales metric matrix'],
+          ['Session Intelligence', 'Per-class performance intelligence table'],
+          ['Funnel Rankings', 'New-client funnel ranked by source'],
+          ['Trainer Rankings', 'Trainer performance scorecard'],
+          ['Lapsed Memberships', 'Lapsed membership breakdown by type'],
+          ['Heatmap', 'Peak-hour fill rate heatmap'],
         ]);
         XLSX.utils.book_append_sheet(wb, metaSheet, 'Summary');
 
-        // Raw data sections with readable headers
+        // Filter header rows prepended to each data sheet
+        const filterHeaderRows = [
+          [filterMeta],
+          [],
+        ];
+
         workbookSections.forEach((section) => {
           if (!section.rows.length) return;
           const headerRow = section.columns.map(camelToHeader);
+          // Use deformatCellValue so numeric fields export as numbers, not ₹/K/Cr strings
           const dataRows = section.rows.map((row) =>
-            section.columns.map((col) => csvSafeValue((row as Record<string, any>)[col]))
+            section.columns.map((col) => deformatCellValue((row as Record<string, any>)[col]))
           );
-          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headerRow, ...dataRows]), section.title.slice(0, 31));
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([...filterHeaderRows, headerRow, ...dataRows]), section.title.slice(0, 31));
         });
 
-        // Append all registered dashboard tables (pivot tables, rankings, etc.)
+        // Append all registered dashboard tables (pivot tables, rankings, etc.) — includes hidden/inactive sections
         const existingSheets = new Set(wb.SheetNames);
         metricsRegistry.getAllTables().forEach((table) => {
           try {
             const { title, headers, rows } = parseRegistryTable(table.getTextContent());
             if (!headers.length || !rows.length) return;
+            // Filter grouped/total rows; normalise cell values to raw numbers
+            const cleanRows = rows
+              .filter((row) => !isGroupOrTotalRow(row, headers.length))
+              .map((row) => row.map((cell) => deformatCellValue(cell)));
+            if (!cleanRows.length) return;
             let sheetName = title.slice(0, 31).replace(/[\\/*?[\]:]/g, '-');
             if (existingSheets.has(sheetName)) sheetName = sheetName.slice(0, 28) + ' (2)';
             existingSheets.add(sheetName);
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headers, ...rows]), sheetName);
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([...filterHeaderRows, headers, ...cleanRows]), sheetName);
           } catch { /* skip tables that fail to render */ }
         });
 
@@ -3916,6 +4168,12 @@ const StudioPulse = memo(() => {
           pdf.setFont('helvetica', 'bold');
           pdf.text(title, 14, y);
           y += 4;
+          pdf.setFontSize(7);
+          pdf.setFont('helvetica', 'italic');
+          pdf.setTextColor(100, 116, 139);
+          pdf.text(filterMeta, 14, y);
+          pdf.setTextColor(0, 0, 0);
+          y += 4;
           autoTable(pdf, {
             startY: y,
             head: [columns.map(camelToHeader)],
@@ -3931,17 +4189,41 @@ const StudioPulse = memo(() => {
           y = ((pdf as any).lastAutoTable?.finalY || y) + 8;
         };
 
-        addPdfSection('Filtered Sales', ['paymentDate', 'calculatedLocation', 'cleanedProduct', 'paymentValue', 'paymentVAT', 'discountAmount', 'soldBy'], filteredSales);
-        addPdfSection('Filtered Sessions', ['date', 'location', 'sessionName', 'trainerName', 'checkedInCount', 'capacity', 'revenue'], filteredSessions);
-        addPdfSection('Filtered Clients', ['firstVisitDate', 'firstVisitLocation', 'memberId', 'conversionStatus', 'retentionStatus', 'ltv'], filteredClients);
-        addPdfSection('Filtered Leads', ['createdAt', 'center', 'source', 'stage', 'conversionStatus', 'ltv'], filteredLeads);
-        addPdfSection('Filtered Late Cancellations', ['dateIST', 'location', 'teacherName', 'sessionName', 'penaltyAmount'], filteredLateCancels);
-        addPdfSection('Filtered Expirations', ['endDate', 'primaryLocation', 'membershipName', 'memberId', 'sessionsUsedPct', 'daysActive'], filteredExpirations);
+        // Metric card summary
+        addPdfSection('Metric Cards — KPI Summary', ['section', 'metric', 'value', 'momGrowth', 'yoyGrowth', 'note'], metricCardRows);
+
+        // Raw data
+        addPdfSection('Sales (Raw Data)', ['paymentDate', 'calculatedLocation', 'cleanedProduct', 'paymentValue', 'paymentVAT', 'discountAmount', 'soldBy'], filteredSales);
+        addPdfSection('Sessions (Raw Data)', ['date', 'location', 'sessionName', 'trainerName', 'checkedInCount', 'capacity', 'revenue'], filteredSessions);
+        addPdfSection('Clients (Raw Data)', ['firstVisitDate', 'firstVisitLocation', 'memberId', 'conversionStatus', 'retentionStatus', 'ltv'], filteredClients);
+        addPdfSection('Leads (Raw Data)', ['createdAt', 'center', 'source', 'stage', 'conversionStatus', 'ltv'], filteredLeads);
+        addPdfSection('Late Cancellations (Raw Data)', ['dateIST', 'location', 'teacherName', 'sessionName', 'penaltyAmount'], filteredLateCancels);
+        addPdfSection('Expirations (Raw Data)', ['endDate', 'primaryLocation', 'membershipName', 'memberId', 'sessionsUsedPct', 'daysActive'], filteredExpirations);
+
+        // Sales breakdowns
+        addPdfSection('Sales by Product', ['name', 'revenue', 'units', 'discount'], salesByProduct);
+        addPdfSection('Sales by Category', ['name', 'revenue', 'units'], salesByCategory);
+        addPdfSection('Sales by Seller', ['name', 'revenue', 'units'], salesBySeller);
+        addPdfSection('Sales by Payment Method', ['name', 'revenue', 'units'], salesByPaymentMethod);
+
+        // Session breakdowns
+        addPdfSection('Sessions by Format', ['format', 'sessions', 'visits', 'avgFill'], sessionsByFormat);
+
+        // Funnel breakdowns
+        addPdfSection('Lead Funnel', ['stage', 'count', 'pctOfTop'], leadFunnel);
+        addPdfSection('Lead Sources', ['source', 'count', 'converted', 'conversionRate'], leadSources);
+
+        // Late cancel breakdowns
+        addPdfSection('Late Cancels by Teacher', ['name', 'count', 'sameDay', 'penalty'], lcByTeacher);
+        addPdfSection('Late Cancels by Member (Top 100)', ['memberId', 'count', 'penalty'], lcByMember);
+
+        // Analytics tables
         addPdfSection('Trainer Rankings', ['name', 'sessions', 'customers', 'paid', 'classAvg', 'fillRate', 'lateCancels', 'revenueScore'], trainerRankingsExtended.rows);
         addPdfSection('Session Intelligence', ['name', 'sessions', 'visits', 'classAvg', 'fillRate', 'revenue'], sessionIntelligence.rows);
         addPdfSection('Funnel Rankings', ['name', 'leads', 'trials', 'converted', 'retained', 'ltv'], funnelRankings.rows);
+        addPdfSection('Lapsed Memberships', ['name', 'count', 'uniqueMembers', 'avgLtv', 'avgSessionsUsedPct', 'avgDaysActive'], membershipChurnBreakdown as any[]);
 
-        // Append all registered dashboard tables
+        // Append all registered dashboard tables (includes hidden/inactive section tables)
         metricsRegistry.getAllTables().forEach((table) => {
           try {
             const { title, headers, rows } = parseRegistryTable(table.getTextContent());
@@ -3950,6 +4232,12 @@ const StudioPulse = memo(() => {
             pdf.setFontSize(12);
             pdf.setFont('helvetica', 'bold');
             pdf.text(title, 14, y);
+            y += 4;
+            pdf.setFontSize(7);
+            pdf.setFont('helvetica', 'italic');
+            pdf.setTextColor(100, 116, 139);
+            pdf.text(filterMeta, 14, y);
+            pdf.setTextColor(0, 0, 0);
             y += 4;
             autoTable(pdf, {
               startY: y,
@@ -3982,7 +4270,7 @@ const StudioPulse = memo(() => {
     } finally {
       setIsExportingPulse(false);
     }
-  }, [activeStudio.name, dateRange.end, dateRange.start, filteredClients, filteredExpirations, filteredLateCancels, filteredLeads, filteredSales, filteredSessions, isExportingPulse, membershipChurnBreakdown, metricsRegistry, peakHourHeatmap.buckets, peakHourHeatmap.days, peakHourHeatmap.timeSlots, salesMetricsMatrix.months, salesMetricsMatrix.monthLabels, sessionIntelligence.rows, studio, toast, trainerRankingsExtended.rows, funnelRankings.rows]);
+  }, [activeStudio.name, avgOrderValue.momGrowth, avgOrderValue.value, avgOrderValue.yoyGrowth, clientStats.avgLtv, clientStats.growth.converted, clientStats.growth.newClients, clientStats.growth.retained, clientStats.yoyGrowth.converted, clientStats.yoyGrowth.newClients, clientStats.yoyGrowth.retained, dateRange.end, dateRange.start, discountEfficiency.efficiency, discountEfficiency.momGrowth, discountEfficiency.yoyGrowth, expirationStats.avgLtvLapsed, expirationStats.avgLtvMomGrowth, expirationStats.avgLtvYoyGrowth, expirationStats.churnRate, expirationStats.churnRateMomGrowth, expirationStats.churnRateYoyGrowth, expirationStats.churned, expirationStats.frozen, expirationStats.momGrowth, expirationStats.renewed, expirationStats.total, expirationStats.yoyGrowth, filteredClients, filteredExpirations, filteredLateCancels, filteredLeads, filteredSales, filteredSessions, funnelRankings.rows, isExportingPulse, lcStats.growth.total, leadStats.growth.total, leadStats.yoyGrowth.total, membershipChurnBreakdown, metricsRegistry, packageSellThrough.momGrowth, packageSellThrough.rate, packageSellThrough.totalClasses, packageSellThrough.usedClasses, packageSellThrough.yoyGrowth, peakHourHeatmap.buckets, peakHourHeatmap.days, peakHourHeatmap.timeSlots, repeatPurchaseRate.momGrowth, repeatPurchaseRate.rate, repeatPurchaseRate.repeaters, repeatPurchaseRate.total, repeatPurchaseRate.yoyGrowth, revenuePerNewClientStats.momGrowth, revenuePerNewClientStats.yoyGrowth, revenuePerVisitStats.momGrowth, revenuePerVisitStats.yoyGrowth, salesMetricsMatrix.metricRows, salesMetricsMatrix.monthLabels, salesMetricsMatrix.months, salesStats.growth.members, salesStats.growth.net, salesStats.growth.txns, salesStats.yoyGrowth.members, salesStats.yoyGrowth.net, salesStats.yoyGrowth.txns, sessionIntelligence.rows, sessionStats.growth.attendance, sessionStats.growth.avgFill, sessionStats.growth.classAvg, sessionStats.growth.totalSessions, sessionStats.yoyGrowth.attendance, sessionStats.yoyGrowth.avgFill, sessionStats.yoyGrowth.classAvg, sessionStats.yoyGrowth.totalSessions, studio, toast, trainerRankingsExtended.rows]);
 
   const [summaryRefreshing, setSummaryRefreshing] = useState(false);
   const [funnelActiveIdx, setFunnelActiveIdx] = useState(0);
@@ -4154,8 +4442,8 @@ const StudioPulse = memo(() => {
             </div>
             {/* Wordmark */}
             <div className="text-center">
-              <p className="text-2xl font-extrabold tracking-tight text-white">Studio Pulse</p>
-              <p className="mt-1.5 text-sm font-medium text-slate-400">Fetching live data from Google Sheets…</p>
+              <p className="text-2xl font-extrabold tracking-tight text-white">Performance Intelligence Platform</p>
+              <p className="mt-1.5 text-sm font-medium text-slate-400">Initialising core modules…</p>
             </div>
             {/* Source pills */}
             <div className="flex flex-wrap justify-center gap-2 max-w-sm">

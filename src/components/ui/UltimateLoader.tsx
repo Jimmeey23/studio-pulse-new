@@ -10,8 +10,8 @@ interface UltimateLoaderProps {
 
 export const UltimateLoader: React.FC<UltimateLoaderProps> = ({ 
   onComplete,
-  title = "PHYSIQUE 57",
-  subtitle = "Analytics Hub"
+  title = "Performance Intelligence Platform",
+  subtitle = "Enterprise Analytics Suite"
 }) => {
   const location = useLocation();
   const [imgFailed, setImgFailed] = useState(false);
@@ -226,28 +226,6 @@ export const UltimateLoader: React.FC<UltimateLoaderProps> = ({
           }}
         />
 
-        {/* Subtle floating dots */}
-        {Array.from({ length: 15 }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-slate-300/40 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -15, 0],
-              opacity: [0.2, 0.6, 0.2],
-              scale: [1, 1.2, 1]
-            }}
-            transition={{
-              duration: Math.random() * 4 + 4,
-              repeat: Infinity,
-              delay: Math.random() * 3,
-              ease: "easeInOut"
-            }}
-          />
-        ))}
       </div>
 
       {/* Main content container */}

@@ -13,7 +13,7 @@ interface UniversalLoaderProps {
 }
 
 export const UniversalLoader: React.FC<UniversalLoaderProps> = ({
-  title = "Physique 57 Analytics",
+  title = "Performance Intelligence Platform",
   subtitle,
   variant = 'default',
   onComplete,

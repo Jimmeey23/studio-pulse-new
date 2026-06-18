@@ -5,7 +5,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { GlobalLoader } from "@/components/ui/GlobalLoader";
 import { LazyGlobalCommandPalette } from "@/components/lazy/LazyGlobalCommandPalette";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
@@ -49,7 +48,7 @@ const AppRoutes = () => {
   
   return (
     <>
-      <GlobalLoader />
+
       <LazyGlobalCommandPalette />
       <UniversalTableCopyAssist />
       <UniversalElementCopyAssist />

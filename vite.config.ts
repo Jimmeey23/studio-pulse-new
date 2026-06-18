@@ -16,8 +16,8 @@ export default defineConfig(({ mode }) => {
   
   return {
   server: {
-    host: "0.0.0.0",
-    port: 5000,
+    host: true,
+    strictPort: false,
     allowedHosts: true,
   },
 
@@ -222,9 +222,9 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use("/api/google/token", (req: any, res: any, next: any) => {
           if (req.method !== "GET") return next();
 
-          process.env.GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
-          process.env.GOOGLE_CLIENT_SECRET = env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
-          process.env.GOOGLE_REFRESH_TOKEN = env.GOOGLE_REFRESH_TOKEN || process.env.GOOGLE_REFRESH_TOKEN;
+          process.env.GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID || env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+          process.env.GOOGLE_CLIENT_SECRET = env.GOOGLE_CLIENT_SECRET || env.VITE_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+          process.env.GOOGLE_REFRESH_TOKEN = env.GOOGLE_REFRESH_TOKEN || env.VITE_GOOGLE_REFRESH_TOKEN || process.env.GOOGLE_REFRESH_TOKEN;
 
           const wrapResponse = (res: any) =>
             Object.assign(res, {
@@ -253,7 +253,6 @@ export default defineConfig(({ mode }) => {
 
   define: {
     "process.env.NODE_ENV": JSON.stringify(mode),
-    // Bridge non-VITE_ prefixed Replit secrets to import.meta.env
     "import.meta.env.VITE_GOOGLE_CLIENT_ID": JSON.stringify(env.GOOGLE_CLIENT_ID || env.VITE_GOOGLE_CLIENT_ID || ''),
     "import.meta.env.VITE_GOOGLE_CLIENT_SECRET": JSON.stringify(env.GOOGLE_CLIENT_SECRET || env.VITE_GOOGLE_CLIENT_SECRET || ''),
     "import.meta.env.VITE_GOOGLE_REFRESH_TOKEN": JSON.stringify(env.GOOGLE_REFRESH_TOKEN || env.VITE_GOOGLE_REFRESH_TOKEN || ''),
@@ -288,7 +287,7 @@ export default defineConfig(({ mode }) => {
       "@radix-ui/react-slot",
       "@radix-ui/react-primitive",
     ],
-    force: true,
+    force: false,
   },
 
   esbuild: {
