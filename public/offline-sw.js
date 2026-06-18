@@ -1,4 +1,4 @@
-const CACHE_NAME = 'p57-app-shell-v2';
+const CACHE_NAME = 'p57-app-shell-v3';
 const APP_SHELL_KEY = '/__p57_app_shell__';
 const OFFLINE_SHELL = `<!doctype html>
 <html lang="en">
@@ -123,7 +123,18 @@ self.addEventListener('fetch', (event) => {
       return response;
     } catch (error) {
       if (cached) return cached;
-      throw error;
+      if (request.destination === 'document' || request.headers.get('accept')?.includes('text/html')) {
+        const shell = await cache.match(APP_SHELL_KEY);
+        if (shell) return shell;
+        const indexShell = await cache.match('/index.html') || await cache.match('/');
+        if (indexShell) return indexShell;
+        return new Response(OFFLINE_SHELL, {
+          status: 200,
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+
+      return new Response('', { status: 504, statusText: 'Gateway Timeout' });
     }
   })());
 });
