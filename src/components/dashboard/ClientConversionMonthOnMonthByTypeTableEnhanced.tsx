@@ -335,15 +335,33 @@ interface MembershipPurchasesTableProps {
   onRowClick?: (row: any) => void;
 }
 
-// Member type label derived from isNew field
+// Return the raw isNew value directly — preserve every unique category from the sheet
 function memberTypeLabel(isNew: string | undefined | null): string {
   const v = (isNew || '').trim();
-  if (!v || v === 'false' || v.toLowerCase() === 'existing') return 'Existing Member';
-  if (/trial/i.test(v)) return 'New (Trial)';
-  if (/walk.?in|walkin/i.test(v)) return 'New (Walk-in)';
-  if (/new/i.test(v)) return 'New Member';
-  return v;
+  return v || 'Unknown';
 }
+
+// Deterministic colour per raw isNew value
+const IS_NEW_PALETTE = [
+  'bg-emerald-50 text-emerald-800 border border-emerald-200',
+  'bg-sky-50 text-sky-800 border border-sky-200',
+  'bg-violet-50 text-violet-800 border border-violet-200',
+  'bg-amber-50 text-amber-800 border border-amber-200',
+  'bg-rose-50 text-rose-800 border border-rose-200',
+  'bg-teal-50 text-teal-800 border border-teal-200',
+  'bg-fuchsia-50 text-fuchsia-800 border border-fuchsia-200',
+  'bg-orange-50 text-orange-800 border border-orange-200',
+  'bg-indigo-50 text-indigo-800 border border-indigo-200',
+  'bg-slate-100 text-slate-700 border border-slate-200',
+];
+const memberTypeBadge = (() => {
+  const cache: Record<string, string> = {};
+  let idx = 0;
+  return (label: string) => {
+    if (!cache[label]) cache[label] = IS_NEW_PALETTE[idx++ % IS_NEW_PALETTE.length];
+    return cache[label];
+  };
+})();
 
 export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTableProps> = ({ data, onRowClick }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -419,12 +437,6 @@ export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTabl
 
   // Group rows by member type for visual grouping
   const memberTypes = useMemo(() => Array.from(new Set(rows.map((r) => r.memberType))), [rows]);
-  const MEMBER_TYPE_COLORS: Record<string, string> = {
-    'New (Trial)': 'bg-emerald-50 text-emerald-800',
-    'New (Walk-in)': 'bg-sky-50 text-sky-800',
-    'New Member': 'bg-violet-50 text-violet-800',
-    'Existing Member': 'bg-slate-50 text-slate-700',
-  };
 
   useEffect(() => {
     if (!registry || !containerRef.current) return;
@@ -484,7 +496,7 @@ export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTabl
           <TableBody>
             {memberTypes.map((mt) => {
               const typeRows = rows.filter((r) => r.memberType === mt);
-              const badge = MEMBER_TYPE_COLORS[mt] ?? 'bg-slate-100 text-slate-700';
+              const badge = memberTypeBadge(mt);
               return typeRows.map((row, j) => (
                 <TableRow
                   key={row.key}

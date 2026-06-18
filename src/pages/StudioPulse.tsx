@@ -4072,6 +4072,53 @@ const StudioPulse = memo(() => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      {/* ── Full-page data loader ── show until every sheet has responded */}
+      {anyLoading && (
+        <div className="fixed inset-0 z-[300] flex flex-col items-center justify-center bg-slate-950 select-none">
+          {/* Subtle grid */}
+          <div className="pointer-events-none absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)', backgroundSize: '48px 48px' }} />
+          <div className="relative flex flex-col items-center gap-7 z-10">
+            {/* Spinner */}
+            <div className="relative h-16 w-16">
+              <div className="absolute inset-0 rounded-full border-[3px] border-white/10" />
+              <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-transparent border-t-purple-400" />
+              <div className="absolute inset-[6px] animate-spin rounded-full border-[2px] border-transparent border-t-rose-400" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
+            </div>
+            {/* Wordmark */}
+            <div className="text-center">
+              <p className="text-2xl font-extrabold tracking-tight text-white">Studio Pulse</p>
+              <p className="mt-1.5 text-sm font-medium text-slate-400">Fetching live data from Google Sheets…</p>
+            </div>
+            {/* Source pills */}
+            <div className="flex flex-wrap justify-center gap-2 max-w-sm">
+              {[
+                { label: 'Sales', done: !salesLoading },
+                { label: 'Sessions', done: !sessionsLoading },
+                { label: 'New Clients', done: !clientsLoading },
+                { label: 'Payroll', done: !payrollLoading },
+                { label: 'Leads', done: !leadsLoading },
+                { label: 'Late Cancellations', done: !lcLoading },
+                { label: 'Expirations', done: !expLoading },
+                { label: 'Recurring', done: !recurringLoading },
+                { label: 'Checkins', done: !checkinsLoading },
+              ].map(({ label, done }) => (
+                <span
+                  key={label}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold transition-all duration-500 ${
+                    done
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : 'bg-white/5 text-slate-500 border border-white/10'
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${done ? 'bg-emerald-400' : 'bg-slate-600 animate-pulse'}`} />
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Ambient background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 left-10 h-80 w-80 rounded-full bg-gradient-to-br from-blue-300/20 to-blue-900/10 blur-3xl" />
