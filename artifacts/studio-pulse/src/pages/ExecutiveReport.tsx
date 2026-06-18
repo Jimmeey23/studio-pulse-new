@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import '@/styles/executive-report.css';
 import { geminiService, LocationReportNarrative } from '@/services/geminiService';
 import { useSalesData } from '@/hooks/useSalesData';
 import { useSessionsData } from '@/hooks/useSessionsData';
@@ -10,22 +11,22 @@ import { useLeadsData } from '@/hooks/useLeadsData';
 import { parseDate } from '@/utils/dateUtils';
 import { isLeadConverted } from '@/utils/leadConversions';
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart
+  AreaChart, Area, BarChart, Bar, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import {
   TrendingUp, TrendingDown, ChevronDown, AlertTriangle, CheckCircle,
   Zap, RefreshCw, ArrowRight, ArrowUpRight, ArrowDownRight,
   Users, DollarSign, Activity, Target, Clock, Star, Flame,
-  BarChart2, Shield, Award, Percent
+  BarChart2, Shield, Award, Percent, Sun, Moon, ArrowLeft
 } from 'lucide-react';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const STUDIOS = [
-  { id: 'kwality', label: 'Kwality House', location: 'Kwality House', area: 'Kemps Corner', city: 'Mumbai' },
-  { id: 'supreme', label: 'Supreme HQ', location: 'Supreme HQ', area: 'Bandra', city: 'Mumbai' },
-  { id: 'kenkere', label: 'Kenkere House', location: 'Kenkere House', area: 'Bengaluru', city: 'Bengaluru' },
+  { id: 'kwality', label: 'Kwality House', location: 'Kwality House', area: 'Kemps Corner', city: 'Mumbai', abbr: 'KH' },
+  { id: 'supreme', label: 'Supreme HQ', location: 'Supreme HQ', area: 'Bandra', city: 'Mumbai', abbr: 'SQ' },
+  { id: 'kenkere', label: 'Kenkere House', location: 'Kenkere House', area: 'Bengaluru', city: 'Bengaluru', abbr: 'KK' },
 ];
 
 const MONTHS = [
@@ -39,18 +40,20 @@ const MONTHS = [
 
 const YEARS = ['2026', '2025', '2024'];
 
+// Keep P palette for Recharts (which needs hex values, not CSS vars)
 const P = {
-  gold: '#D4AF37', goldLight: '#F0D060', goldDark: '#A08828',
-  navy: '#080E1C', navyLight: '#0D1526', navyMid: '#162040', navyCard: '#111A30',
-  cream: '#F5F0E8', creamMuted: '#9BA8BF',
-  green: '#10B981', greenLight: '#34D399', greenDark: '#065F46',
-  red: '#EF4444', redLight: '#F87171',
-  blue: '#3B82F6', blueLight: '#93C5FD',
+  gold: '#F5C518', goldLight: '#FFD84D',
+  navy: '#080E1C', navyCard: '#141414',
+  cream: '#ECECEC', creamMuted: '#A8A8A8',
+  green: '#4FB97B', greenLight: '#6DCFA0',
+  red: '#E5705E', redLight: '#EF9088',
+  blue: '#6E8ECB', blueLight: '#9CB5E0',
   purple: '#8B5CF6', purpleLight: '#C4B5FD',
-  orange: '#F59E0B', orangeLight: '#FCD34D',
+  orange: '#E0A93C', orangeLight: '#ECC368',
   teal: '#14B8A6', tealLight: '#5EEAD4',
   rose: '#F43F5E', roseLight: '#FDA4AF',
   indigo: '#6366F1',
+  primary: '#5B7BB5',
 };
 
 const CHART_COLORS = [P.gold, P.blue, P.green, P.purple, P.orange, P.teal, P.rose, P.indigo];
@@ -95,32 +98,26 @@ const classifyFormat = (name: string) => {
 
 const computeHealthScore = (m: any): { score: number; grade: 'A' | 'B' | 'C' | 'D'; color: string; label: string } => {
   let points = 0;
-  // Fill rate (0-25 pts)
   if (m.fillRate >= 75) points += 25;
   else if (m.fillRate >= 60) points += 18;
   else if (m.fillRate >= 45) points += 10;
   else points += 3;
-  // Conversion (0-20 pts)
   if (m.conversionRate >= 60) points += 20;
   else if (m.conversionRate >= 40) points += 14;
   else if (m.conversionRate >= 25) points += 8;
   else points += 2;
-  // Retention (0-20 pts)
   if (m.retentionRate >= 50) points += 20;
   else if (m.retentionRate >= 35) points += 13;
   else if (m.retentionRate >= 20) points += 7;
   else points += 1;
-  // Revenue growth MoM (0-15 pts)
   const revGrowth = delta(m.currRevenue, m.prevRevenue);
   if (revGrowth >= 10) points += 15;
   else if (revGrowth >= 0) points += 10;
   else if (revGrowth >= -5) points += 5;
-  // Late cancel ratio (0-10 pts) — lower is better
   const lcRatio = m.totalSessions > 0 ? (m.lcCount / m.totalSessions) * 100 : 0;
   if (lcRatio < 5) points += 10;
   else if (lcRatio < 10) points += 6;
   else if (lcRatio < 20) points += 3;
-  // Discount penetration (0-10 pts) — lower is better
   if (m.discountPenetration < 15) points += 10;
   else if (m.discountPenetration < 30) points += 6;
   else if (m.discountPenetration < 50) points += 3;
@@ -132,110 +129,136 @@ const computeHealthScore = (m: any): { score: number; grade: 'A' | 'B' | 'C' | '
   return { score, grade: 'D', color: P.red, label: 'At Risk' };
 };
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
+// ── Design-system sub-components ──────────────────────────────────────────────
 
-const Chip: React.FC<{ value: number; inverse?: boolean; suffix?: string }> = ({ value, inverse = false, suffix = '%' }) => {
+const Badge: React.FC<{ value: number; inverse?: boolean }> = ({ value, inverse = false }) => {
   const isGood = inverse ? value <= 0 : value >= 0;
   const abs = Math.abs(value);
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold"
-      style={{ background: isGood ? `${P.green}20` : `${P.red}20`, color: isGood ? P.greenLight : P.redLight }}>
-      {isGood ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-      {abs.toFixed(1)}{suffix}
+    <span className={`er-badge ${isGood ? 'good' : 'bad'}`}>
+      {isGood ? '+' : '-'}{abs.toFixed(1)}%
     </span>
   );
 };
 
-const KPI: React.FC<{
-  label: string; value: string; sub?: string; mom?: number; yoy?: number;
-  icon: React.ReactNode; accent?: string; inverse?: boolean;
-}> = ({ label, value, sub, mom, yoy, icon, accent = P.gold, inverse = false }) => (
-  <div className="rounded-2xl p-5 relative overflow-hidden"
-    style={{ background: P.navyCard, border: `1px solid ${accent}25` }}>
-    <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full opacity-10"
-      style={{ background: accent, filter: 'blur(16px)' }} />
-    <div className="flex items-start justify-between mb-3">
-      <div className="p-2.5 rounded-xl" style={{ background: `${accent}18` }}>
-        <span style={{ color: accent }}>{icon}</span>
-      </div>
-      <div className="flex flex-col items-end gap-1">
-        {mom !== undefined && <Chip value={mom} inverse={inverse} />}
+const KpiCard: React.FC<{
+  label: string; value: string; sub?: string; tone?: 'good' | 'warn' | 'bad' | 'neutral';
+  mom?: number; yoy?: number; baseline?: string; inverse?: boolean;
+}> = ({ label, value, sub, tone = 'neutral', mom, yoy, baseline, inverse = false }) => (
+  <div className={`er-kpi-card tone-${tone}`}>
+    <div className="er-kpi-label">{label}</div>
+    <div className="er-kpi-value">{value}</div>
+    {sub && <div className="er-kpi-sub">{sub}</div>}
+    {(mom !== undefined || yoy !== undefined) && (
+      <div className="er-kpi-trends">
+        {mom !== undefined && (
+          <span className="er-kpi-trend">
+            <span className="er-trend-label">MoM</span>
+            <Badge value={mom} inverse={inverse} />
+          </span>
+        )}
         {yoy !== undefined && (
-          <span className="text-[10px]" style={{ color: P.creamMuted }}>
-            YoY {yoy >= 0 ? '+' : ''}{yoy.toFixed(1)}%
+          <span className="er-kpi-trend">
+            <span className="er-trend-label">YoY</span>
+            <Badge value={yoy} />
           </span>
         )}
       </div>
-    </div>
-    <div className="text-2xl font-black tracking-tight mb-0.5" style={{ color: P.cream }}>{value}</div>
-    {sub && <div className="text-xs mb-1" style={{ color: P.creamMuted }}>{sub}</div>}
-    <div className="text-[11px] font-semibold tracking-wider uppercase" style={{ color: `${P.creamMuted}` }}>{label}</div>
+    )}
+    {baseline && <div className="er-kpi-baseline">{baseline}</div>}
   </div>
 );
 
-const InsightCard: React.FC<{ type: 'win' | 'risk' | 'watch'; text: string }> = ({ type, text }) => {
-  const cfg = {
-    win:   { icon: <CheckCircle size={14} />, color: P.green,  bg: `${P.green}12`,  border: `${P.green}25`  },
-    risk:  { icon: <AlertTriangle size={14} />, color: P.red,   bg: `${P.red}12`,   border: `${P.red}25`    },
-    watch: { icon: <Zap size={14} />,           color: P.gold,  bg: `${P.gold}12`,  border: `${P.gold}25`  },
-  }[type];
-  return (
-    <div className="flex items-start gap-3 p-3.5 rounded-xl"
-      style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
-      <span className="mt-0.5 shrink-0" style={{ color: cfg.color }}>{cfg.icon}</span>
-      <p className="text-sm leading-relaxed" style={{ color: `${P.cream}90` }}>{text}</p>
-    </div>
-  );
-};
-
-const SectionTitle: React.FC<{ icon: React.ReactNode; title: string; sub: string; accent?: string }> = ({ icon, title, sub, accent = P.gold }) => (
-  <div className="flex items-center gap-4 mb-6">
-    <div className="p-3 rounded-2xl shrink-0" style={{ background: `${accent}18`, border: `1px solid ${accent}30` }}>
-      <span style={{ color: accent }}>{icon}</span>
-    </div>
+const InsightItem: React.FC<{ num: number; title: string; text: React.ReactNode }> = ({ num, title, text }) => (
+  <div className="er-insight-card">
+    <div className="er-insight-num">{String(num).padStart(2, '0')}</div>
     <div>
-      <h2 className="text-xl font-black tracking-tight" style={{ color: P.cream }}>{title}</h2>
-      <p className="text-xs mt-0.5" style={{ color: P.creamMuted }}>{sub}</p>
+      <div className="er-insight-title">{title}</div>
+      <div className="er-insight-text">{text}</div>
     </div>
   </div>
 );
 
-const TT = ({ active, payload, label, prefix = '', suffix = '' }: any) => {
+const WorkedCard: React.FC<{ worked: boolean; title: string; text: React.ReactNode }> = ({ worked, title, text }) => (
+  <div className={`er-worked-card${worked ? '' : ' didnt'}`}>
+    <div className="er-worked-icon">{worked ? '✓' : '✗'}</div>
+    <div>
+      <div className="er-worked-title">{title}</div>
+      <div className="er-worked-text">{text}</div>
+    </div>
+  </div>
+);
+
+const ActionCard: React.FC<{ num: number; title: string; text: React.ReactNode; owner?: string; priority?: string; impact?: string }> = ({ num, title, text, owner, priority, impact }) => (
+  <div className="er-action-card">
+    <div className="er-action-num">{num}</div>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="er-action-title">{title}</div>
+      <div className="er-action-text">{text}</div>
+      <div className="er-action-meta">
+        {owner && <span className="er-meta-pill">Owner: {owner}</span>}
+        {priority && <span className="er-meta-pill">Priority: {priority}</span>}
+        {impact && <span className="er-meta-pill">Impact: {impact}</span>}
+      </div>
+    </div>
+  </div>
+);
+
+const SectionHeader: React.FC<{ eyebrow: string; title: string; deck?: string; anchor?: string }> = ({ eyebrow, title, deck, anchor }) => (
+  <div className="er-section-header">
+    <div className="er-section-header-left">
+      <div className="er-section-eyebrow">{eyebrow}</div>
+      <h2 className="er-section-title">{title}</h2>
+      {deck && <p className="er-section-deck">{deck}</p>}
+    </div>
+    {anchor && <div className="er-section-anchor">{anchor}</div>}
+  </div>
+);
+
+const ChartTooltip = ({ active, payload, label, prefix = '', suffix = '' }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl p-3 shadow-xl text-xs" style={{ background: P.navyMid, border: `1px solid ${P.gold}30` }}>
-      <div className="font-semibold mb-2" style={{ color: P.gold }}>{label}</div>
+    <div className="er-tooltip" style={{ background: '#1C1C1C', border: '1px solid #2A2A2A', borderRadius: 10, padding: '10px 14px', fontSize: 12 }}>
+      <div style={{ fontWeight: 600, marginBottom: 6, color: P.gold }}>{label}</div>
       {payload.map((p: any, i: number) => (
-        <div key={i} className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full" style={{ background: p.fill || p.stroke || p.color }} />
-          <span style={{ color: P.cream }}>{p.name}: {prefix}{typeof p.value === 'number' ? (prefix === '₹' ? fmt(p.value) : p.value.toLocaleString('en-IN')) : p.value}{suffix}</span>
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, color: P.cream }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: p.fill || p.stroke || p.color }} />
+          <span>{p.name}: {prefix}{typeof p.value === 'number' ? (prefix === '₹' ? fmt(p.value) : p.value.toLocaleString('en-IN')) : p.value}{suffix}</span>
         </div>
       ))}
     </div>
   );
 };
 
-// ── Dropdown component (must be defined outside SelectionScreen to avoid remount) ──
+// ── Dropdown ──────────────────────────────────────────────────────────────────
 
 const DD: React.FC<{
   which: 'studio' | 'month' | 'year';
-  label: string;
-  display: string;
+  label: string; display: string;
   open: 'studio' | 'month' | 'year' | null;
   setOpen: React.Dispatch<React.SetStateAction<'studio' | 'month' | 'year' | null>>;
   children: React.ReactNode;
 }> = ({ which, label, display, open, setOpen, children }) => (
-  <div className="relative">
-    <label className="block text-xs font-bold tracking-widest uppercase mb-2" style={{ color: P.gold }}>{label}</label>
+  <div style={{ position: 'relative' }}>
+    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8, color: P.gold }}>{label}</label>
     <button onClick={() => setOpen(open === which ? null : which)}
-      className="w-full flex items-center justify-between px-4 py-4 rounded-2xl text-left transition-all text-sm"
-      style={{ background: display ? `${P.gold}10` : P.navyMid, border: `1.5px solid ${display ? P.gold : P.gold + '28'}`, color: display ? P.cream : `${P.cream}45` }}>
-      <span className={display ? 'font-medium' : ''}>{display || `Select ${label.toLowerCase()}...`}</span>
-      <ChevronDown size={14} style={{ transform: open === which ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: P.gold }} />
+      style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '14px 16px', borderRadius: 12, background: display ? 'rgba(245,197,24,0.08)' : '#1C1C1C',
+        border: `1.5px solid ${display ? P.gold : 'rgba(245,197,24,0.2)'}`,
+        color: display ? P.cream : 'rgba(236,236,236,0.4)', cursor: 'pointer', fontSize: 14,
+        fontFamily: 'var(--font-sans, Inter, sans-serif)',
+      }}>
+      <span style={{ fontWeight: display ? 500 : 400 }}>{display || `Select ${label.toLowerCase()}…`}</span>
+      <ChevronDown size={14} style={{ transform: open === which ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: P.gold, flexShrink: 0 }} />
     </button>
     {open === which && (
-      <div className="absolute top-full left-0 right-0 mt-2 rounded-2xl overflow-hidden shadow-2xl z-50 max-h-64 overflow-y-auto"
-        style={{ background: P.navyMid, border: `1px solid ${P.gold}25` }}>
+      <div style={{
+        position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 8,
+        borderRadius: 12, overflow: 'hidden', boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
+        zIndex: 50, maxHeight: 260, overflowY: 'auto',
+        background: '#1C1C1C', border: '1px solid rgba(245,197,24,0.2)',
+      }}>
         {children}
       </div>
     )}
@@ -255,50 +278,39 @@ const SelectionScreen: React.FC<{ onSelect: (s: typeof STUDIOS[0], m: string, y:
   const can = studio && month;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: P.navy }}>
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full opacity-8"
-          style={{ background: `radial-gradient(ellipse, ${P.gold}, transparent)` }} />
-        <svg className="absolute inset-0 w-full h-full opacity-[0.025]" xmlns="http://www.w3.org/2000/svg">
-          <defs><pattern id="g" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="0.5" /></pattern></defs>
-          <rect width="100%" height="100%" fill="url(#g)" />
-        </svg>
-      </div>
-      <div className="relative z-10 w-full max-w-xl px-6 py-12">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-5"
-            style={{ background: `${P.gold}18`, border: `1px solid ${P.gold}40`, color: P.gold }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0A0A0A', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: -120, right: -120, width: 480, height: 480, borderRadius: '50%', background: `radial-gradient(circle, ${P.gold}, transparent 65%)`, opacity: 0.12, filter: 'blur(20px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 520, padding: '48px 24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: 20, background: 'rgba(245,197,24,0.12)', border: '1px solid rgba(245,197,24,0.3)', color: P.gold }}>
             <Star size={11} /> Executive Intelligence
           </div>
-          <h1 className="text-5xl font-black tracking-tight mb-2" style={{ color: P.cream, letterSpacing: '-0.03em' }}>
+          <div style={{ fontFamily: 'var(--font-serif, Georgia, serif)', fontSize: 48, fontWeight: 700, letterSpacing: '-0.03em', color: P.cream, marginBottom: 6 }}>
             PHYSIQUE <span style={{ color: P.gold }}>57</span>
-          </h1>
-          <p className="text-sm font-light tracking-widest uppercase" style={{ color: `${P.cream}50`, letterSpacing: '0.22em' }}>
-            Studio Performance Report
-          </p>
+          </div>
+          <div style={{ fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: 'rgba(236,236,236,0.4)', fontWeight: 500 }}>Studio Performance Report</div>
         </div>
 
-        <div className="rounded-3xl p-7 shadow-2xl space-y-4" style={{ background: P.navyCard, border: `1px solid ${P.gold}20` }}>
-          <DD which="studio" label="Studio Location" display={sel ? `${sel.label} — ${sel.city}` : ''} open={open} setOpen={setOpen}>
-            {STUDIOS.map(s => (
-              <button key={s.id} onClick={() => { setStudio(s.id); setOpen(null); }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/5"
-                style={{ borderBottom: `1px solid ${P.gold}10`, color: studio === s.id ? P.gold : P.cream }}>
-                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: studio === s.id ? P.gold : `${P.gold}40` }} />
-                <div>
-                  <div className="font-semibold text-sm">{s.label}</div>
-                  <div className="text-xs opacity-50">{s.area} · {s.city}</div>
-                </div>
-              </button>
-            ))}
-          </DD>
-
-          <div className="grid grid-cols-2 gap-4">
+        <div style={{ background: '#141414', border: '1px solid rgba(245,197,24,0.15)', borderRadius: 20, padding: 28, boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
+          <div style={{ marginBottom: 16 }}>
+            <DD which="studio" label="Studio Location" display={sel ? `${sel.label} — ${sel.city}` : ''} open={open} setOpen={setOpen}>
+              {STUDIOS.map(s => (
+                <button key={s.id} onClick={() => { setStudio(s.id); setOpen(null); }}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'none', border: 'none', borderBottom: '1px solid rgba(245,197,24,0.08)', color: studio === s.id ? P.gold : P.cream, cursor: 'pointer', textAlign: 'left' as const }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: studio === s.id ? P.gold : 'rgba(245,197,24,0.3)', flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label}</div>
+                    <div style={{ fontSize: 11, opacity: 0.5 }}>{s.area} · {s.city}</div>
+                  </div>
+                </button>
+              ))}
+            </DD>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <DD which="month" label="Month" display={selM?.label || ''} open={open} setOpen={setOpen}>
               {MONTHS.map(m => (
                 <button key={m.value} onClick={() => { setMonth(m.value); setOpen(null); }}
-                  className="w-full px-4 py-2.5 text-left text-sm transition-colors hover:bg-white/5"
-                  style={{ borderBottom: `1px solid ${P.gold}10`, color: month === m.value ? P.gold : P.cream }}>
+                  style={{ width: '100%', padding: '10px 16px', background: 'none', border: 'none', borderBottom: '1px solid rgba(245,197,24,0.08)', color: month === m.value ? P.gold : P.cream, cursor: 'pointer', textAlign: 'left' as const, fontSize: 14 }}>
                   {m.label}
                 </button>
               ))}
@@ -306,8 +318,7 @@ const SelectionScreen: React.FC<{ onSelect: (s: typeof STUDIOS[0], m: string, y:
             <DD which="year" label="Year" display={year} open={open} setOpen={setOpen}>
               {YEARS.map(y => (
                 <button key={y} onClick={() => { setYear(y); setOpen(null); }}
-                  className="w-full px-4 py-2.5 text-left text-sm transition-colors hover:bg-white/5"
-                  style={{ borderBottom: `1px solid ${P.gold}10`, color: year === y ? P.gold : P.cream }}>
+                  style={{ width: '100%', padding: '10px 16px', background: 'none', border: 'none', borderBottom: '1px solid rgba(245,197,24,0.08)', color: year === y ? P.gold : P.cream, cursor: 'pointer', textAlign: 'left' as const, fontSize: 14 }}>
                   {y}
                 </button>
               ))}
@@ -315,16 +326,20 @@ const SelectionScreen: React.FC<{ onSelect: (s: typeof STUDIOS[0], m: string, y:
           </div>
 
           <button onClick={() => sel && onSelect(sel, month, year)} disabled={!can}
-            className="w-full py-4 rounded-2xl font-bold text-sm tracking-widest uppercase transition-all flex items-center justify-center gap-3 mt-2"
             style={{
-              background: can ? `linear-gradient(135deg, ${P.gold}, ${P.goldLight})` : `${P.gold}18`,
-              color: can ? P.navy : `${P.gold}40`, cursor: can ? 'pointer' : 'not-allowed',
-              boxShadow: can ? `0 8px 32px ${P.gold}35` : 'none',
+              width: '100%', padding: '14px 20px', borderRadius: 12, border: 'none',
+              background: can ? `linear-gradient(135deg, ${P.gold}, ${P.goldLight})` : 'rgba(245,197,24,0.1)',
+              color: can ? '#0A0A0A' : 'rgba(245,197,24,0.3)',
+              cursor: can ? 'pointer' : 'not-allowed', fontWeight: 700, fontSize: 13,
+              letterSpacing: '0.06em', textTransform: 'uppercase' as const,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              boxShadow: can ? `0 8px 32px rgba(245,197,24,0.25)` : 'none',
+              transition: 'all 200ms ease',
             }}>
             <BarChart2 size={16} /> Generate Executive Report <ArrowRight size={16} />
           </button>
         </div>
-        <p className="text-center mt-5 text-xs" style={{ color: `${P.cream}20` }}>Powered by live Google Sheets data</p>
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 11, color: 'rgba(236,236,236,0.2)' }}>Powered by live Google Sheets data</p>
       </div>
     </div>
   );
@@ -333,20 +348,13 @@ const SelectionScreen: React.FC<{ onSelect: (s: typeof STUDIOS[0], m: string, y:
 // ── Loading ────────────────────────────────────────────────────────────────────
 
 const LoadingScreen: React.FC<{ studio: string; period: string }> = ({ studio, period }) => (
-  <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: P.navy }}>
-    <div className="text-center space-y-4">
-      <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-        style={{ background: `${P.gold}18`, border: `2px solid ${P.gold}40` }}>
-        <RefreshCw size={24} style={{ color: P.gold }} className="animate-spin" />
-      </div>
-      <div>
-        <p className="font-bold text-lg" style={{ color: P.cream }}>Analysing {studio}</p>
-        <p className="text-sm mt-1" style={{ color: P.creamMuted }}>{period} · Building insights…</p>
-      </div>
-      <div className="flex gap-1.5 justify-center">
-        {[0, 1, 2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: P.gold, animationDelay: `${i * 0.15}s` }} />)}
-      </div>
+  <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0A0A0A' }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ width: 64, height: 64, borderRadius: '50%', border: `2px solid rgba(245,197,24,0.3)`, borderTopColor: P.gold, animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
+      <div style={{ fontWeight: 700, fontSize: 18, color: P.cream, marginBottom: 8 }}>Analysing {studio}</div>
+      <div style={{ fontSize: 13, color: P.creamMuted }}>{period} · Building insights…</div>
     </div>
+    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
   </div>
 );
 
@@ -360,8 +368,8 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
   const { data: expirationsData = [], loading: expLoading } = useExpirationsData();
   const { data: lateCancelData = [], loading: lcLoading } = useLateCancellationsData();
   const { data: leadsData = [], loading: leadsLoading } = useLeadsData();
+  const [lightMode, setLightMode] = useState(false);
 
-  // Only block rendering on primary sales data — other sources load asynchronously
   const anyLoading = salesLoading;
 
   const monthName = MONTHS.find(m => m.value === month)?.label || '';
@@ -375,39 +383,27 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
 
   const metrics = useMemo(() => {
     if (salesLoading || salesData.length === 0) return null;
-
     const loc = studio.location;
-    const filterByLoc = <T extends Record<string, any>>(arr: T[], keys: string[]) =>
-      arr.filter(r => keys.some(k => matchesLocation(r[k] || '', loc)));
-
-    // Sales
     const sales = (r: { start: Date; end: Date }) =>
       salesData.filter(s => inRange(s.paymentDate, r.start, r.end) && matchesLocation(s.calculatedLocation || '', loc));
     const currS = sales(currRange), prevS = sales(prevRange), yoyS = sales(yoyRange);
-
     const netRev = (rows: typeof currS) => rows.reduce((a, s) => a + ((Number(s.paymentValue) || 0) - (Number(s.paymentVAT) || 0)), 0);
     const currRev = netRev(currS), prevRev = netRev(prevS), yoyRev = netRev(yoyS);
-
     const discountedTxns = currS.filter(s => (Number(s.discountAmount) || 0) > 0).length;
     const discountPenetration = currS.length > 0 ? (discountedTxns / currS.length) * 100 : 0;
     const totalDiscount = currS.reduce((a, s) => a + (Number(s.discountAmount) || 0), 0);
     const atv = currS.length > 0 ? currRev / currS.length : 0;
     const prevAtv = prevS.length > 0 ? netRev(prevS) / prevS.length : 0;
-
-    // Unique members
     const uniqueMembers = new Set(currS.map(s => s.memberId).filter(Boolean)).size;
 
-    // Category breakdown
     const cats: Record<string, number> = {};
     currS.forEach(s => { const c = s.cleanedCategory || 'Other'; cats[c] = (cats[c] || 0) + ((Number(s.paymentValue) || 0) - (Number(s.paymentVAT) || 0)); });
     const topCats = Object.entries(cats).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([name, value]) => ({ name, value }));
 
-    // Package vs drop-in vs membership split
     const pkgRev = currS.filter(s => /pack|package/i.test(s.cleanedCategory || s.cleanedProduct || '')).reduce((a, s) => a + ((Number(s.paymentValue) || 0) - (Number(s.paymentVAT) || 0)), 0);
     const memRev = currS.filter(s => /member/i.test(s.cleanedCategory || s.membershipType || '')).reduce((a, s) => a + ((Number(s.paymentValue) || 0) - (Number(s.paymentVAT) || 0)), 0);
     const dropRev = currS.filter(s => /drop|single|trial/i.test(`${s.paymentItem || ''} ${s.cleanedProduct || ''}`)).reduce((a, s) => a + ((Number(s.paymentValue) || 0) - (Number(s.paymentVAT) || 0)), 0);
 
-    // 6-month revenue trend
     const revTrend = Array.from({ length: 6 }, (_, i) => {
       const d = new Date(parseInt(year), parseInt(month) - 1 - (5 - i), 1);
       const r = getMonthRange(String(d.getFullYear()), String(d.getMonth() + 1).padStart(2, '0'));
@@ -415,11 +411,9 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
       return { label: d.toLocaleDateString('en-US', { month: 'short' }), revenue: netRev(rows), txns: rows.length };
     });
 
-    // Sessions
     const sess = (r: { start: Date; end: Date }) =>
       sessionsData.filter(s => inRange(s.date, r.start, r.end) && matchesLocation(s.location || '', loc));
     const currSess = sess(currRange), prevSess = sess(prevRange);
-
     const totalCheckins = currSess.reduce((a, s) => a + (Number(s.checkedInCount) || 0), 0);
     const totalCap = currSess.reduce((a, s) => a + (Number(s.capacity) || 0), 0);
     const fillRate = totalCap > 0 ? (totalCheckins / totalCap) * 100 : 0;
@@ -432,15 +426,10 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
     const nonEmptyAvg = (currSess.length - emptySessions) > 0 ? totalCheckins / (currSess.length - emptySessions) : 0;
     const prevClassAvg = prevSess.length > 0 ? prevCheckins / prevSess.length : 0;
 
-    // Format breakdown
     const fmtMap: Record<string, { sessions: number; checkins: number; cap: number }> = { Barre: { sessions: 0, checkins: 0, cap: 0 }, PowerCycle: { sessions: 0, checkins: 0, cap: 0 }, Strength: { sessions: 0, checkins: 0, cap: 0 } };
     currSess.forEach(s => {
       const f = classifyFormat(s.cleanedClass || s.classType || '');
-      if (fmtMap[f]) {
-        fmtMap[f].sessions++;
-        fmtMap[f].checkins += Number(s.checkedInCount) || 0;
-        fmtMap[f].cap += Number(s.capacity) || 0;
-      }
+      if (fmtMap[f]) { fmtMap[f].sessions++; fmtMap[f].checkins += Number(s.checkedInCount) || 0; fmtMap[f].cap += Number(s.capacity) || 0; }
     });
     const formats = Object.entries(fmtMap).map(([name, v]) => ({
       name, sessions: v.sessions, checkins: v.checkins,
@@ -448,7 +437,6 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
       classAvg: v.sessions > 0 ? v.checkins / v.sessions : 0,
     })).filter(f => f.sessions > 0);
 
-    // Session trend
     const sessTrend = Array.from({ length: 6 }, (_, i) => {
       const d = new Date(parseInt(year), parseInt(month) - 1 - (5 - i), 1);
       const r = getMonthRange(String(d.getFullYear()), String(d.getMonth() + 1).padStart(2, '0'));
@@ -458,37 +446,27 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
       return { label: d.toLocaleDateString('en-US', { month: 'short' }), checkins: ci, fillRate: cap > 0 ? parseFloat(((ci / cap) * 100).toFixed(1)) : 0 };
     });
 
-    // Peak day analysis
     const dayMap: Record<string, number> = {};
-    currSess.forEach(s => {
-      const day = new Date(s.date).toLocaleDateString('en-US', { weekday: 'short' });
-      dayMap[day] = (dayMap[day] || 0) + (Number(s.checkedInCount) || 0);
-    });
+    currSess.forEach(s => { const day = new Date(s.date).toLocaleDateString('en-US', { weekday: 'short' }); dayMap[day] = (dayMap[day] || 0) + (Number(s.checkedInCount) || 0); });
     const peakDay = Object.entries(dayMap).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
     const dayData = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => ({ day: d, checkins: dayMap[d] || 0 }));
 
-    // Trainers (payroll)
     const trainerKey = `${monthName} ${year}`;
     const prevTrainerKey = `${prevMonthName} ${prevMonthYear}`;
     const currPay = payrollData.filter(p => matchesLocation(p.location || '', loc) && (p.monthYear || '').toLowerCase().includes(trainerKey.toLowerCase()));
     const prevPay = payrollData.filter(p => matchesLocation(p.location || '', loc) && (p.monthYear || '').toLowerCase().includes(prevTrainerKey.toLowerCase()));
-
     const trainers = currPay.map(p => ({
       name: p.teacherName || 'Unknown',
-      sessions: Number(p.totalSessions) || 0,
-      customers: Number(p.totalCustomers) || 0,
-      nonEmpty: Number(p.totalNonEmptySessions) || 0,
-      paid: Number(p.totalPaid) || 0,
+      sessions: Number(p.totalSessions) || 0, customers: Number(p.totalCustomers) || 0,
+      nonEmpty: Number(p.totalNonEmptySessions) || 0, paid: Number(p.totalPaid) || 0,
       classAvg: (Number(p.totalNonEmptySessions) || 0) > 0 ? (Number(p.totalCustomers) || 0) / (Number(p.totalNonEmptySessions) || 0) : 0,
-      converted: Number(p.converted) || 0,
-      retained: Number(p.retained) || 0,
+      converted: Number(p.converted) || 0, retained: Number(p.retained) || 0,
     })).sort((a, b) => b.customers - a.customers);
     const topTrainer = trainers[0];
     const bottomTrainer = trainers.length > 1 ? trainers[trainers.length - 1] : null;
     const totalCustomers = currPay.reduce((a, p) => a + (Number(p.totalCustomers) || 0), 0);
     const prevCustomers = prevPay.reduce((a, p) => a + (Number(p.totalCustomers) || 0), 0);
 
-    // Leads
     const currLeads = leadsData.filter(l => inRange(l.createdAt, currRange.start, currRange.end) && matchesLocation(l.center || '', loc));
     const prevLeads = leadsData.filter(l => inRange(l.createdAt, prevRange.start, prevRange.end) && matchesLocation(l.center || '', loc));
     const convertedLeads = currLeads.filter(l => isLeadConverted(l)).length;
@@ -496,17 +474,10 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
     const leadCvr = currLeads.length > 0 ? (convertedLeads / currLeads.length) * 100 : 0;
     const leadToTrial = currLeads.length > 0 ? (trialLeads / currLeads.length) * 100 : 0;
     const trialToCvr = trialLeads > 0 ? (convertedLeads / trialLeads) * 100 : 0;
-
     const srcMap: Record<string, { count: number; converted: number }> = {};
-    currLeads.forEach(l => {
-      const src = l.source || 'Unknown';
-      srcMap[src] = srcMap[src] || { count: 0, converted: 0 };
-      srcMap[src].count++;
-      if (isLeadConverted(l)) srcMap[src].converted++;
-    });
+    currLeads.forEach(l => { const src = l.source || 'Unknown'; srcMap[src] = srcMap[src] || { count: 0, converted: 0 }; srcMap[src].count++; if (isLeadConverted(l)) srcMap[src].converted++; });
     const topSources = Object.entries(srcMap).map(([name, v]) => ({ name, count: v.count, cvr: v.count > 0 ? (v.converted / v.count) * 100 : 0 })).sort((a, b) => b.count - a.count).slice(0, 5);
 
-    // New clients
     const currCli = newClientData.filter(c => inRange(c.firstVisitDate, currRange.start, currRange.end) && matchesLocation(c.firstVisitLocation || c.homeLocation || '', loc));
     const prevCli = newClientData.filter(c => inRange(c.firstVisitDate, prevRange.start, prevRange.end) && matchesLocation(c.firstVisitLocation || c.homeLocation || '', loc));
     const converted2 = currCli.filter(c => (c.conversionStatus || '').toLowerCase().includes('converted')).length;
@@ -517,15 +488,13 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
     const prevConvRate = prevCli.length > 0 ? (prevCli.filter(c => (c.conversionStatus || '').toLowerCase().includes('converted')).length / prevCli.length) * 100 : 0;
     const prevRetRate = prevCli.length > 0 ? (prevCli.filter(c => (c.retentionStatus || '').toLowerCase().includes('retained')).length / prevCli.length) * 100 : 0;
 
-    // Expirations
     const currExp = expirationsData.filter(e => inRange(e.endDate, currRange.start, currRange.end) && matchesLocation(e.homeLocation || e.primaryLocation || '', loc));
     const prevExp = expirationsData.filter(e => inRange(e.endDate, prevRange.start, prevRange.end) && matchesLocation(e.homeLocation || e.primaryLocation || '', loc));
     const avgDaysActive = currExp.length > 0 ? currExp.reduce((a, e) => a + ((e as any).daysActive || 0), 0) / currExp.length : 0;
     const memBreakdown: Record<string, number> = {};
     currExp.forEach(e => { const m = e.membershipName || 'Unknown'; memBreakdown[m] = (memBreakdown[m] || 0) + 1; });
-    const churnByMem = Object.entries(memBreakdown).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, count]) => ({ name: name.length > 25 ? name.slice(0, 25) + '…' : name, count }));
+    const churnByMem = Object.entries(memBreakdown).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, count]) => ({ name: name.length > 28 ? name.slice(0, 28) + '…' : name, count }));
 
-    // Late cancellations
     const currLC = lateCancelData.filter(lc => inRange(lc.sessionDateIST || lc.dateIST || '', currRange.start, currRange.end) && matchesLocation(lc.location || '', loc));
     const prevLC = lateCancelData.filter(lc => inRange(lc.sessionDateIST || lc.dateIST || '', prevRange.start, prevRange.end) && matchesLocation(lc.location || '', loc));
     const sameDayLC = currLC.filter(lc => lc.isSameDayCancellation).length;
@@ -533,37 +502,28 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
     const lcRatio = currSess.length > 0 ? (currLC.length / currSess.length) * 100 : 0;
 
     return {
-      // Revenue
       currRevenue: currRev, prevRevenue: prevRev, yoyRevenue: yoyRev,
       currTransactions: currS.length, prevTransactions: prevS.length,
-      uniqueMembers, atv, prevAtv,
-      discountPenetration, totalDiscount, discountedTxns,
+      uniqueMembers, atv, prevAtv, discountPenetration, totalDiscount, discountedTxns,
       topCats, pkgRev, memRev, dropRev, revTrend,
-      // Sessions
       totalSessions: currSess.length, prevSessions: prevSess.length,
       totalCheckins, prevCheckins, fillRate, prevFillRate,
       classAvg, nonEmptyAvg, prevClassAvg, emptySessions, emptyPct,
       formats, sessTrend, peakDay, dayData,
-      // Trainers
       trainers: trainers.slice(0, 8), topTrainer, bottomTrainer, totalTrainers: currPay.length,
       totalCustomers, prevCustomers,
-      // Leads
       totalLeads: currLeads.length, prevLeads: prevLeads.length, trialLeads, convertedLeads,
       leadCvr, leadToTrial, trialToCvr, topSources,
-      // Clients
       newClients: currCli.length, prevNewClients: prevCli.length,
       converted: converted2, retained: retained2, convRate, retRate,
       prevConvRate, prevRetRate, avgLTV,
-      // Churn
       churnedMembers: currExp.length, prevChurned: prevExp.length,
       avgDaysActive, churnByMem,
-      // Late cancels
       lcCount: currLC.length, prevLCCount: prevLC.length,
       sameDayLC, lcPenalties, lcRatio,
     };
   }, [salesData, sessionsData, payrollData, newClientData, expirationsData, lateCancelData, leadsData, salesLoading, studio, month, year, currRange, prevRange, yoyRange, monthName, prevMonthName, prevMonthYear]);
 
-  // AI narrative state — must be declared before any early returns
   const [aiNarrative, setAiNarrative] = useState<LocationReportNarrative | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const aiMetricsKey = useRef('');
@@ -577,39 +537,25 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
     setAiNarrative(null);
     const h = computeHealthScore({ ...metrics, conversionRate: metrics.convRate, retentionRate: metrics.retRate });
     const payload = {
-      totalRevenue: metrics.currRevenue,
-      netRevenue: metrics.currRevenue,
-      vatAmount: 0,
-      totalTransactions: metrics.currTransactions,
-      uniqueMembers: metrics.uniqueMembers,
-      avgTransactionValue: metrics.atv,
-      avgSpendPerMember: metrics.uniqueMembers > 0 ? metrics.currRevenue / metrics.uniqueMembers : 0,
-      totalDiscounts: metrics.totalDiscount,
-      discountRate: metrics.discountPenetration,
-      totalSessions: metrics.totalSessions,
-      totalCheckIns: metrics.totalCheckins,
+      totalRevenue: metrics.currRevenue, netRevenue: metrics.currRevenue, vatAmount: 0,
+      totalTransactions: metrics.currTransactions, uniqueMembers: metrics.uniqueMembers,
+      avgTransactionValue: metrics.atv, avgSpendPerMember: metrics.uniqueMembers > 0 ? metrics.currRevenue / metrics.uniqueMembers : 0,
+      totalDiscounts: metrics.totalDiscount, discountRate: metrics.discountPenetration,
+      totalSessions: metrics.totalSessions, totalCheckIns: metrics.totalCheckins,
       fillRate: metrics.fillRate,
       powerCycleSessions: metrics.formats.find(f => f.name === 'PowerCycle')?.sessions ?? 0,
       barreSessions: metrics.formats.find(f => f.name === 'Barre')?.sessions ?? 0,
       strengthSessions: metrics.formats.find(f => f.name === 'Strength')?.sessions ?? 0,
-      lateCancellations: metrics.lcCount,
-      totalTrainers: metrics.totalTrainers,
-      avgClassSize: metrics.classAvg,
-      topTrainerName: metrics.topTrainer?.name ?? 'N/A',
-      topTrainerRevenue: 0,
-      newClientsAcquired: metrics.newClients,
-      conversionRate: metrics.convRate,
-      retentionRate: metrics.retRate,
+      lateCancellations: metrics.lcCount, totalTrainers: metrics.totalTrainers,
+      avgClassSize: metrics.classAvg, topTrainerName: metrics.topTrainer?.name ?? 'N/A',
+      topTrainerRevenue: 0, newClientsAcquired: metrics.newClients,
+      conversionRate: metrics.convRate, retentionRate: metrics.retRate,
       churnRate: metrics.prevChurned > 0 ? ((metrics.churnedMembers - metrics.prevChurned) / metrics.prevChurned) * 100 : 0,
-      churnedMembers: metrics.churnedMembers,
-      totalLeads: metrics.totalLeads,
-      leadsConverted: metrics.convertedLeads,
-      leadConversionRate: metrics.leadCvr,
-      overallScore: h.score,
-      prevRevenue: metrics.prevRevenue,
+      churnedMembers: metrics.churnedMembers, totalLeads: metrics.totalLeads,
+      leadsConverted: metrics.convertedLeads, leadConversionRate: metrics.leadCvr,
+      overallScore: h.score, prevRevenue: metrics.prevRevenue,
       revenueChangePct: metrics.prevRevenue > 0 ? ((metrics.currRevenue - metrics.prevRevenue) / metrics.prevRevenue) * 100 : 0,
-      prevFillRate: metrics.prevFillRate,
-      prevConversionRate: metrics.prevConvRate,
+      prevFillRate: metrics.prevFillRate, prevConversionRate: metrics.prevConvRate,
     };
     geminiService.generateLocationReport(payload, studio.label, `${monthName} ${year}`)
       .then(n => { setAiNarrative(n); setAiLoading(false); })
@@ -621,783 +567,790 @@ const Report: React.FC<{ studio: typeof STUDIOS[0]; month: string; year: string;
   const m = metrics;
   const health = computeHealthScore({ ...m, conversionRate: m.convRate, retentionRate: m.retRate });
 
-  // ── Narrative insight generators ───────────────────────────────────────────
+  // ── Revenue insights ────────────────────────────────────────────────────────
+  const revGrowth = delta(m.currRevenue, m.prevRevenue);
+  const atvGrowth = delta(m.atv, m.prevAtv);
+  const fillGrowth = delta(m.fillRate, m.prevFillRate);
+  const churnGrowth = delta(m.churnedMembers, m.prevChurned);
+  const lcGrowth = delta(m.lcCount, m.prevLCCount);
 
-  const revenueInsights = (() => {
-    const items: Array<{ type: 'win' | 'risk' | 'watch'; text: string }> = [];
-    const revGrowth = delta(m.currRevenue, m.prevRevenue);
-    const atvGrowth = delta(m.atv, m.prevAtv);
-
-    if (revGrowth >= 10) items.push({ type: 'win', text: `Revenue surged ${revGrowth.toFixed(1)}% MoM to ${fmt(m.currRevenue)}, an outstanding month that signals strong demand and execution. Momentum is clearly building.` });
-    else if (revGrowth >= 0) items.push({ type: 'watch', text: `Revenue grew ${revGrowth.toFixed(1)}% MoM to ${fmt(m.currRevenue)} — modest but positive progress. Identify which product categories drove growth to amplify them.` });
-    else items.push({ type: 'risk', text: `Revenue fell ${Math.abs(revGrowth).toFixed(1)}% MoM to ${fmt(m.currRevenue)} (from ${fmt(m.prevRevenue)}). Investigate whether this is seasonal softness or structural: compare with same month last year (${fmt(m.yoyRevenue)}).` });
-
-    if (m.discountPenetration > 35) items.push({ type: 'risk', text: `Discount penetration at ${pct(m.discountPenetration)} is elevated — ${m.discountedTxns} of ${m.currTransactions} transactions used a discount, totalling ${fmt(m.totalDiscount)} in concessions. This level of discounting is eroding margin and potentially training members to wait for deals.` });
-    else if (m.discountPenetration > 20) items.push({ type: 'watch', text: `${pct(m.discountPenetration)} of transactions carried a discount (${fmt(m.totalDiscount)} total). Manageable, but monitor closely — if it crosses 30% you risk a discount dependency culture.` });
-    else items.push({ type: 'win', text: `Discount penetration is healthy at ${pct(m.discountPenetration)}, meaning most revenue is being earned at full price. This protects margin and signals genuine demand.` });
-
-    if (atvGrowth > 5) items.push({ type: 'win', text: `Average transaction value rose to ${fmt(m.atv)} (up ${atvGrowth.toFixed(1)}% MoM), suggesting members are buying larger or more premium packages. Upsell strategies appear to be working.` });
-    else if (atvGrowth < -5) items.push({ type: 'risk', text: `Average transaction value slipped to ${fmt(m.atv)} (down ${Math.abs(atvGrowth).toFixed(1)}% MoM). This could indicate a mix shift toward smaller packages or discount-driven purchasing. Review product mix.` });
-
-    if (m.pkgRev > 0 && m.currRevenue > 0) {
-      const pkgShare = (m.pkgRev / m.currRevenue) * 100;
-      if (pkgShare > 50) items.push({ type: 'win', text: `Package sales dominate at ${pct(pkgShare)} of net revenue (${fmt(m.pkgRev)}), indicating strong commitment buying. This is the most predictable and valuable revenue type for the studio.` });
-    }
-
-    return items;
-  })();
-
-  const sessionInsights = (() => {
-    const items: Array<{ type: 'win' | 'risk' | 'watch'; text: string }> = [];
-    const fillGrowth = delta(m.fillRate, m.prevFillRate);
-
-    if (m.fillRate >= 75) items.push({ type: 'win', text: `Fill rate of ${pct(m.fillRate)} is excellent — classes are running at high utilisation. This validates your scheduling and is a strong signal for potential capacity expansion.` });
-    else if (m.fillRate >= 55) items.push({ type: 'watch', text: `Fill rate at ${pct(m.fillRate)} is decent but there is capacity headroom. With ${m.totalCheckins} check-ins across ${m.totalSessions} sessions, targeted marketing on under-attended slots could unlock additional revenue without added cost.` });
-    else items.push({ type: 'risk', text: `Fill rate of ${pct(m.fillRate)} is below the target threshold. At ${m.totalCheckins} check-ins across ${m.totalSessions} sessions, too many classes are running under-capacity. Consider rationalising the schedule or repositioning under-subscribed time slots.` });
-
-    if (m.emptyPct > 10) items.push({ type: 'risk', text: `${m.emptySessions} sessions (${pct(m.emptyPct)}) ran with zero check-ins. Every empty class is a direct cost with zero revenue offset. Audit these slots: time of day, trainer, format, and day of week to identify patterns.` });
-
-    if (fillGrowth > 0) items.push({ type: 'win', text: `Fill rate improved ${fillGrowth.toFixed(1)} percentage points MoM, from ${pct(m.prevFillRate)} to ${pct(m.fillRate)} — consistent improvement trend.` });
-    else if (fillGrowth < -5) items.push({ type: 'risk', text: `Fill rate dropped ${Math.abs(fillGrowth).toFixed(1)} points MoM. Cross-reference with late cancellation data — a rise in last-minute dropouts may be artificially depressing fill metrics.` });
-
-    if (m.formats.length > 1) {
-      const best = [...m.formats].sort((a, b) => b.fillRate - a.fillRate)[0];
-      const worst = [...m.formats].sort((a, b) => a.fillRate - b.fillRate)[0];
-      if (best.name !== worst.name) {
-        items.push({ type: 'watch', text: `Format gap: ${best.name} leads with ${pct(best.fillRate)} fill rate and ${best.classAvg.toFixed(1)} avg class size, while ${worst.name} trails at ${pct(worst.fillRate)}. The ${worst.name} schedule may need pruning or promotion to close this gap.` });
-      }
-    }
-
-    if (m.peakDay) items.push({ type: 'watch', text: `${m.peakDay} is the busiest attendance day. Ensure trainer allocation, front-desk staffing, and class capacity are optimised for peak-day demand.` });
-
-    return items;
-  })();
-
-  const funnelInsights = (() => {
-    const items: Array<{ type: 'win' | 'risk' | 'watch'; text: string }> = [];
-
-    if (m.totalLeads > 0) {
-      if (m.leadToTrial < 30) items.push({ type: 'risk', text: `Only ${pct(m.leadToTrial)} of leads (${m.trialLeads} of ${m.totalLeads}) actually completed a trial. The biggest drop in your funnel is at lead→trial — your outreach quality or follow-up speed needs attention.` });
-      else items.push({ type: 'win', text: `${pct(m.leadToTrial)} lead-to-trial rate — ${m.trialLeads} of ${m.totalLeads} leads showed up for a session. Above-average pipeline conversion.` });
-
-      if (m.trialToCvr < 40) items.push({ type: 'risk', text: `Trial-to-membership conversion at ${pct(m.trialToCvr)} means more than 6 in 10 trialists are not converting. Identify whether the barrier is price, schedule, experience, or follow-up — each has a different intervention.` });
-      else items.push({ type: 'win', text: `${pct(m.trialToCvr)} of trialists are converting to membership — strong post-trial experience and sales follow-through.` });
-    }
-
-    if (m.convRate < 30) items.push({ type: 'risk', text: `New member conversion rate at ${pct(m.convRate)} (${m.converted} of ${m.newClients}) is below the 40% benchmark. At an average LTV of ${fmt(m.avgLTV)}, each unconverted trialist represents a missed ${fmt(m.avgLTV)} revenue opportunity.` });
-    else if (m.convRate >= 50) items.push({ type: 'win', text: `Strong ${pct(m.convRate)} conversion rate — ${m.converted} of ${m.newClients} new members are committing to memberships. Your onboarding experience and sales process are working.` });
-    else items.push({ type: 'watch', text: `Conversion rate of ${pct(m.convRate)} is reasonable but the gap between ${m.newClients} trialists and ${m.converted} converted members (${m.newClients - m.converted} not converting) represents significant untapped LTV.` });
-
-    if (m.retRate < 25) items.push({ type: 'risk', text: `Post-conversion retention at ${pct(m.retRate)} is concerning — members are converting but not staying. Focus on the critical 30–60 day post-purchase window with engagement programming.` });
-    else if (m.retRate >= 45) items.push({ type: 'win', text: `${pct(m.retRate)} retention rate — converted members are staying and building habits. This is the foundation of your LTV and recurring revenue base.` });
-
-    if (m.topSources.length > 0) {
-      const topSrc = m.topSources[0];
-      const highCvrSrc = [...m.topSources].sort((a, b) => b.cvr - a.cvr)[0];
-      if (highCvrSrc && highCvrSrc.name !== topSrc.name) {
-        items.push({ type: 'watch', text: `While ${topSrc.name} drives the most leads (${topSrc.count}), ${highCvrSrc.name} has the highest conversion quality at ${pct(highCvrSrc.cvr)}. Double down on ${highCvrSrc.name} for better quality-adjusted pipeline.` });
-      }
-    }
-
-    return items;
-  })();
-
-  const churnInsights = (() => {
-    const items: Array<{ type: 'win' | 'risk' | 'watch'; text: string }> = [];
-    const churnGrowth = delta(m.churnedMembers, m.prevChurned);
-
-    if (m.churnedMembers === 0) {
-      items.push({ type: 'win', text: 'No membership expirations recorded this period — excellent retention or no memberships reaching end-of-term.' });
-    } else {
-      if (churnGrowth > 20) items.push({ type: 'risk', text: `Churn spiked ${churnGrowth.toFixed(0)}% MoM — ${m.churnedMembers} lapsed vs ${m.prevChurned} last month. This acceleration is a red flag. Check if a specific membership type or batch renewal is driving this.` });
-      else if (churnGrowth <= 0) items.push({ type: 'win', text: `Lapsed members fell ${Math.abs(churnGrowth).toFixed(0)}% MoM to ${m.churnedMembers} — churn pressure is easing. Whatever retention actions are in place appear to be working.` });
-      else items.push({ type: 'watch', text: `${m.churnedMembers} memberships lapsed this month, up ${churnGrowth.toFixed(0)}% from last month. Monitor momentum: sequential increases indicate structural retention weakness.` });
-
-      if (m.avgDaysActive > 0 && m.avgDaysActive < 45) items.push({ type: 'risk', text: `Lapsing members were active for only ${m.avgDaysActive.toFixed(0)} days on average — this indicates early-stage dropout, not natural membership end. The critical intervention window is the first 4–6 weeks post-purchase.` });
-      else if (m.avgDaysActive > 180) items.push({ type: 'watch', text: `Lapsing members had ${m.avgDaysActive.toFixed(0)} average days of activity before expiring. These are long-term members — re-engagement campaigns are worth the effort given their demonstrated commitment history.` });
-    }
-
-    if (m.churnByMem.length > 0 && m.churnedMembers > 0) {
-      const topChurnMem = m.churnByMem[0];
-      items.push({ type: 'watch', text: `"${topChurnMem.name}" is the most frequently lapsing membership type with ${topChurnMem.count} expirations this month. Consider a targeted re-enrolment campaign for this segment.` });
-    }
-
-    return items;
-  })();
-
-  const lcInsights = (() => {
-    const items: Array<{ type: 'win' | 'risk' | 'watch'; text: string }> = [];
-    const lcGrowth = delta(m.lcCount, m.prevLCCount);
-
-    if (m.lcCount === 0) {
-      items.push({ type: 'win', text: 'Zero late cancellations this period — exceptional member commitment and scheduling discipline.' });
-    } else {
-      if (m.lcRatio > 20) items.push({ type: 'risk', text: `Late cancellation rate of ${pct(m.lcRatio)} per session (${m.lcCount} cancellations) is high. This is both a revenue risk and a scheduling burden — spots booked are not being filled, blocking genuine demand from getting in.` });
-      else if (m.lcRatio < 8) items.push({ type: 'win', text: `Late cancellation rate of ${pct(m.lcRatio)} per session is well-controlled. Low LC rates indicate committed members and effective booking policies.` });
-
-      if (m.sameDayLC > 0) {
-        const sdPct = (m.sameDayLC / m.lcCount) * 100;
-        if (sdPct > 50) items.push({ type: 'risk', text: `${pct(sdPct)} of cancellations (${m.sameDayLC}) are same-day. Same-day cancellations leave no time to fill spots — stricter enforcement or pre-booking incentives could meaningfully recover occupancy.` });
-      }
-
-      if (m.lcPenalties > 0) {
-        const penPct = (m.lcPenalties / m.lcCount) * 100;
-        if (penPct < 40) items.push({ type: 'watch', text: `Penalty enforcement rate is only ${pct(penPct)} — ${m.lcPenalties} of ${m.lcCount} late cancellations were charged. Inconsistent enforcement undermines the policy's deterrent effect.` });
-        else items.push({ type: 'win', text: `${pct(penPct)} penalty enforcement rate (${m.lcPenalties} of ${m.lcCount} charged) — policy is being applied consistently, which helps deter repeat behaviour.` });
-      }
-
-      if (lcGrowth > 25) items.push({ type: 'risk', text: `Late cancellations rose ${lcGrowth.toFixed(0)}% MoM to ${m.lcCount}. Identify if a specific trainer, time slot, or class format is driving the increase.` });
-      else if (lcGrowth < -15) items.push({ type: 'win', text: `Late cancellations dropped ${Math.abs(lcGrowth).toFixed(0)}% MoM — positive improvement, likely driven by better policy communication or booking commitment incentives.` });
-    }
-
-    return items;
-  })();
-
-  const trainerInsights = (() => {
-    const items: Array<{ type: 'win' | 'risk' | 'watch'; text: string }> = [];
-    if (!m.topTrainer) {
-      items.push({ type: 'watch', text: 'No payroll data matched for this period. Trainer insights will populate once payroll data is recorded.' });
-      return items;
-    }
-    items.push({ type: 'win', text: `${m.topTrainer.name} leads the studio with ${num(m.topTrainer.customers)} customers across ${m.topTrainer.sessions} sessions — a class average of ${m.topTrainer.classAvg.toFixed(1)}. This trainer is a key driver of attendance revenue.` });
-    if (m.topTrainer.classAvg > 12) items.push({ type: 'win', text: `${m.topTrainer.name}'s class average of ${m.topTrainer.classAvg.toFixed(1)} indicates magnetic demand. Ensure this trainer's schedule is optimised and retention programs are in place.` });
-    if (m.bottomTrainer && m.bottomTrainer.classAvg < 5 && m.bottomTrainer.sessions > 2) {
-      items.push({ type: 'risk', text: `${m.bottomTrainer.name} is averaging only ${m.bottomTrainer.classAvg.toFixed(1)} members per non-empty class across ${m.bottomTrainer.sessions} sessions. This trainer needs support: observe class experience, solicit member feedback, or review schedule placement.` });
-    }
-    const customerGrowth = delta(m.totalCustomers, m.prevCustomers);
-    if (customerGrowth > 0) items.push({ type: 'win', text: `Studio-wide trainer-attributed customers grew ${customerGrowth.toFixed(1)}% MoM to ${num(m.totalCustomers)}, indicating healthy and growing class demand across the trainer roster.` });
-    else if (customerGrowth < -10) items.push({ type: 'risk', text: `Trainer-attributed customers dropped ${Math.abs(customerGrowth).toFixed(1)}% MoM. This could signal scheduling changes, trainer churn, or member drift — investigate before the trend compounds.` });
-
-    return items;
-  })();
-
-  // ── Health score ring SVG ────────────────────────────────────────────────
-  const ringCircumference = 2 * Math.PI * 44;
-  const ringProgress = (health.score / 100) * ringCircumference;
+  // hero KPI tone helper
+  const revTone: 'good' | 'warn' | 'bad' = revGrowth >= 5 ? 'good' : revGrowth >= -5 ? 'warn' : 'bad';
+  const fillTone: 'good' | 'warn' | 'bad' = m.fillRate >= 65 ? 'good' : m.fillRate >= 45 ? 'warn' : 'bad';
+  const convTone: 'good' | 'warn' | 'bad' = m.convRate >= 40 ? 'good' : m.convRate >= 25 ? 'warn' : 'bad';
+  const churnTone: 'good' | 'warn' | 'bad' = churnGrowth <= -10 ? 'good' : churnGrowth <= 10 ? 'warn' : 'bad';
 
   return (
-    <div className="min-h-screen" style={{ background: P.navy, fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div className={`exec-report${lightMode ? ' light' : ''}`}>
 
-      {/* ── Hero ── */}
-      <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${P.navyCard} 0%, ${P.navyMid} 100%)`, borderBottom: `1px solid ${P.gold}20` }}>
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-20 right-0 w-[500px] h-[400px] opacity-6 rounded-full" style={{ background: P.gold, filter: 'blur(100px)' }} />
-          <svg className="absolute inset-0 w-full h-full opacity-[0.018]" xmlns="http://www.w3.org/2000/svg">
-            <defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="white" strokeWidth="0.5" /></pattern></defs>
-            <rect width="100%" height="100%" fill="url(#hg)" />
-          </svg>
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-9">
-          <div className="flex items-center justify-between flex-wrap gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-3 flex-wrap">
-                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase"
-                  style={{ background: `${P.gold}18`, border: `1px solid ${P.gold}40`, color: P.gold }}>
-                  <Star size={10} /> Executive Report
-                </span>
-                <span className="px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{ background: `${P.blue}20`, color: P.blueLight, border: `1px solid ${P.blue}30` }}>{studio.city}</span>
-                <span className="px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{ background: `${health.color}20`, color: health.color, border: `1px solid ${health.color}40` }}>
-                  Studio Health: {health.label}
-                </span>
-              </div>
-              <h1 className="text-4xl font-black tracking-tight mb-1" style={{ color: P.cream, letterSpacing: '-0.025em' }}>{studio.label}</h1>
-              <p className="text-lg font-light" style={{ color: `${P.cream}55` }}>{monthName} {year} · Performance Intelligence Report</p>
+      {/* ── Topbar ── */}
+      <div className="er-topbar">
+        <div className="er-topbar-inner">
+          <div className="er-brand">
+            <div className="er-brand-mark" />
+            <div className="er-brand-text">
+              {studio.label} · Studio Pulse
+              <small>Performance Report · {monthName} {year}</small>
             </div>
-            <div className="flex items-center gap-6">
-              {/* Health score ring */}
-              <div className="relative flex items-center justify-center">
-                <svg width="100" height="100" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="44" fill="none" stroke={`${health.color}20`} strokeWidth="8" />
-                  <circle cx="50" cy="50" r="44" fill="none" stroke={health.color} strokeWidth="8"
-                    strokeDasharray={`${ringProgress} ${ringCircumference}`}
-                    strokeLinecap="round" strokeDashoffset={ringCircumference / 4}
-                    style={{ transition: 'stroke-dasharray 1s ease' }} />
-                  <text x="50" y="46" textAnchor="middle" fontSize="22" fontWeight="900" fill={health.color}>{health.score}</text>
-                  <text x="50" y="61" textAnchor="middle" fontSize="9" fontWeight="600" fill={`${P.cream}60`} letterSpacing="2">HEALTH</text>
-                </svg>
-              </div>
-              <div className="space-y-2 text-right">
-                <div>
-                  <div className="text-2xl font-black" style={{ color: P.gold }}>{fmt(m.currRevenue)}</div>
-                  <div className="text-xs" style={{ color: P.creamMuted }}>Net Revenue · <Chip value={delta(m.currRevenue, m.prevRevenue)} /></div>
-                </div>
-                <div>
-                  <div className="text-2xl font-black" style={{ color: P.cream }}>{pct(m.fillRate)}</div>
-                  <div className="text-xs" style={{ color: P.creamMuted }}>Fill Rate</div>
-                </div>
-              </div>
-              <button onClick={onReset}
-                className="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all"
-                style={{ background: `${P.gold}12`, border: `1px solid ${P.gold}30`, color: P.gold }}>
-                <RefreshCw size={12} /> Change
-              </button>
-            </div>
+          </div>
+          <div className="er-topbar-actions">
+            <button className="er-back-btn" onClick={onReset}>
+              <ArrowLeft size={13} /> New Report
+            </button>
+            <button className="er-theme-toggle" onClick={() => setLightMode(l => !l)}>
+              {lightMode ? <Moon size={14} /> : <Sun size={14} />}
+              {lightMode ? 'Dark' : 'Light'}
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-10">
+      {/* ── Hero ── */}
+      <section className="er-hero">
+        <div className="er-container er-hero-content">
+          <div className="er-hero-eyebrow">
+            <span className="dot">{studio.abbr}</span>
+            Senior Management Review · {monthName} {year}
+          </div>
+          <h1>
+            {studio.label} <span className="accent-word">studio performance</span><br />
+            for <span className="accent-yellow">{monthName} {year}</span> — revenue, sessions, funnel and retention.
+          </h1>
+          <p className="er-hero-sub">
+            A data-led review of {studio.label}'s commercial and operational performance in {monthName} {year},
+            benchmarked against {prevMonthName} {prevMonthYear}. Every section surfaces a business decision
+            — class schedule, trainer deployment, discount discipline, membership retention — that management can act on.
+          </p>
 
-        {/* ── AI Cockpit Readout ── */}
-        <section>
-          <div className="rounded-3xl overflow-hidden" style={{ background: `linear-gradient(135deg, ${P.navyCard} 0%, ${P.navyMid} 100%)`, border: `1px solid ${P.gold}30` }}>
-            {/* Header */}
-            <div className="flex items-center justify-between px-7 py-5" style={{ borderBottom: `1px solid ${P.gold}18` }}>
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl" style={{ background: `${P.gold}18`, border: `1px solid ${P.gold}35` }}>
-                  <Zap size={18} style={{ color: P.gold }} />
-                </div>
-                <div>
-                  <h2 className="text-base font-black tracking-tight" style={{ color: P.cream }}>AI Executive Readout</h2>
-                  <p className="text-xs mt-0.5" style={{ color: P.creamMuted }}>Gemini Intelligence · {monthName} {year} · {studio.label}</p>
-                </div>
-              </div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
-                style={{ background: `${health.color}18`, border: `1px solid ${health.color}35`, color: health.color }}>
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: health.color }} />
-                {health.label} · {health.score}/100
-              </span>
+          <div className="er-hero-meta">
+            <div className="er-hero-meta-item">
+              <span className="meta-label">Location</span>
+              <span className="meta-value">{studio.label}, {studio.area}</span>
+            </div>
+            <div className="er-hero-meta-item">
+              <span className="meta-label">Period</span>
+              <span className="meta-value">01 {monthName} {year} — {new Date(parseInt(year), parseInt(month), 0).getDate()} {monthName} {year}</span>
+            </div>
+            <div className="er-hero-meta-item">
+              <span className="meta-label">Reporting basis</span>
+              <span className="meta-value">Net Sales · {num(m.totalSessions)} sessions · {num(m.uniqueMembers)} unique buyers</span>
+            </div>
+            <div className="er-hero-meta-item">
+              <span className="meta-label">Comparator</span>
+              <span className="meta-value">{prevMonthName} {prevMonthYear} · YoY</span>
+            </div>
+            <div className="er-hero-meta-item">
+              <span className="meta-label">Studio Health</span>
+              <span className="meta-value" style={{ color: health.color, fontWeight: 700 }}>{health.grade} — {health.label} ({health.score}/100)</span>
+            </div>
+          </div>
+
+          <div className="er-kpi-grid">
+            <KpiCard
+              label="Net Revenue" value={fmt(m.currRevenue)}
+              sub={`Prev ${fmt(m.prevRevenue)}`}
+              tone={revTone}
+              mom={revGrowth} yoy={m.yoyRevenue > 0 ? delta(m.currRevenue, m.yoyRevenue) : undefined}
+              baseline={m.prevRevenue > 0 ? `${revGrowth >= 0 ? '+' : ''}${revGrowth.toFixed(1)}% vs ${prevMonthName}` : undefined}
+            />
+            <KpiCard
+              label="Visits" value={num(m.totalCheckins)}
+              sub={`Across ${num(m.totalSessions)} sessions`}
+              tone={fillTone}
+              mom={delta(m.totalCheckins, m.prevCheckins)}
+            />
+            <KpiCard
+              label="Fill Rate" value={pct(m.fillRate)}
+              sub={`${pct(m.prevFillRate)} prior month`}
+              tone={fillTone}
+              mom={fillGrowth}
+              baseline={`Class avg ${m.classAvg.toFixed(1)} · ${num(m.totalSessions)} sessions`}
+            />
+            <KpiCard
+              label="Transactions" value={num(m.currTransactions)}
+              sub={`ATV ${fmt(m.atv)}`}
+              tone="neutral"
+              mom={delta(m.currTransactions, m.prevTransactions)}
+            />
+            <KpiCard
+              label="Conv. Rate" value={pct(m.convRate)}
+              sub={`${num(m.converted)} of ${num(m.newClients)} new clients`}
+              tone={convTone}
+              mom={delta(m.convRate, m.prevConvRate)}
+            />
+            <KpiCard
+              label="Lapsed" value={num(m.churnedMembers)}
+              sub={`${num(m.prevChurned)} prior month`}
+              tone={churnTone}
+              mom={churnGrowth} inverse
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Sections ── */}
+      <main>
+
+        {/* 01 · Executive Summary */}
+        <section className="er-section" id="exec-summary">
+          <div className="er-container">
+            <SectionHeader
+              eyebrow="01 · Executive Summary"
+              title="One-page view of the studio's health, what worked, what didn't, and the top actions for next month."
+              deck={aiLoading ? 'Generating AI narrative…' : aiNarrative?.summary || `${monthName} ${year}: ${fmt(m.currRevenue)} net revenue · ${pct(m.fillRate)} fill rate · ${pct(m.convRate)} conversion · ${num(m.churnedMembers)} lapsed members.`}
+              anchor="Section 01 / 07"
+            />
+
+            {/* Health score */}
+            <div className="er-callout">
+              <strong>Studio Health Score: {health.grade} ({health.score}/100) — {health.label}.</strong>{' '}
+              {health.grade === 'A' && 'The studio is firing on all cylinders. Maintain momentum and push for capacity expansion.'}
+              {health.grade === 'B' && 'Solid performance with clear upside. Address the highlighted gaps to break into the top tier.'}
+              {health.grade === 'C' && 'The studio needs attention on its key drivers. The actions below are prioritised for maximum impact.'}
+              {health.grade === 'D' && 'Structural issues require urgent management intervention. Focus on the top two action items immediately.'}
             </div>
 
-            {aiLoading && !aiNarrative ? (
-              <div className="px-7 py-10 flex flex-col items-center gap-4">
-                <div className="flex gap-1.5">
-                  {[0,1,2,3].map(i => (
-                    <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: P.gold, animationDelay: `${i*0.12}s`, opacity: 0.6 }} />
+            {/* AI narrative blocks if available */}
+            {aiNarrative && (
+              <div className="er-split-grid">
+                <div className="er-insights-pane">
+                  <div className="er-pane-title">Key insights</div>
+                  {(aiNarrative.keyInsights || []).slice(0, 5).map((ins: string, i: number) => (
+                    <InsightItem key={i} num={i + 1} title={`Insight ${i + 1}`} text={ins} />
                   ))}
                 </div>
-                <p className="text-sm" style={{ color: P.creamMuted }}>Analysing {monthName} {year} data…</p>
-              </div>
-            ) : aiNarrative ? (
-              <div className="p-7 space-y-6">
-                {/* Verdict pill */}
-                {aiNarrative.overallVerdict && (
-                  <div className="px-5 py-3.5 rounded-2xl" style={{ background: `${P.gold}10`, border: `1px solid ${P.gold}25` }}>
-                    <p className="text-sm font-semibold leading-relaxed" style={{ color: P.cream }}>
-                      <span className="font-black" style={{ color: P.gold }}>Verdict: </span>
-                      {aiNarrative.overallVerdict}
-                    </p>
-                  </div>
-                )}
-
-                {/* Executive summary */}
-                {aiNarrative.executiveSummary && (
-                  <div>
-                    <p className="text-[11px] font-bold tracking-widest uppercase mb-2" style={{ color: `${P.creamMuted}` }}>Executive Summary</p>
-                    <p className="text-sm leading-relaxed" style={{ color: `${P.cream}85` }}>{aiNarrative.executiveSummary}</p>
-                  </div>
-                )}
-
-                {/* Three columns: narratives */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[
-                    { label: 'Revenue', text: aiNarrative.revenueNarrative, accent: P.gold },
-                    { label: 'Operations', text: aiNarrative.operationsNarrative, accent: P.blue },
-                    { label: 'Clients & Retention', text: aiNarrative.clientNarrative, accent: P.green },
-                  ].filter(x => x.text).map(({ label, text, accent }) => (
-                    <div key={label} className="rounded-2xl p-4" style={{ background: `${accent}08`, border: `1px solid ${accent}20` }}>
-                      <p className="text-[10px] font-bold tracking-widest uppercase mb-2" style={{ color: accent }}>{label}</p>
-                      <p className="text-xs leading-relaxed" style={{ color: `${P.cream}75` }}>{text}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Highlights + Concerns + Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Highlights */}
-                  {aiNarrative.highlights?.length > 0 && (
-                    <div className="rounded-2xl p-4" style={{ background: `${P.green}08`, border: `1px solid ${P.green}20` }}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <CheckCircle size={13} style={{ color: P.green }} />
-                        <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: P.green }}>Highlights</span>
+                <div>
+                  {(aiNarrative.recommendations || []).length > 0 && (
+                    <>
+                      <div className="er-subsection" style={{ marginTop: 0 }}>
+                        <h3 className="er-subsection-title">Priority actions</h3>
                       </div>
-                      <ul className="space-y-2">
-                        {aiNarrative.highlights.map((h, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="mt-1 w-1.5 h-1.5 rounded-full shrink-0" style={{ background: P.greenLight }} />
-                            <span className="text-xs leading-relaxed" style={{ color: `${P.cream}75` }}>{h}</span>
-                          </li>
+                      <div className="er-action-grid">
+                        {(aiNarrative.recommendations || []).slice(0, 4).map((rec: string, i: number) => (
+                          <ActionCard key={i} num={i + 1} title={`Action ${i + 1}`} text={rec} priority={i === 0 ? 'High' : i === 1 ? 'High' : 'Medium'} impact={i < 2 ? 'High' : 'Medium'} />
                         ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Concerns */}
-                  {aiNarrative.concerns?.length > 0 && (
-                    <div className="rounded-2xl p-4" style={{ background: `${P.red}08`, border: `1px solid ${P.red}20` }}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <AlertTriangle size={13} style={{ color: P.red }} />
-                        <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: P.red }}>Watch Points</span>
                       </div>
-                      <ul className="space-y-2">
-                        {aiNarrative.concerns.map((c, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="mt-1 w-1.5 h-1.5 rounded-full shrink-0" style={{ background: P.redLight }} />
-                            <span className="text-xs leading-relaxed" style={{ color: `${P.cream}75` }}>{c}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Recommendations */}
-                  {aiNarrative.recommendations?.length > 0 && (
-                    <div className="rounded-2xl p-4" style={{ background: `${P.gold}08`, border: `1px solid ${P.gold}20` }}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <ArrowRight size={13} style={{ color: P.gold }} />
-                        <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: P.gold }}>Actions</span>
-                      </div>
-                      <ul className="space-y-2">
-                        {aiNarrative.recommendations.map((r, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="mt-1 text-[10px] font-black shrink-0" style={{ color: P.gold }}>{i + 1}.</span>
-                            <span className="text-xs leading-relaxed" style={{ color: `${P.cream}75` }}>{r}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    </>
                   )}
                 </div>
               </div>
-            ) : (
-              <div className="px-7 py-6">
-                <p className="text-sm text-center" style={{ color: `${P.creamMuted}70` }}>AI readout unavailable. Detailed insights below.</p>
+            )}
+
+            {/* Worked / Didn't Work */}
+            <div className="er-subsection">
+              <h3 className="er-subsection-title">What worked · What didn't</h3>
+              <p className="er-subsection-deck">Data-driven assessment of the studio's operational performance in {monthName} {year}.</p>
+            </div>
+            <div className="er-worked-grid">
+              <WorkedCard
+                worked={revGrowth >= 0}
+                title={revGrowth >= 0 ? 'Revenue grew MoM' : 'Revenue contracted MoM'}
+                text={<>Net revenue {revGrowth >= 0 ? 'increased' : 'fell'} <strong>{Math.abs(revGrowth).toFixed(1)}%</strong> to <strong>{fmt(m.currRevenue)}</strong> vs {fmt(m.prevRevenue)} prior month.</>}
+              />
+              <WorkedCard
+                worked={m.discountPenetration < 25}
+                title={m.discountPenetration < 25 ? 'Discount discipline maintained' : 'Discount penetration elevated'}
+                text={<><strong>{pct(m.discountPenetration)}</strong> of transactions carried a discount ({fmt(m.totalDiscount)} total). {m.discountPenetration >= 25 ? 'This level erodes margin and may signal deal-dependency.' : 'Most revenue earned at full price — healthy margin profile.'}</>}
+              />
+              <WorkedCard
+                worked={m.fillRate >= 55}
+                title={m.fillRate >= 55 ? 'Fill rate at healthy level' : 'Fill rate below target'}
+                text={<><strong>{pct(m.fillRate)}</strong> fill rate across {num(m.totalSessions)} sessions ({num(m.totalCheckins)} check-ins). Class average: <strong>{m.classAvg.toFixed(1)}</strong>.</>}
+              />
+              <WorkedCard
+                worked={m.convRate >= 35}
+                title={m.convRate >= 35 ? 'Conversion funnel working' : 'Conversion needs work'}
+                text={<><strong>{pct(m.convRate)}</strong> new member conversion rate — {num(m.converted)} of {num(m.newClients)} new clients committed to memberships.</>}
+              />
+              <WorkedCard
+                worked={m.lcRatio < 15}
+                title={m.lcRatio < 15 ? 'Late cancels under control' : 'Late cancellation rate elevated'}
+                text={<><strong>{num(m.lcCount)}</strong> late cancellations ({pct(m.lcRatio)} per session). {m.sameDayLC > 0 ? `${num(m.sameDayLC)} were same-day.` : 'No same-day cancellations recorded.'}</>}
+              />
+              <WorkedCard
+                worked={churnGrowth <= 0}
+                title={churnGrowth <= 0 ? 'Churn trending down' : 'Churn trending up'}
+                text={<><strong>{num(m.churnedMembers)}</strong> memberships lapsed, {churnGrowth <= 0 ? 'down' : 'up'} <strong>{Math.abs(churnGrowth).toFixed(0)}%</strong> vs prior month ({num(m.prevChurned)}).</>}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* 02 · Revenue */}
+        <section className="er-section" id="revenue">
+          <div className="er-container">
+            <SectionHeader
+              eyebrow="02 · Revenue & Sales Performance"
+              title="Where the revenue came from, which categories carry margin, and the discount picture."
+              deck={`${monthName} ${year} closed at ${fmt(m.currRevenue)} net on ${num(m.currTransactions)} transactions, an ATV of ${fmt(m.atv)}. ${m.topCats.length > 0 ? `Top category: ${m.topCats[0].name} (${pct((m.topCats[0].value / m.currRevenue) * 100)} of revenue).` : ''}`}
+              anchor="Section 02 / 07"
+            />
+
+            <div className="er-split-grid">
+              <div className="er-insights-pane">
+                <div className="er-pane-title">Revenue insights</div>
+                {revGrowth >= 10 && <InsightItem num={1} title="Strong revenue growth" text={<>Revenue surged <strong>{revGrowth.toFixed(1)}%</strong> MoM to <strong>{fmt(m.currRevenue)}</strong>. Momentum is building.</>} />}
+                {revGrowth >= 0 && revGrowth < 10 && <InsightItem num={1} title="Modest positive growth" text={<>Revenue grew <strong>{revGrowth.toFixed(1)}%</strong> MoM to <strong>{fmt(m.currRevenue)}</strong>. Identify which categories drove this to amplify them.</>} />}
+                {revGrowth < 0 && <InsightItem num={1} title="Revenue declined MoM" text={<>Revenue fell <strong>{Math.abs(revGrowth).toFixed(1)}%</strong> to <strong>{fmt(m.currRevenue)}</strong> from {fmt(m.prevRevenue)}. YoY comparison: {fmt(m.yoyRevenue)}.</>} />}
+                <InsightItem num={2} title="ATV movement" text={<>Average transaction value is <strong>{fmt(m.atv)}</strong> ({atvGrowth >= 0 ? '+' : ''}{atvGrowth.toFixed(1)}% MoM). {atvGrowth > 5 ? 'Members are buying larger packages — upsell is working.' : atvGrowth < -5 ? 'Mix shift toward smaller packages. Review product strategy.' : 'Stable ATV — consistent purchasing behaviour.'}</>} />
+                <InsightItem num={3} title="Discount discipline" text={<><strong>{pct(m.discountPenetration)}</strong> discount penetration — {m.discountedTxns} of {m.currTransactions} transactions discounted (total {fmt(m.totalDiscount)} conceded). {m.discountPenetration > 30 ? 'This level risks training members to wait for deals.' : 'Healthy — most revenue earned at full price.'}</>} />
+                {m.topCats.length > 1 && <InsightItem num={4} title={`${m.topCats[0].name} leads`} text={<><strong>{m.topCats[0].name}</strong> is the largest revenue category at <strong>{fmt(m.topCats[0].value)}</strong> ({pct((m.topCats[0].value / m.currRevenue) * 100)}). {m.topCats[1].name} second at {fmt(m.topCats[1].value)}.</>} />}
+                {m.uniqueMembers > 0 && <InsightItem num={5} title="Buyer concentration" text={<><strong>{num(m.uniqueMembers)}</strong> unique buyers in {monthName}. Avg spend per buyer: <strong>{fmt(m.currRevenue / m.uniqueMembers)}</strong>. Building the repeat-buyer base protects against single-buyer concentration risk.</>} />}
+              </div>
+
+              <div className="er-data-pane">
+                <div className="er-pane-title">6-Month Revenue Trend</div>
+                <div style={{ padding: '8px 8px 16px' }}>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={m.revTrend}>
+                      <defs>
+                        <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={P.gold} stopOpacity={0.3} />
+                          <stop offset="95%" stopColor={P.gold} stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(236,236,236,0.06)" />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: P.creamMuted }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: 'rgba(236,236,236,0.4)' }} axisLine={false} tickLine={false} tickFormatter={v => fmt(v)} width={64} />
+                      <Tooltip content={(p) => <ChartTooltip {...p} prefix="₹" />} />
+                      <Area type="monotone" dataKey="revenue" name="Revenue" stroke={P.gold} strokeWidth={2.5} fill="url(#revGrad)" dot={{ fill: P.gold, r: 3 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {m.topCats.length > 0 && (
+                  <>
+                    <div className="er-pane-title" style={{ paddingLeft: 16, paddingTop: 8 }}>Revenue by Category</div>
+                    <div style={{ padding: '0 16px 16px' }}>
+                      <div className="er-table-wrap">
+                        <table className="er-data-table">
+                          <thead>
+                            <tr>
+                              <th>Category</th>
+                              <th>Revenue</th>
+                              <th>Share</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {m.topCats.map((cat, i) => {
+                              const share = m.currRevenue > 0 ? (cat.value / m.currRevenue) * 100 : 0;
+                              return (
+                                <tr key={i}>
+                                  <td className="metric-name">{cat.name}</td>
+                                  <td>{fmt(cat.value)}</td>
+                                  <td>
+                                    <div className="er-share-bar">
+                                      <div className="er-share-fill" style={{ width: `${share}%`, maxWidth: 80 }} />
+                                      <span>{pct(share)}</span>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            <tr className="er-totals-row">
+                              <td className="metric-name">Total</td>
+                              <td>{fmt(m.currRevenue)}</td>
+                              <td>100.0%</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 03 · Sessions */}
+        <section className="er-section" id="sessions">
+          <div className="er-container">
+            <SectionHeader
+              eyebrow="03 · Class Attendance & Utilisation"
+              title="Fill rates, format breakdown, peak day patterns and scheduling opportunities."
+              deck={`${num(m.totalCheckins)} visits across ${num(m.totalSessions)} sessions · ${pct(m.fillRate)} overall fill rate · Class average ${m.classAvg.toFixed(1)} (${m.nonEmptyAvg.toFixed(1)} excl. empty).${m.peakDay ? ` Peak day: ${m.peakDay}.` : ''}`}
+              anchor="Section 03 / 07"
+            />
+
+            <div className="er-split-grid">
+              <div className="er-insights-pane">
+                <div className="er-pane-title">Attendance insights</div>
+                {m.fillRate >= 75 && <InsightItem num={1} title="Fill rate excellent" text={<>Fill rate of <strong>{pct(m.fillRate)}</strong> — classes running at high utilisation. Signal for potential capacity expansion.</>} />}
+                {m.fillRate >= 50 && m.fillRate < 75 && <InsightItem num={1} title="Fill rate decent, headroom exists" text={<><strong>{pct(m.fillRate)}</strong> fill rate with capacity available. Targeted marketing on under-attended slots could unlock revenue without added cost.</>} />}
+                {m.fillRate < 50 && <InsightItem num={1} title="Fill rate below target" text={<>At <strong>{pct(m.fillRate)}</strong>, too many classes are running under-capacity. Consider rationalising the schedule or repositioning low-traffic slots.</>} />}
+                {m.emptyPct > 10 && <InsightItem num={2} title="Empty sessions are a cost leak" text={<><strong>{num(m.emptySessions)}</strong> sessions ({pct(m.emptyPct)}) ran with zero check-ins. Every empty class is a cost with no revenue offset. Audit by time, trainer and day.</>} />}
+                {fillGrowth > 0 && <InsightItem num={3} title="Fill rate trend improving" text={<>Fill rate improved <strong>{fillGrowth.toFixed(1)} pp</strong> MoM, from {pct(m.prevFillRate)} to {pct(m.fillRate)}. Consistent improvement trajectory.</>} />}
+                {fillGrowth < -5 && <InsightItem num={3} title="Fill rate declining" text={<>Fill rate dropped <strong>{Math.abs(fillGrowth).toFixed(1)} pp</strong> MoM. Cross-reference with late cancellation data — last-minute dropouts may be depressing fill metrics.</>} />}
+                {m.formats.length > 1 && (() => {
+                  const best = [...m.formats].sort((a, b) => b.fillRate - a.fillRate)[0];
+                  const worst = [...m.formats].sort((a, b) => a.fillRate - b.fillRate)[0];
+                  return best.name !== worst.name ? (
+                    <InsightItem num={4} title="Format gap" text={<><strong>{best.name}</strong> leads at {pct(best.fillRate)} fill rate; <strong>{worst.name}</strong> trails at {pct(worst.fillRate)}. The {worst.name} schedule may need pruning or promotion.</>} />
+                  ) : null;
+                })()}
+                {m.peakDay && <InsightItem num={5} title={`${m.peakDay} is peak day`} text={<>Optimise trainer allocation, front-desk staffing and class capacity for <strong>{m.peakDay}</strong> peak demand. Waitlist data on this day would clarify expansion potential.</>} />}
+              </div>
+
+              <div>
+                <div className="er-data-pane" style={{ marginBottom: 20 }}>
+                  <div className="er-pane-title">6-Month Fill Rate Trend</div>
+                  <div style={{ padding: '0 8px 16px' }}>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <AreaChart data={m.sessTrend}>
+                        <defs>
+                          <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={P.blue} stopOpacity={0.3} />
+                            <stop offset="95%" stopColor={P.blue} stopOpacity={0.02} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(236,236,236,0.06)" />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: P.creamMuted }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10, fill: 'rgba(236,236,236,0.4)' }} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} domain={[0, 100]} />
+                        <Tooltip content={(p) => <ChartTooltip {...p} suffix="%" />} />
+                        <Area type="monotone" dataKey="fillRate" name="Fill Rate" stroke={P.blue} strokeWidth={2.5} fill="url(#fillGrad)" dot={{ fill: P.blue, r: 3 }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                <div className="er-data-pane">
+                  <div className="er-pane-title">Check-ins by Day of Week</div>
+                  <div style={{ padding: '0 8px 16px' }}>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <BarChart data={m.dayData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(236,236,236,0.06)" vertical={false} />
+                        <XAxis dataKey="day" tick={{ fontSize: 11, fill: P.creamMuted }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10, fill: 'rgba(236,236,236,0.4)' }} axisLine={false} tickLine={false} />
+                        <Tooltip content={<ChartTooltip />} />
+                        <Bar dataKey="checkins" name="Check-ins" radius={[4, 4, 0, 0]}>
+                          {m.dayData.map((d, i) => <Cell key={i} fill={d.day === m.peakDay ? P.gold : P.primary} />)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Format breakdown table */}
+            {m.formats.length > 0 && (
+              <>
+                <div className="er-subsection">
+                  <h3 className="er-subsection-title">Format breakdown</h3>
+                </div>
+                <div className="er-data-pane">
+                  <div className="er-table-wrap">
+                    <table className="er-data-table">
+                      <thead>
+                        <tr>
+                          <th>Format</th>
+                          <th>Sessions</th>
+                          <th>Check-ins</th>
+                          <th>Fill Rate</th>
+                          <th>Class Avg</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {m.formats.map((f, i) => (
+                          <tr key={i}>
+                            <td className="metric-name">{f.name}</td>
+                            <td>{num(f.sessions)}</td>
+                            <td>{num(f.checkins)}</td>
+                            <td className={f.fillRate >= 65 ? 'er-fill-high' : f.fillRate >= 45 ? 'er-fill-mid' : 'er-fill-low'}>{pct(f.fillRate)}</td>
+                            <td>{f.classAvg.toFixed(1)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* 04 · Lead Funnel */}
+        <section className="er-section" id="funnel">
+          <div className="er-container">
+            <SectionHeader
+              eyebrow="04 · Lead Funnel & Acquisition"
+              title="Leads, trials, conversion and retention — the full pipeline from inquiry to committed member."
+              deck={`${num(m.totalLeads)} leads received · ${pct(m.leadToTrial)} lead-to-trial · ${pct(m.convRate)} new-client conversion · ${pct(m.retRate)} retention.`}
+              anchor="Section 04 / 07"
+            />
+
+            <div className="er-funnel-stages">
+              <div className="er-funnel-stage">
+                <div className="er-funnel-num">{num(m.totalLeads)}</div>
+                <div className="er-funnel-stage-label">Leads</div>
+                <div className="er-funnel-stage-sub">Top of funnel</div>
+              </div>
+              <div className="er-funnel-stage">
+                <div className="er-funnel-num">{num(m.trialLeads)}</div>
+                <div className="er-funnel-stage-label">Trialists</div>
+                <div className="er-funnel-stage-sub">{m.totalLeads > 0 ? pct(m.leadToTrial) : '—'} of leads</div>
+              </div>
+              <div className="er-funnel-stage">
+                <div className="er-funnel-num">{num(m.newClients)}</div>
+                <div className="er-funnel-stage-label">New Clients</div>
+                <div className="er-funnel-stage-sub">First visits this month</div>
+              </div>
+              <div className="er-funnel-stage">
+                <div className={`er-funnel-num${m.convRate >= 35 ? ' conv' : ''}`}>{num(m.converted)}</div>
+                <div className="er-funnel-stage-label">Converted</div>
+                <div className="er-funnel-stage-sub">{pct(m.convRate)} rate · avg LTV {fmt(m.avgLTV)}</div>
+              </div>
+            </div>
+
+            <div className="er-split-grid">
+              <div className="er-insights-pane">
+                <div className="er-pane-title">Funnel insights</div>
+                {m.totalLeads > 0 && (
+                  m.leadToTrial < 30
+                    ? <InsightItem num={1} title="Lead→Trial drop is the biggest gap" text={<>Only <strong>{pct(m.leadToTrial)}</strong> of leads ({num(m.trialLeads)} of {num(m.totalLeads)}) completed a trial. The biggest funnel loss is at the top — outreach quality or follow-up speed needs attention.</>} />
+                    : <InsightItem num={1} title="Strong lead-to-trial conversion" text={<><strong>{pct(m.leadToTrial)}</strong> lead-to-trial rate — {num(m.trialLeads)} of {num(m.totalLeads)} leads showed up for a session. Above-average pipeline qualification.</>} />
+                )}
+                {m.convRate < 30
+                  ? <InsightItem num={2} title="Conversion below benchmark" text={<><strong>{pct(m.convRate)}</strong> conversion (benchmark: 40%+). At avg LTV {fmt(m.avgLTV)}, each unconverted trialist is a missed <strong>{fmt(m.avgLTV)}</strong> revenue opportunity.</>} />
+                  : <InsightItem num={2} title="Conversion is working" text={<><strong>{pct(m.convRate)}</strong> new-client conversion — {num(m.converted)} of {num(m.newClients)} committed to memberships. Onboarding experience and sales follow-through appear effective.</>}
+                />}
+                {m.retRate < 25 && <InsightItem num={3} title="Post-conversion retention needs work" text={<><strong>{pct(m.retRate)}</strong> retention after conversion. Members are converting but not staying. Focus on the critical 30–60 day post-purchase window with structured engagement.</>} />}
+                {m.retRate >= 40 && <InsightItem num={3} title="Retention is strong" text={<><strong>{pct(m.retRate)}</strong> retention — converted members are staying and building habits. This is the foundation of recurring revenue.</>} />}
+                {m.topSources.length > 0 && (() => {
+                  const topSrc = m.topSources[0];
+                  const highCvr = [...m.topSources].sort((a, b) => b.cvr - a.cvr)[0];
+                  return (
+                    <InsightItem num={4} title={`Top lead source: ${topSrc.name}`} text={<><strong>{topSrc.name}</strong> drives {num(topSrc.count)} leads ({pct(topSrc.cvr)} cvr). {highCvr.name !== topSrc.name ? <>Highest-quality source: <strong>{highCvr.name}</strong> at {pct(highCvr.cvr)} conversion.</> : 'Also the highest-converting source — double down on it.'}</>} />
+                  );
+                })()}
+              </div>
+
+              {m.topSources.length > 0 && (
+                <div className="er-data-pane">
+                  <div className="er-pane-title">Lead Source Performance</div>
+                  <div className="er-table-wrap">
+                    <table className="er-data-table">
+                      <thead>
+                        <tr>
+                          <th>Source</th>
+                          <th>Leads</th>
+                          <th>Converted</th>
+                          <th>CVR</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {m.topSources.map((src, i) => (
+                          <tr key={i}>
+                            <td className="metric-name">{src.name}</td>
+                            <td>{num(src.count)}</td>
+                            <td>{num(Math.round(src.count * src.cvr / 100))}</td>
+                            <td className={src.cvr >= 40 ? 'er-fill-high' : src.cvr >= 20 ? 'er-fill-mid' : 'er-fill-low'}>{pct(src.cvr)}</td>
+                          </tr>
+                        ))}
+                        <tr className="er-totals-row">
+                          <td className="metric-name">Total</td>
+                          <td>{num(m.totalLeads)}</td>
+                          <td>{num(m.convertedLeads)}</td>
+                          <td>{pct(m.leadCvr)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* 05 · Churn */}
+        <section className="er-section" id="churn">
+          <div className="er-container">
+            <SectionHeader
+              eyebrow="05 · Lapsed Members & Churn"
+              title="Membership expirations, patterns, and the revenue risk in the lapsed book."
+              deck={`${num(m.churnedMembers)} memberships lapsed in ${monthName} ${year} — ${churnGrowth > 0 ? 'up' : 'down'} ${Math.abs(churnGrowth).toFixed(0)}% from ${num(m.prevChurned)} in ${prevMonthName}.${m.avgDaysActive > 0 ? ` Average ${m.avgDaysActive.toFixed(0)} days active before lapsing.` : ''}`}
+              anchor="Section 05 / 07"
+            />
+
+            <div className="er-split-grid">
+              <div className="er-insights-pane">
+                <div className="er-pane-title">Churn insights</div>
+                {m.churnedMembers === 0
+                  ? <InsightItem num={1} title="No lapsed members" text="No membership expirations recorded this period — excellent retention or no memberships reaching end-of-term." />
+                  : <>
+                    {churnGrowth > 20 && <InsightItem num={1} title="Churn spiked" text={<>Lapsed members surged <strong>{churnGrowth.toFixed(0)}%</strong> MoM — {num(m.churnedMembers)} vs {num(m.prevChurned)} last month. Check if a specific membership type or batch renewal is driving this.</>} />}
+                    {churnGrowth <= 0 && <InsightItem num={1} title="Churn improving" text={<>Lapsed members fell <strong>{Math.abs(churnGrowth).toFixed(0)}%</strong> MoM to {num(m.churnedMembers)} — retention actions appear to be working.</>} />}
+                    {churnGrowth > 0 && churnGrowth <= 20 && <InsightItem num={1} title="Churn edging up" text={<><strong>{num(m.churnedMembers)}</strong> memberships lapsed, up {churnGrowth.toFixed(0)}% from last month. Watch for sequential increases — they signal structural weakness.</>} />}
+                    {m.avgDaysActive > 0 && m.avgDaysActive < 45 && <InsightItem num={2} title="Early dropout pattern" text={<>Lapsing members active only <strong>{m.avgDaysActive.toFixed(0)} days</strong> on average — this is early-stage dropout, not natural membership end. The critical intervention window is weeks 1–6 post-purchase.</>} />}
+                    {m.avgDaysActive >= 180 && <InsightItem num={2} title="Long-tenured lapsers" text={<>Lapsing members had <strong>{m.avgDaysActive.toFixed(0)} days</strong> of activity. Long-term members — re-engagement campaigns are worth the effort given their demonstrated commitment.</>} />}
+                    {m.churnByMem.length > 0 && <InsightItem num={3} title={`"${m.churnByMem[0].name}" tops lapse list`} text={<><strong>{m.churnByMem[0].name}</strong> had {num(m.churnByMem[0].count)} expirations — the most of any membership type. Consider a targeted re-enrolment campaign for this segment.</>} />}
+                  </>
+                }
+              </div>
+
+              {m.churnByMem.length > 0 && (
+                <div className="er-data-pane">
+                  <div className="er-pane-title">Lapsed by Membership Type</div>
+                  <div className="er-table-wrap">
+                    <table className="er-data-table">
+                      <thead>
+                        <tr>
+                          <th>Membership</th>
+                          <th>Lapsed</th>
+                          <th>Share</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {m.churnByMem.map((mem, i) => {
+                          const share = m.churnedMembers > 0 ? (mem.count / m.churnedMembers) * 100 : 0;
+                          return (
+                            <tr key={i}>
+                              <td className="metric-name">{mem.name}</td>
+                              <td>{num(mem.count)}</td>
+                              <td>
+                                <div className="er-share-bar">
+                                  <div className="er-share-fill" style={{ width: `${share}%`, maxWidth: 80 }} />
+                                  <span>{pct(share)}</span>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        <tr className="er-totals-row">
+                          <td className="metric-name">Total lapsed</td>
+                          <td>{num(m.churnedMembers)}</td>
+                          <td>100%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* 06 · Late Cancels */}
+        <section className="er-section" id="late-cancels">
+          <div className="er-container">
+            <SectionHeader
+              eyebrow="06 · Late Cancellations"
+              title="Last-minute dropouts block genuine demand and inflate perceived capacity — here's where the problem sits."
+              deck={`${num(m.lcCount)} late cancellations in ${monthName} ${year} (${pct(m.lcRatio)} per session). ${m.sameDayLC > 0 ? `${num(m.sameDayLC)} were same-day.` : ''} ${m.lcPenalties > 0 ? `${num(m.lcPenalties)} penalties charged.` : 'No penalties charged.'}`}
+              anchor="Section 06 / 07"
+            />
+
+            <div className="er-worked-grid" style={{ marginBottom: 24 }}>
+              <WorkedCard
+                worked={m.lcCount === 0 || m.lcRatio < 10}
+                title={m.lcCount === 0 ? 'Zero late cancellations' : m.lcRatio < 10 ? 'Late cancel rate manageable' : 'Late cancel rate elevated'}
+                text={<><strong>{num(m.lcCount)}</strong> late cancellations — {pct(m.lcRatio)} per session. {m.lcCount === 0 ? 'Exceptional member commitment.' : m.lcRatio > 20 ? 'Spots booked are not being filled, blocking genuine demand.' : 'Monitor for trend changes.'}</>}
+              />
+              <WorkedCard
+                worked={lcGrowth <= 0}
+                title={lcGrowth <= 0 ? 'Late cancels trending down' : 'Late cancels trending up'}
+                text={<>Late cancels {lcGrowth <= 0 ? 'fell' : 'rose'} <strong>{Math.abs(lcGrowth).toFixed(0)}%</strong> MoM ({num(m.prevLCCount)} → {num(m.lcCount)}). {m.sameDayLC > 0 ? `${num(m.sameDayLC)} same-day cancellations are the most disruptive.` : 'No same-day cancellations recorded.'}</>}
+              />
+              <WorkedCard
+                worked={m.lcPenalties > 0 || m.lcCount === 0}
+                title={m.lcPenalties > 0 ? 'Penalty enforcement in place' : 'Penalties not being charged'}
+                text={<>{m.lcPenalties > 0 ? <><strong>{num(m.lcPenalties)}</strong> penalties charged of {num(m.lcCount)} late cancels — enforcement is happening. Consistent application deters repeat behaviour.</> : <>Zero penalties charged despite {num(m.lcCount)} late cancels. Enforcing the policy would reduce repeat offenders and protect class spots.</>}</>}
+              />
+              <WorkedCard
+                worked={m.lcRatio < 15}
+                title="Impact on schedule integrity"
+                text={<>At {pct(m.lcRatio)} per session, late cancels {m.lcRatio < 15 ? 'are not materially impacting' : 'are materially disrupting'} schedule integrity. {m.lcRatio >= 15 ? 'A waitlist-to-booking flow would recover most of these spots.' : 'Schedule integrity is intact.'}</>}
+              />
+            </div>
+
+            {m.lcCount > 0 && (
+              <div className="er-callout">
+                <strong>Action:</strong> {m.lcPenalties === 0 ? 'Begin enforcing the late-cancellation policy consistently. Even a soft notification (no fee, but logged count) creates behavioural change. ' : ''}
+                {m.sameDayLC > 0 ? `Same-day cancellations (${num(m.sameDayLC)}) are the highest-impact category — prioritise policy enforcement for these. ` : ''}
+                Target: reduce late cancels by 30% over 60 days by combining enforcement with a waitlist feature.
               </div>
             )}
           </div>
         </section>
 
-        {/* ── 1. Revenue ── */}
-        <section>
-          <SectionTitle icon={<DollarSign size={20} />} title="Revenue & Commercial Performance"
-            sub={`${monthName} ${year} vs ${prevMonthName} · All figures net of VAT`} accent={P.gold} />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <KPI label="Net Revenue" value={fmt(m.currRevenue)} sub={`${fmt(m.prevRevenue)} prior month`}
-              mom={delta(m.currRevenue, m.prevRevenue)} yoy={delta(m.currRevenue, m.yoyRevenue)}
-              icon={<DollarSign size={18} />} accent={P.gold} />
-            <KPI label="Transactions" value={num(m.currTransactions)} sub={`${num(m.prevTransactions)} prior`}
-              mom={delta(m.currTransactions, m.prevTransactions)} icon={<Activity size={18} />} accent={P.blue} />
-            <KPI label="Avg Transaction" value={fmt(m.atv)} sub="per sale"
-              mom={delta(m.atv, m.prevAtv)} icon={<Target size={18} />} accent={P.teal} />
-            <KPI label="Buying Members" value={num(m.uniqueMembers)} sub="distinct purchasers"
-              icon={<Users size={18} />} accent={P.purple} />
-          </div>
+        {/* 07 · Trainers */}
+        <section className="er-section" id="trainers">
+          <div className="er-container">
+            <SectionHeader
+              eyebrow="07 · Trainer Performance"
+              title="Utilisation, class averages, conversion attribution and coaching opportunities."
+              deck={`${num(m.totalTrainers)} active trainers · ${num(m.totalCustomers)} customers served.${m.topTrainer ? ` Top: ${m.topTrainer.name} (${num(m.topTrainer.customers)} customers, ${m.topTrainer.classAvg.toFixed(1)} avg class).` : ''}`}
+              anchor="Section 07 / 07"
+            />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
-            <div className="rounded-2xl p-5" style={{ background: P.navyCard, border: `1px solid ${P.gold}18` }}>
-              <h3 className="text-sm font-bold mb-4" style={{ color: P.cream }}>6-Month Revenue Trend</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={m.revTrend}>
-                  <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={P.gold} stopOpacity={0.3} />
-                      <stop offset="95%" stopColor={P.gold} stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={`${P.cream}07`} />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: `${P.cream}50` }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: `${P.cream}40` }} axisLine={false} tickLine={false} tickFormatter={v => fmt(v)} width={60} />
-                  <Tooltip content={(p) => <TT {...p} prefix="₹" />} />
-                  <Area type="monotone" dataKey="revenue" name="Revenue" stroke={P.gold} strokeWidth={2.5} fill="url(#revGrad)" dot={{ fill: P.gold, r: 3 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="rounded-2xl p-5" style={{ background: P.navyCard, border: `1px solid ${P.gold}18` }}>
-              <h3 className="text-sm font-bold mb-4" style={{ color: P.cream }}>Revenue by Category</h3>
-              {m.topCats.length > 0 ? (
-                <div className="space-y-3 pt-1">
-                  {m.topCats.slice(0, 5).map((cat, i) => {
-                    const share = m.currRevenue > 0 ? (cat.value / m.currRevenue) * 100 : 0;
+            {m.trainers.length > 0 ? (
+              <>
+                <div className="er-trainer-grid">
+                  {m.trainers.map((t, i) => {
+                    const isTop = i === 0;
+                    const avgColor = t.classAvg >= 12 ? P.green : t.classAvg >= 7 ? P.gold : P.red;
                     return (
-                      <div key={i}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-medium" style={{ color: `${P.cream}75` }}>{cat.name}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs" style={{ color: P.creamMuted }}>{pct(share)}</span>
-                            <span className="text-xs font-bold" style={{ color: P.cream }}>{fmt(cat.value)}</span>
+                      <div key={t.name} className={`er-trainer-card${isTop ? ' top' : ''}`}>
+                        <div className="er-trainer-avatar">{t.name.charAt(0)}</div>
+                        <div className="er-trainer-name">{t.name}</div>
+                        <div className="er-trainer-sub">{num(t.sessions)} sessions</div>
+                        <div className="er-trainer-stats">
+                          <div className="er-stat-cell">
+                            <div className="er-stat-val">{num(t.customers)}</div>
+                            <div className="er-stat-lbl">Clients</div>
                           </div>
-                        </div>
-                        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: `${P.cream}08` }}>
-                          <div className="h-full rounded-full" style={{ width: `${share}%`, background: CHART_COLORS[i] }} />
+                          <div className="er-stat-cell">
+                            <div className="er-stat-val" style={{ color: avgColor }}>{t.classAvg.toFixed(1)}</div>
+                            <div className="er-stat-lbl">Avg class</div>
+                          </div>
+                          <div className="er-stat-cell">
+                            <div className="er-stat-val" style={{ color: t.converted > 0 ? P.green : P.creamMuted }}>{num(t.converted)}</div>
+                            <div className="er-stat-lbl">Converted</div>
+                          </div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              ) : <p className="text-sm py-16 text-center" style={{ color: `${P.cream}30` }}>No category data</p>}
-            </div>
-          </div>
 
-          {/* Revenue mix pills */}
-          {(m.pkgRev > 0 || m.memRev > 0 || m.dropRev > 0) && (
-            <div className="flex flex-wrap gap-3 mb-5">
-              {[
-                { label: 'Package Revenue', value: m.pkgRev, color: P.blue },
-                { label: 'Membership Revenue', value: m.memRev, color: P.purple },
-                { label: 'Drop-in / Trial', value: m.dropRev, color: P.teal },
-              ].filter(x => x.value > 0).map((x, i) => (
-                <div key={i} className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
-                  style={{ background: `${x.color}12`, border: `1px solid ${x.color}25` }}>
-                  <div className="w-2 h-2 rounded-full" style={{ background: x.color }} />
-                  <span className="text-xs font-medium" style={{ color: `${P.cream}70` }}>{x.label}</span>
-                  <span className="text-sm font-black" style={{ color: P.cream }}>{fmt(x.value)}</span>
-                  <span className="text-xs" style={{ color: x.color }}>{m.currRevenue > 0 ? pct((x.value / m.currRevenue) * 100, 0) : '—'}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="space-y-3">{revenueInsights.map((item, i) => <InsightCard key={i} {...item} />)}</div>
-        </section>
-
-        {/* ── 2. Sessions ── */}
-        <section>
-          <SectionTitle icon={<Activity size={20} />} title="Class Attendance & Studio Utilisation"
-            sub="Fill rates, class averages, format breakdown and peak patterns" accent={P.blue} />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <KPI label="Total Sessions" value={num(m.totalSessions)} mom={delta(m.totalSessions, m.prevSessions)}
-              icon={<BarChart2 size={18} />} accent={P.blue} />
-            <KPI label="Total Check-ins" value={num(m.totalCheckins)} mom={delta(m.totalCheckins, m.prevCheckins)}
-              icon={<Users size={18} />} accent={P.green} />
-            <KPI label="Fill Rate" value={pct(m.fillRate)} sub={`${pct(m.prevFillRate)} prior`}
-              mom={delta(m.fillRate, m.prevFillRate)} icon={<Percent size={18} />} accent={P.gold} />
-            <KPI label="Class Average" value={m.classAvg.toFixed(1)} sub={`${m.nonEmptyAvg.toFixed(1)} excl. empty`}
-              mom={delta(m.classAvg, m.prevClassAvg)} icon={<Target size={18} />} accent={P.teal} />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
-            <div className="rounded-2xl p-5" style={{ background: P.navyCard, border: `1px solid ${P.blue}20` }}>
-              <h3 className="text-sm font-bold mb-4" style={{ color: P.cream }}>6-Month Fill Rate Trend</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={m.sessTrend}>
-                  <defs>
-                    <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={P.blue} stopOpacity={0.3} />
-                      <stop offset="95%" stopColor={P.blue} stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={`${P.cream}07`} />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: `${P.cream}50` }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: `${P.cream}40` }} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} domain={[0, 100]} />
-                  <Tooltip content={(p) => <TT {...p} suffix="%" />} />
-                  <Area type="monotone" dataKey="fillRate" name="Fill Rate" stroke={P.blue} strokeWidth={2.5} fill="url(#fillGrad)" dot={{ fill: P.blue, r: 3 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="rounded-2xl p-5" style={{ background: P.navyCard, border: `1px solid ${P.blue}20` }}>
-              <h3 className="text-sm font-bold mb-4" style={{ color: P.cream }}>Check-ins by Day of Week</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={m.dayData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={`${P.cream}07`} vertical={false} />
-                  <XAxis dataKey="day" tick={{ fontSize: 11, fill: `${P.cream}60` }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: `${P.cream}40` }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<TT />} />
-                  <Bar dataKey="checkins" name="Check-ins" radius={[4, 4, 0, 0]}>
-                    {m.dayData.map((d, i) => <Cell key={i} fill={d.day === m.peakDay ? P.gold : P.blue} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Format breakdown cards */}
-          {m.formats.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-              {[
-                { name: 'Barre', grad: 'from-purple-700 to-violet-800', accent: '#7C3AED' },
-                { name: 'PowerCycle', grad: 'from-blue-700 to-indigo-800', accent: '#1D4ED8' },
-                { name: 'Strength', grad: 'from-rose-600 to-pink-800', accent: '#E11D48' },
-              ].map(({ name, accent }) => {
-                const f = m.formats.find(x => x.name === name);
-                if (!f) return null;
-                return (
-                  <div key={name} className="rounded-2xl p-5 relative overflow-hidden" style={{ background: P.navyCard, border: `1px solid ${accent}30` }}>
-                    <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-10" style={{ background: accent, filter: 'blur(20px)' }} />
-                    <div className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color: accent }}>{name}</div>
-                    <div className="text-2xl font-black mb-3" style={{ color: P.cream }}>{pct(f.fillRate)}</div>
-                    <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ background: `${P.cream}10` }}>
-                      <div className="h-full rounded-full" style={{ width: `${Math.min(f.fillRate, 100)}%`, background: accent }} />
-                    </div>
-                    <div className="space-y-1">
-                      {[
-                        { label: 'Sessions', value: num(f.sessions) },
-                        { label: 'Check-ins', value: num(f.checkins) },
-                        { label: 'Class Avg', value: f.classAvg.toFixed(1) },
-                      ].map(({ label, value }) => (
-                        <div key={label} className="flex items-center justify-between">
-                          <span className="text-xs" style={{ color: P.creamMuted }}>{label}</span>
-                          <span className="text-xs font-bold" style={{ color: P.cream }}>{value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              }).filter(Boolean)}
-            </div>
-          )}
-
-          <div className="space-y-3">{sessionInsights.map((item, i) => <InsightCard key={i} {...item} />)}</div>
-        </section>
-
-        {/* ── 3. Lead Funnel & New Members ── */}
-        <section>
-          <SectionTitle icon={<Target size={20} />} title="Lead Funnel & Member Acquisition"
-            sub="Leads → trials → conversions → retention pipeline" accent={P.green} />
-
-          {/* Funnel visual */}
-          <div className="rounded-2xl p-6 mb-6" style={{ background: P.navyCard, border: `1px solid ${P.green}20` }}>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <KPI label="Leads Received" value={num(m.totalLeads)} mom={delta(m.totalLeads, m.prevLeads)}
-                icon={<Users size={18} />} accent={P.blue} />
-              <KPI label="Trials / First Visits" value={num(m.newClients)} mom={delta(m.newClients, m.prevNewClients)}
-                icon={<Zap size={18} />} accent={P.teal} />
-              <KPI label="Converted to Membership" value={num(m.converted)} sub={`${pct(m.convRate)} conversion rate`}
-                mom={delta(m.convRate, m.prevConvRate)} icon={<Target size={18} />} accent={P.green} />
-              <KPI label="Retained Active" value={num(m.retained)} sub={`${pct(m.retRate)} retention · Avg LTV ${fmt(m.avgLTV)}`}
-                mom={delta(m.retRate, m.prevRetRate)} icon={<Shield size={18} />} accent={P.gold} />
-            </div>
-
-            {/* Visual funnel bars */}
-            <div className="space-y-3">
-              {[
-                { label: 'Leads Received', value: m.totalLeads, pctVal: 100, color: P.blue, note: 'Top of funnel' },
-                { label: 'Trial / First Visit', value: m.newClients, pctVal: m.totalLeads > 0 ? (m.newClients / m.totalLeads) * 100 : 100, color: P.teal, note: `${m.totalLeads > 0 ? pct((m.newClients / m.totalLeads) * 100) : '—'} of leads` },
-                { label: 'Converted to Member', value: m.converted, pctVal: m.totalLeads > 0 ? (m.converted / m.totalLeads) * 100 : (m.newClients > 0 ? (m.converted / m.newClients) * 100 : 0), color: P.green, note: `${pct(m.convRate)} of trialists` },
-                { label: 'Retained Active', value: m.retained, pctVal: m.totalLeads > 0 ? (m.retained / m.totalLeads) * 100 : (m.newClients > 0 ? (m.retained / m.newClients) * 100 : 0), color: P.gold, note: `${pct(m.retRate)} of trialists` },
-              ].filter(r => r.value > 0 || r.label === 'Leads Received').map((row, i) => (
-                <div key={i}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div>
-                      <span className="text-sm font-semibold" style={{ color: `${P.cream}85` }}>{row.label}</span>
-                      <span className="ml-2 text-xs" style={{ color: P.creamMuted }}>{row.note}</span>
-                    </div>
-                    <span className="font-black text-base" style={{ color: P.cream }}>{num(row.value)}</span>
-                  </div>
-                  <div className="h-2.5 rounded-full overflow-hidden" style={{ background: `${P.cream}08` }}>
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(row.pctVal, 100)}%`, background: `linear-gradient(90deg, ${row.color}, ${row.color}90)` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Top lead sources */}
-          {m.topSources.length > 0 && (
-            <div className="rounded-2xl p-5 mb-5" style={{ background: P.navyCard, border: `1px solid ${P.green}15` }}>
-              <h3 className="text-sm font-bold mb-4" style={{ color: P.cream }}>Lead Source Performance</h3>
-              <div className="space-y-3">
-                {m.topSources.map((src, i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0"
-                      style={{ background: `${CHART_COLORS[i]}25`, color: CHART_COLORS[i] }}>{i + 1}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium truncate" style={{ color: `${P.cream}85` }}>{src.name}</span>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span className="text-xs" style={{ color: P.creamMuted }}>{src.count} leads</span>
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                            style={{ background: src.cvr >= 40 ? `${P.green}20` : `${P.gold}20`, color: src.cvr >= 40 ? P.greenLight : P.gold }}>
-                            {pct(src.cvr)} cvr
-                          </span>
-                        </div>
-                      </div>
-                      <div className="h-1 rounded-full overflow-hidden" style={{ background: `${P.cream}08` }}>
-                        <div className="h-full rounded-full" style={{ width: `${m.topSources[0].count > 0 ? (src.count / m.topSources[0].count) * 100 : 0}%`, background: CHART_COLORS[i] }} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-3">{funnelInsights.map((item, i) => <InsightCard key={i} {...item} />)}</div>
-        </section>
-
-        {/* ── 4. Trainers ── */}
-        <section>
-          <SectionTitle icon={<Award size={20} />} title="Trainer Performance"
-            sub={`${m.totalTrainers} active trainers · ${num(m.totalCustomers)} customers served`} accent={P.purple} />
-
-          {m.trainers.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-5">
-                {m.trainers.slice(0, 6).map((t, i) => {
-                  const isTop = i === 0;
-                  const classAvgColor = t.classAvg >= 12 ? P.green : t.classAvg >= 7 ? P.gold : P.red;
-                  return (
-                    <div key={t.name} className="rounded-2xl p-5 relative overflow-hidden"
-                      style={{ background: P.navyCard, border: `1px solid ${isTop ? P.gold : P.purple}25` }}>
-                      {isTop && (
-                        <div className="absolute top-3 right-3">
-                          <span className="text-xs px-2 py-0.5 rounded-full font-bold"
-                            style={{ background: `${P.gold}25`, color: P.gold }}>TOP</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-black"
-                          style={{ background: isTop ? `${P.gold}20` : `${P.purple}20`, color: isTop ? P.gold : P.purpleLight }}>
-                          {t.name.charAt(0)}
-                        </div>
-                        <div>
-                          <div className="font-bold text-sm" style={{ color: P.cream }}>{t.name}</div>
-                          <div className="text-xs" style={{ color: P.creamMuted }}>{t.sessions} sessions</div>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { label: 'Customers', value: num(t.customers), color: P.cream },
-                          { label: 'Class Avg', value: t.classAvg.toFixed(1), color: classAvgColor },
-                          { label: 'Converted', value: num(t.converted), color: P.green },
-                        ].map(({ label, value, color }) => (
-                          <div key={label} className="text-center">
-                            <div className="text-lg font-black" style={{ color }}>{value}</div>
-                            <div className="text-[10px] mt-0.5 font-semibold uppercase tracking-wider" style={{ color: P.creamMuted }}>{label}</div>
-                          </div>
+                <div className="er-data-pane">
+                  <div className="er-pane-title" style={{ padding: '16px 16px 8px' }}>Trainer Summary Table · {monthName} {year}</div>
+                  <div className="er-table-wrap">
+                    <table className="er-data-table">
+                      <thead>
+                        <tr>
+                          <th>Trainer</th>
+                          <th>Sessions</th>
+                          <th>Customers</th>
+                          <th>Class Avg</th>
+                          <th>Converted</th>
+                          <th>Retained</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {m.trainers.map((t, i) => (
+                          <tr key={i}>
+                            <td className="metric-name">{t.name}</td>
+                            <td>{num(t.sessions)}</td>
+                            <td>{num(t.customers)}</td>
+                            <td className={t.classAvg >= 12 ? 'er-fill-high' : t.classAvg >= 7 ? 'er-fill-mid' : 'er-fill-low'}>{t.classAvg.toFixed(1)}</td>
+                            <td>{num(t.converted)}</td>
+                            <td>{num(t.retained)}</td>
+                          </tr>
                         ))}
-                      </div>
-                      {/* Class avg bar */}
-                      <div className="mt-3">
-                        <div className="h-1 rounded-full overflow-hidden" style={{ background: `${P.cream}08` }}>
-                          <div className="h-full rounded-full" style={{ width: `${Math.min((t.classAvg / 20) * 100, 100)}%`, background: classAvgColor }} />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="space-y-3">{trainerInsights.map((item, i) => <InsightCard key={i} {...item} />)}</div>
-            </>
-          ) : (
-            <div className="rounded-2xl p-8 text-center" style={{ background: P.navyCard }}>
-              <p className="text-sm" style={{ color: `${P.cream}40` }}>No payroll data matched for {monthName} {year}. Ensure payroll records use "{monthName} {year}" format.</p>
-            </div>
-          )}
-        </section>
-
-        {/* ── 5. Lapsed & Churn ── */}
-        <section>
-          <SectionTitle icon={<Flame size={20} />} title="Lapsed Members & Churn Analysis"
-            sub="Membership expirations, patterns and revenue risk" accent={P.rose} />
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <KPI label="Lapsed Members" value={num(m.churnedMembers)} sub={`${num(m.prevChurned)} prior month`}
-              mom={-delta(m.churnedMembers, m.prevChurned)} inverse icon={<TrendingDown size={18} />} accent={P.rose} />
-            <KPI label="Avg Days Active" value={m.avgDaysActive > 0 ? `${m.avgDaysActive.toFixed(0)}d` : '—'}
-              sub="before lapsing" icon={<Clock size={18} />} accent={P.orange} />
-            <KPI label="Churn MoM Change" value={m.prevChurned > 0 ? `${delta(m.churnedMembers, m.prevChurned) > 0 ? '+' : ''}${delta(m.churnedMembers, m.prevChurned).toFixed(0)}%` : '—'}
-              sub="month over month" icon={<AlertTriangle size={18} />} accent={m.churnedMembers > m.prevChurned ? P.red : P.green} />
-          </div>
-
-          {m.churnByMem.length > 0 && (
-            <div className="rounded-2xl p-5 mb-5" style={{ background: P.navyCard, border: `1px solid ${P.rose}18` }}>
-              <h3 className="text-sm font-bold mb-4" style={{ color: P.cream }}>Lapsed by Membership Type</h3>
-              <div className="space-y-3">
-                {m.churnByMem.map((mem, i) => {
-                  const share = m.churnedMembers > 0 ? (mem.count / m.churnedMembers) * 100 : 0;
-                  return (
-                    <div key={i}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium truncate" style={{ color: `${P.cream}80` }}>{mem.name}</span>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span className="text-xs" style={{ color: P.creamMuted }}>{pct(share)}</span>
-                          <span className="text-sm font-black" style={{ color: P.rose }}>{num(mem.count)}</span>
-                        </div>
-                      </div>
-                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: `${P.cream}08` }}>
-                        <div className="h-full rounded-full" style={{ width: `${share}%`, background: CHART_COLORS[(i + 4) % CHART_COLORS.length] }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-3">{churnInsights.map((item, i) => <InsightCard key={i} {...item} />)}</div>
-        </section>
-
-        {/* ── 6. Late Cancellations ── */}
-        <section>
-          <SectionTitle icon={<Clock size={20} />} title="Late Cancellations"
-            sub="Timing, penalties and impact on studio utilisation" accent={P.orange} />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <KPI label="Late Cancellations" value={num(m.lcCount)} sub={`${num(m.prevLCCount)} prior month`}
-              mom={-delta(m.lcCount, m.prevLCCount)} inverse icon={<Clock size={18} />} accent={P.orange} />
-            <KPI label="Same-day Cancels" value={num(m.sameDayLC)} sub={m.lcCount > 0 ? `${pct((m.sameDayLC / m.lcCount) * 100)} of total` : '—'}
-              icon={<AlertTriangle size={18} />} accent={P.red} />
-            <KPI label="Penalties Charged" value={num(m.lcPenalties)} sub={m.lcCount > 0 ? `${pct((m.lcPenalties / m.lcCount) * 100)} enforcement` : '—'}
-              icon={<Shield size={18} />} accent={m.lcPenalties / Math.max(m.lcCount, 1) > 0.5 ? P.green : P.gold} />
-            <KPI label="LC per Session" value={pct(m.lcRatio)} sub="late cancel rate"
-              icon={<Activity size={18} />} accent={m.lcRatio < 10 ? P.green : P.red} />
-          </div>
-
-          {/* LC trend vs sessions trend */}
-          <div className="rounded-2xl p-5 mb-5" style={{ background: P.navyCard, border: `1px solid ${P.orange}18` }}>
-            <h3 className="text-sm font-bold mb-3" style={{ color: P.cream }}>Cancellation Breakdown</h3>
-            {m.lcCount > 0 ? (
-              <div className="grid grid-cols-3 gap-4 mt-4">
-                {[
-                  { label: 'Same-day', value: m.sameDayLC, pctVal: m.lcCount > 0 ? (m.sameDayLC / m.lcCount) * 100 : 0, color: P.red },
-                  { label: 'In-advance', value: m.lcCount - m.sameDayLC, pctVal: m.lcCount > 0 ? ((m.lcCount - m.sameDayLC) / m.lcCount) * 100 : 0, color: P.orange },
-                  { label: 'Penalised', value: m.lcPenalties, pctVal: m.lcCount > 0 ? (m.lcPenalties / m.lcCount) * 100 : 0, color: P.green },
-                ].map(({ label, value, pctVal, color }) => (
-                  <div key={label} className="text-center p-4 rounded-xl" style={{ background: `${color}10`, border: `1px solid ${color}20` }}>
-                    <div className="text-2xl font-black mb-1" style={{ color }}>{num(value)}</div>
-                    <div className="text-xs mb-2" style={{ color: P.creamMuted }}>{pct(pctVal)} of total</div>
-                    <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: `${P.cream}50` }}>{label}</div>
+                        <tr className="er-totals-row">
+                          <td className="metric-name">Total / Avg</td>
+                          <td>{num(m.trainers.reduce((a, t) => a + t.sessions, 0))}</td>
+                          <td>{num(m.totalCustomers)}</td>
+                          <td>{m.trainers.length > 0 ? (m.trainers.reduce((a, t) => a + t.classAvg, 0) / m.trainers.length).toFixed(1) : '—'}</td>
+                          <td>{num(m.trainers.reduce((a, t) => a + t.converted, 0))}</td>
+                          <td>{num(m.trainers.reduce((a, t) => a + t.retained, 0))}</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-24">
-                <div className="flex items-center gap-3">
-                  <CheckCircle style={{ color: P.green }} size={20} />
-                  <span style={{ color: `${P.cream}60` }} className="text-sm">No late cancellations recorded this period</span>
                 </div>
+              </>
+            ) : (
+              <div className="er-callout">
+                No payroll data found for {monthName} {year}. Ensure payroll records use the "{monthName} {year}" format in the Month/Year column.
               </div>
             )}
           </div>
-
-          <div className="space-y-3">{lcInsights.map((item, i) => <InsightCard key={i} {...item} />)}</div>
         </section>
 
-        {/* ── Footer ── */}
-        <footer className="pt-6 pb-10" style={{ borderTop: `1px solid ${P.gold}12` }}>
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <p className="text-sm font-bold" style={{ color: `${P.cream}40` }}>Physique57 Executive Intelligence</p>
-              <p className="text-xs mt-0.5" style={{ color: `${P.cream}25` }}>{studio.label} · {monthName} {year} · Generated from live Google Sheets data</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl" style={{ background: `${health.color}12`, border: `1px solid ${health.color}25` }}>
-                <div className="w-2 h-2 rounded-full" style={{ background: health.color }} />
-                <span className="text-xs font-semibold" style={{ color: health.color }}>Health Score: {health.score}/100 · {health.grade} · {health.label}</span>
+        {/* Conclusion */}
+        <section className="er-section" id="conclusion">
+          <div className="er-container">
+            <SectionHeader
+              eyebrow="Conclusion · Senior Management Summary"
+              title="Data-backed conclusions for the management team."
+            />
+            <div className="er-conclusions-block">
+              <div className="er-conclusion-item">
+                <div className="er-conclusion-num">01</div>
+                <div className="er-conclusion-text">
+                  <strong>Revenue health: {health.label}.</strong>{' '}
+                  {fmt(m.currRevenue)} net revenue on {num(m.currTransactions)} transactions ({revGrowth >= 0 ? '+' : ''}{revGrowth.toFixed(1)}% MoM). ATV of {fmt(m.atv)} reflects the current product and discount mix.
+                </div>
               </div>
-              <button onClick={onReset}
-                className="px-4 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2"
-                style={{ background: `${P.gold}12`, border: `1px solid ${P.gold}30`, color: P.gold }}>
-                <RefreshCw size={11} /> New Report
-              </button>
+              <div className="er-conclusion-item">
+                <div className="er-conclusion-num">02</div>
+                <div className="er-conclusion-text">
+                  <strong>Discount discipline is the #1 P&L lever.</strong>{' '}
+                  At {pct(m.discountPenetration)} discount penetration ({fmt(m.totalDiscount)} conceded), reducing discounting to below 15% would materially improve net revenue without any volume change.
+                </div>
+              </div>
+              <div className="er-conclusion-item">
+                <div className="er-conclusion-num">03</div>
+                <div className="er-conclusion-text">
+                  <strong>The class schedule {m.fillRate >= 55 ? 'is working' : 'needs rationalisation'}.</strong>{' '}
+                  {pct(m.fillRate)} fill rate across {num(m.totalSessions)} sessions. {m.emptySessions > 0 ? `${num(m.emptySessions)} empty sessions (${pct(m.emptyPct)}) represent pure cost.` : 'No empty sessions — strong utilisation.'} {m.peakDay ? `Peak demand on ${m.peakDay}.` : ''}
+                </div>
+              </div>
+              <div className="er-conclusion-item">
+                <div className="er-conclusion-num">04</div>
+                <div className="er-conclusion-text">
+                  <strong>The conversion funnel {m.convRate >= 35 ? 'is healthy' : 'needs intervention'}.</strong>{' '}
+                  {pct(m.convRate)} new-member conversion rate ({num(m.converted)} of {num(m.newClients)} new clients). {m.avgLTV > 0 ? `At avg LTV ${fmt(m.avgLTV)}, each unconverted trialist is a missed opportunity.` : ''}
+                </div>
+              </div>
+              <div className="er-conclusion-item">
+                <div className="er-conclusion-num">05</div>
+                <div className="er-conclusion-text">
+                  <strong>Retention {churnGrowth <= 0 ? 'is improving' : 'needs attention'}.</strong>{' '}
+                  {num(m.churnedMembers)} memberships lapsed ({churnGrowth > 0 ? '+' : ''}{churnGrowth.toFixed(0)}% MoM). {m.churnByMem.length > 0 ? `"${m.churnByMem[0].name}" is the most vulnerable membership type.` : ''} A structured re-engagement campaign for lapsed members represents the highest-ROI retention action.
+                </div>
+              </div>
+              <div className="er-conclusion-item">
+                <div className="er-conclusion-num">06</div>
+                <div className="er-conclusion-text">
+                  <strong>Trainer utilisation is {m.totalTrainers > 0 ? `spread across ${num(m.totalTrainers)} active trainers` : 'not yet data-matched'}.</strong>{' '}
+                  {m.topTrainer ? `${m.topTrainer.name} leads with ${num(m.topTrainer.customers)} customers and a ${m.topTrainer.classAvg.toFixed(1)} class average. ` : ''}
+                  {m.trainers.filter(t => t.converted === 0).length > 0 ? `${m.trainers.filter(t => t.converted === 0).length} trainer(s) carried 0% conversion — a coaching opportunity.` : 'All trainers contributed to conversion.'}
+                </div>
+              </div>
             </div>
           </div>
-        </footer>
+        </section>
 
-      </div>
+      </main>
+
+      {/* ── Footer ── */}
+      <footer className="er-footer">
+        <div className="er-container">
+          <div className="er-footer-inner">
+            <div>
+              <div className="er-footer-brand-text">Studio Pulse · {studio.label}</div>
+              <div className="er-footer-text">
+                Executive Performance Report · {monthName} {year}<br />
+                Generated from live Google Sheets data. For senior management use.
+              </div>
+            </div>
+            <div>
+              <div className="er-footer-label">Report sections</div>
+              <div className="er-footer-links">
+                {['Executive Summary', 'Revenue & Sales', 'Attendance', 'Lead Funnel', 'Churn', 'Late Cancels', 'Trainers'].map((s, i) => (
+                  <span key={i}>{String(i + 1).padStart(2, '0')} · {s}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 };
 
-// ── Root ────────────────────────────────────────────────────────────────────────
+// ── Page root ──────────────────────────────────────────────────────────────────
 
 const ExecutiveReport: React.FC = () => {
   const [selected, setSelected] = useState<{ studio: typeof STUDIOS[0]; month: string; year: string } | null>(null);
-
-  if (!selected) return <SelectionScreen onSelect={(s, m, y) => setSelected({ studio: s, month: m, year: y })} />;
-  return <Report studio={selected.studio} month={selected.month} year={selected.year} onReset={() => setSelected(null)} />;
+  return selected
+    ? <Report studio={selected.studio} month={selected.month} year={selected.year} onReset={() => setSelected(null)} />
+    : <SelectionScreen onSelect={(studio, month, year) => setSelected({ studio, month, year })} />;
 };
 
 export default ExecutiveReport;

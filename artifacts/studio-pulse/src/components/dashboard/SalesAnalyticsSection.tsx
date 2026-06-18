@@ -680,6 +680,8 @@ export const SalesAnalyticsSection: React.FC<SalesAnalyticsSectionProps> = ({ da
     setCollapsedGroups(newCollapsed);
   }, [collapsedGroups]);
 
+  const handleGroupToggleSet = useCallback((groups: Set<string>) => setCollapsedGroups(new Set(groups)), []);
+
   const resetFilters = useCallback(() => {
     const defaultDateRange = getDashboardDefaultDateRange();
     
@@ -826,7 +828,7 @@ export const SalesAnalyticsSection: React.FC<SalesAnalyticsSectionProps> = ({ da
                         onRowClick={handleRowClick} 
                         collapsedGroups={collapsedGroups} 
                         // Adapter to match MonthOnMonthTableNew's onGroupToggle signature (Set<string>)
-                        onGroupToggle={React.useCallback((groups: Set<string>) => setCollapsedGroups(new Set(groups)), [])} 
+                        onGroupToggle={handleGroupToggleSet}
                         selectedMetric={activeYoyMetric} 
                         onReady={markReady}
                         contextInfo={{
