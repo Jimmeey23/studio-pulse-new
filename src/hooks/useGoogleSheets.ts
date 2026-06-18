@@ -67,20 +67,33 @@ export const useGoogleSheets = () => {
       }
 
       const headers = rows[0];
-      
+
+      // Normalise a header string for fuzzy matching: lowercase, collapse whitespace, replace all dash variants with '-'
+      const normaliseKey = (s: string) =>
+        s.toLowerCase().replace(/[‒-―−﹘﹣－]/g, '-').replace(/\s+/g, ' ').trim();
+      const normHeaders = (headers as string[]).map(normaliseKey);
+
+      // Lookup helper: exact match first, then normalised match
+      const getCell = (raw: any, key: string): any => {
+        if (raw[key] !== undefined) return raw[key];
+        const normKey = normaliseKey(key);
+        const idx = normHeaders.indexOf(normKey);
+        return idx >= 0 ? raw[(headers as string[])[idx]] : undefined;
+      };
+
       // Process data in chunks to avoid blocking UI
       const salesData: SalesData[] = [];
       const chunkSize = 200; // Increased chunk size for better performance
-      
+
       for (let i = 1; i < rows.length; i += chunkSize) {
         // Check if component is still mounted
         if (!isMountedRef.current) return;
-        
+
         const end = Math.min(i + chunkSize, rows.length);
         const batch = rows.slice(i, end).map((row: any[]) => {
           const rawItem: any = {};
           headers.forEach((header: string, index: number) => {
-            rawItem[header] = row[index] || '';
+            rawItem[header] = row[index] ?? '';
           });
 
           // Transform to match SalesData interface with camelCase field names
@@ -123,17 +136,36 @@ export const useGoogleSheets = () => {
               rawItem['mrpPostTax'] || rawItem['MrpPostTax'] || rawItem['Post Tax MRP'] || 
               rawItem['Sale Item Unit Price Including VAT'] || 0
             ),
-            discountAmount: parseNumericValue(
-              rawItem['Discount Amount -Mrp- Payment Value'] || rawItem['Discount Amount'] || 
-              rawItem['discount_amount'] || rawItem['discountAmount'] || rawItem['DiscountAmount'] ||
-              rawItem['Discount_Amount'] || rawItem['Total Discount'] || rawItem['Discount Value In Currency'] || rawItem['Discount Value'] || rawItem['Discount Value (In Currency)'] || 
-              rawItem['Sale Total Discount Value'] || rawItem['Sale Total Discount'] || rawItem['Sale Item Unit Discount Value'] || 0
-            ),
-            discountPercentage: parseNumericValue(
-              rawItem['Discount Percentage - discount amount/mrp*100'] || rawItem['Discount Percentage'] || 
-              rawItem['discount_percentage'] || rawItem['discountPercentage'] || rawItem['DiscountPercentage'] ||
-              rawItem['Discount_Percentage'] || rawItem['Discount %'] || rawItem['Discount_Percent'] || 0
-            ),
+            discountAmount: (() => {
+              const candidates = [
+                getCell(rawItem, 'Discount Amount -Mrp- Payment Value'),
+                rawItem['Discount Amount'], rawItem['discount_amount'], rawItem['discountAmount'],
+                rawItem['Discount_Amount'], rawItem['Total Discount'],
+                getCell(rawItem, 'Discount Value In Currency'),
+                rawItem['Discount Value'], rawItem['Discount Value (In Currency)'],
+                getCell(rawItem, 'Sale Total Discount Value'),
+                rawItem['Sale Total Discount'],
+                getCell(rawItem, 'Sale Item Unit Discount Value'),
+              ];
+              for (const c of candidates) {
+                const v = parseNumericValue(c ?? 0);
+                if (v > 0) return v;
+              }
+              return 0;
+            })(),
+            discountPercentage: (() => {
+              const candidates = [
+                getCell(rawItem, 'Discount Percentage - discount amount/mrp*100'),
+                rawItem['Discount Percentage'], rawItem['discount_percentage'],
+                rawItem['discountPercentage'], rawItem['DiscountPercentage'],
+                rawItem['Discount_Percentage'], rawItem['Discount %'], rawItem['Discount_Percent'],
+              ];
+              for (const c of candidates) {
+                const v = parseNumericValue(c ?? 0);
+                if (v > 0) return v;
+              }
+              return 0;
+            })(),
             discountSource: 'none',
             discountIsEstimated: false,
             hostId: rawItem['Host Id'] || rawItem['Host ID'] || rawItem['hostId'] || '',
@@ -142,7 +174,12 @@ export const useGoogleSheets = () => {
             secMembershipEndDate: rawItem['Sec. Membership End Date'] || rawItem['Sec Membership End Date'] || '',
             secMembershipTotalClasses: parseNumericValue(rawItem['Sec. Membership Total Classes'] || 0),
             secMembershipClassesLeft: parseNumericValue(rawItem['Sec. Membership Classes Left'] || 0),
-            secMembershipUsedSessions: parseNumericValue(rawItem['Sec. Total Used Sessions'] || rawItem['Sec. Membership Used Sessions'] || 0),
+            secMembershipUsedSessions: parseNumericValue(
+              rawItem['Sec. Membership Used Session Credits'] ||
+              rawItem['Sec. Total Used Sessions'] ||
+              rawItem['Sec. Membership Used Sessions'] ||
+              rawItem['Sec. Sessions Used'] || 0
+            ),
             // Additional discount indicators
             discountCode: rawItem['Discount Code'] || rawItem['discount_code'] || rawItem['DiscountCode'] || rawItem['Promo Code'] || rawItem['promo_code'] || '',
             discountType: rawItem['Discount Code'] ? 'code' : undefined,
@@ -150,7 +187,7 @@ export const useGoogleSheets = () => {
           };
 
           // Compute fallback discount metrics when missing
-          const itemUnitDiscount = parseNumericValue(rawItem['Sale Item Unit Discount Value'] || 0);
+          const itemUnitDiscount = parseNumericValue(getCell(rawItem, 'Sale Item Unit Discount Value') || 0);
           const mrp = transformedItem.mrpPostTax && transformedItem.mrpPostTax > 0
             ? transformedItem.mrpPostTax
             : (transformedItem.mrpPreTax || 0);

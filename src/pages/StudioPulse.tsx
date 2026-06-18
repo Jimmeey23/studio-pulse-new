@@ -1473,7 +1473,14 @@ const StudioPulse = memo(() => {
     filteredSales.forEach((s) => {
       const net = (Number(s.paymentValue) || 0) - (Number(s.paymentVAT) || 0);
       totalNet += net;
-      const disc = Number(s.discountAmount) || 0;
+      let disc = Number(s.discountAmount) || 0;
+      // Fallback: derive discount from percentage when amount column is missing
+      if (disc <= 0) {
+        const pct = Number(s.discountPercentage) || 0;
+        const mrp = (Number(s.mrpPostTax) || Number(s.mrpPreTax) || 0);
+        if (pct > 0 && mrp > 0) disc = mrp * (pct / 100);
+        else if (pct > 0 && net > 0) disc = net * (pct / (100 - pct)); // back-compute from net
+      }
       if (disc > 0) { totalDiscount += disc; discountedNet += net; discountedTxns += 1; }
     });
     // Incremental revenue per ₹1 discount = discountedNet / totalDiscount
@@ -1495,30 +1502,54 @@ const StudioPulse = memo(() => {
 
   // ── Package Sell-through %: sessions used / sessions purchased ────────────
   const packageSellThrough = useMemo(() => {
-    const packageRows = filteredSales.filter((s) => /pack|package/i.test(s.cleanedProduct || s.cleanedCategory || ''));
+    // Infer class count from product name when Sec. Membership Total Classes is blank
+    // e.g. "Studio 8 Class Package" → 8, "4-Class Pack" → 4, "Studio Single Class" → 1
+    const inferTotalClasses = (s: (typeof filteredSales)[0]): number => {
+      const direct = Number(s.secMembershipTotalClasses) || 0;
+      if (direct > 0) return direct;
+      const text = (s.cleanedProduct || s.paymentItem || '').toLowerCase();
+      const numMatch = text.match(/^(\d+)\s*[-\s]?(?:class|session|visit)/i) ||
+                       text.match(/(?:^|\s)(\d+)\s*(?:class|session|visit)/i);
+      if (numMatch) return parseInt(numMatch[1], 10);
+      // Single class fallback
+      if (/single|drop.?in|trial|1\s*class/i.test(text)) return 1;
+      return 0;
+    };
+
+    const packageRows = filteredSales.filter((s) => /pack|package|class\s*pack|session\s*pack/i.test(s.cleanedProduct || s.cleanedCategory || ''));
     let totalClasses = 0, usedClasses = 0;
     packageRows.forEach((s) => {
-      const total = Number(s.secMembershipTotalClasses) || 0;
+      const total = inferTotalClasses(s);
       const left = Number(s.secMembershipClassesLeft) || 0;
-      const used = Number(s.secMembershipUsedSessions) || (total > 0 && left >= 0 ? total - left : 0);
+      const used = Number(s.secMembershipUsedSessions) || (total > 0 && left > 0 ? total - left : 0);
       if (total > 0) { totalClasses += total; usedClasses += used; }
     });
     const rate = totalClasses > 0 ? (usedClasses / totalClasses) * 100 : 0;
-    const prevPackageRows = previousSales.filter((s) => /pack|package/i.test(s.cleanedProduct || s.cleanedCategory || ''));
+    const inferClassesFromRow = (s: (typeof previousSales)[0]): number => {
+      const direct = Number(s.secMembershipTotalClasses) || 0;
+      if (direct > 0) return direct;
+      const text = (s.cleanedProduct || s.paymentItem || '').toLowerCase();
+      const m = text.match(/^(\d+)\s*[-\s]?(?:class|session|visit)/i) || text.match(/(?:^|\s)(\d+)\s*(?:class|session|visit)/i);
+      if (m) return parseInt(m[1], 10);
+      if (/single|drop.?in|trial|1\s*class/i.test(text)) return 1;
+      return 0;
+    };
+    const PACK_RE = /pack|package|class\s*pack|session\s*pack/i;
+    const prevPackageRows = previousSales.filter((s) => PACK_RE.test(s.cleanedProduct || s.cleanedCategory || ''));
     let prevTotal = 0, prevUsed = 0;
     prevPackageRows.forEach((s) => {
-      const t = Number(s.secMembershipTotalClasses) || 0;
+      const t = inferClassesFromRow(s);
       const l = Number(s.secMembershipClassesLeft) || 0;
-      const u = Number(s.secMembershipUsedSessions) || (t > 0 && l >= 0 ? t - l : 0);
+      const u = Number(s.secMembershipUsedSessions) || (t > 0 && l > 0 ? t - l : 0);
       if (t > 0) { prevTotal += t; prevUsed += u; }
     });
     const prevRate = prevTotal > 0 ? (prevUsed / prevTotal) * 100 : 0;
-    const yoyPackageRows = previousYearSales.filter((s) => /pack|package/i.test(s.cleanedProduct || s.cleanedCategory || ''));
+    const yoyPackageRows = previousYearSales.filter((s) => PACK_RE.test(s.cleanedProduct || s.cleanedCategory || ''));
     let yoyTotal = 0, yoyUsed = 0;
     yoyPackageRows.forEach((s) => {
-      const t = Number(s.secMembershipTotalClasses) || 0;
+      const t = inferClassesFromRow(s);
       const l = Number(s.secMembershipClassesLeft) || 0;
-      const u = Number(s.secMembershipUsedSessions) || (t > 0 && l >= 0 ? t - l : 0);
+      const u = Number(s.secMembershipUsedSessions) || (t > 0 && l > 0 ? t - l : 0);
       if (t > 0) { yoyTotal += t; yoyUsed += u; }
     });
     const yoyRate = yoyTotal > 0 ? (yoyUsed / yoyTotal) * 100 : 0;
@@ -1598,7 +1629,7 @@ const StudioPulse = memo(() => {
       { label: 'Discounted Transactions', type: 'number', values: {} },
       { label: 'Discount Penetration', type: 'percent', values: {} },
       { label: 'VAT Collected', type: 'currency', values: {} },
-      { label: 'Money Credits Used', type: 'currency', values: {} },
+      { label: 'Money Credit Sales', type: 'currency', values: {} },
       { label: 'Package Sales', type: 'currency', values: {} },
       { label: 'Retail Sales', type: 'currency', values: {} },
       { label: 'Membership Sales', type: 'currency', values: {} },
@@ -1621,13 +1652,33 @@ const StudioPulse = memo(() => {
       const discountValue = rows.reduce((sum, item) => sum + (Number(item.discountAmount) || 0), 0);
       const discountedTxns = rows.filter((item) => (Number(item.discountAmount) || 0) > 0 || (Number(item.discountPercentage) || 0) > 0).length;
       const moneyCredits = rows.reduce((sum, item) => sum + (Number(item.paidInMoneyCredits) || 0), 0);
-      const packageSales = rows.filter((item) => (item.cleanedCategory || '').toLowerCase().includes('package')).reduce((sum, item) => sum + ((Number(item.paymentValue) || 0) - (Number(item.paymentVAT) || 0)), 0);
-      const retailSales = rows.filter((item) => (item.cleanedCategory || '').toLowerCase().includes('retail')).reduce((sum, item) => sum + ((Number(item.paymentValue) || 0) - (Number(item.paymentVAT) || 0)), 0);
-      const membershipSales = rows.filter((item) => (item.membershipType || item.cleanedCategory || '').toLowerCase().includes('member')).reduce((sum, item) => sum + ((Number(item.paymentValue) || 0) - (Number(item.paymentVAT) || 0)), 0);
-      const dropInSales = rows.filter((item) => {
-        const value = `${item.paymentItem || ''} ${item.cleanedProduct || ''} ${item.cleanedCategory || ''}`.toLowerCase();
-        return value.includes('drop') || value.includes('single') || value.includes('trial');
-      }).reduce((sum, item) => sum + ((Number(item.paymentValue) || 0) - (Number(item.paymentVAT) || 0)), 0);
+
+      // Mutually exclusive category buckets — priority order ensures each transaction counted once.
+      // All 5 sum to gross so: membershipSales + packageSales + moneyCreditSales + dropInSales + retailSales = gross.
+      let membershipSales = 0, packageSales = 0, moneyCreditSales = 0, dropInSales = 0, retailSales = 0;
+      rows.forEach((item) => {
+        const pv = Number(item.paymentValue) || 0;
+        const cat = (item.cleanedCategory || '').toLowerCase();
+        const prod = (item.cleanedProduct || '').toLowerCase();
+        const payItem = (item.paymentItem || '').toLowerCase();
+        const memType = (item.membershipType || '').toLowerCase();
+        const fullText = `${cat} ${prod} ${payItem} ${memType}`;
+
+        if (cat.includes('money') || payItem === 'money-credit' || memType === 'package-money') {
+          moneyCreditSales += pv;
+        } else if (cat.includes('retail') || cat.includes('merchandise') || cat.includes('product')) {
+          retailSales += pv;
+        } else if (cat.includes('package') || memType.includes('pack') || cat.includes('class pack') || cat.includes('session pack')) {
+          packageSales += pv;
+        } else if (fullText.includes('single') || fullText.includes('drop') || fullText.includes('trial') || fullText.includes('walk-in') || fullText.includes('walkin') || cat.includes('session')) {
+          dropInSales += pv;
+        } else if (memType.includes('subscription') || memType.includes('member') || cat.includes('member') || cat.includes('subscript')) {
+          membershipSales += pv;
+        } else {
+          // catch-all: assign to membership so total is always preserved
+          membershipSales += pv;
+        }
+      });
       const onlineSales = rows.filter((item) => !item.soldBy || item.soldBy === '-' || item.soldBy.toLowerCase().includes('online') || item.soldBy.toLowerCase().includes('system')).reduce((sum, item) => sum + ((Number(item.paymentValue) || 0) - (Number(item.paymentVAT) || 0)), 0);
       const sellerRevenue = rows.reduce<Record<string, number>>((acc, item) => {
         const seller = item.soldBy === '-' ? 'Online/System' : (item.soldBy || 'Unknown');
@@ -1646,7 +1697,7 @@ const StudioPulse = memo(() => {
       metricRows[6].values[month] = discountedTxns;
       metricRows[7].values[month] = txns ? (discountedTxns / txns) * 100 : 0;
       metricRows[8].values[month] = vat;
-      metricRows[9].values[month] = moneyCredits;
+      metricRows[9].values[month] = moneyCreditSales;
       metricRows[10].values[month] = packageSales;
       metricRows[11].values[month] = retailSales;
       metricRows[12].values[month] = membershipSales;
