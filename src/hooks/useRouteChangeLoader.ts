@@ -14,9 +14,15 @@ export function useRouteChangeLoader() {
   const { setLoading } = useGlobalLoading();
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('mv') === '1') {
+      setLoading(false);
+      return;
+    }
+
     // Show loader immediately when route changes
     setLoading(true, 'Loading page...');
-  }, [location.pathname, setLoading]);
+  }, [location.pathname, location.search, setLoading]);
 
   // Store a reference in window to prevent pages from dismissing the loader too early
   useEffect(() => {
