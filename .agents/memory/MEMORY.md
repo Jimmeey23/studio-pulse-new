@@ -1,1 +1,1 @@
-- [Studio Pulse migration](studio-pulse-migration.md) — Lovable→Replit migration notes, API routes, proxy config, missing deps
+- [Studio Pulse migration](studio-pulse-migration.md) — Lovable→Replit migration notes, API routes, proxy config, React Query retry fix, missing deps.

@@ -11,7 +11,12 @@ export const queryClient = new QueryClient({
       // Performance optimizations
       refetchOnWindowFocus: false, // Don't refetch on tab focus to save API calls
       refetchOnReconnect: true, // Refetch when internet reconnects
-      retry: 3, // Retry failed requests 3 times
+      retry: (failureCount, error: any) => {
+        // Don't retry on 5xx errors from our API — these mean credentials are
+        // missing or the server is misconfigured (not transient network errors).
+        if (error?.status >= 400) return false;
+        return failureCount < 3;
+      },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
       
       // Network optimizations

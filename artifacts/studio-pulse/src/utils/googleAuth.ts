@@ -52,7 +52,9 @@ export const getGoogleAccessToken = async (): Promise<string> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Token refresh failed: ${response.status}`);
+      const err: any = new Error(`Token refresh failed: ${response.status}`);
+      err.status = response.status;
+      throw err;
     }
 
     const tokenData = await response.json();
