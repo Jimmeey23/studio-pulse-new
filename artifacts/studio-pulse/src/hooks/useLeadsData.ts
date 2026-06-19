@@ -18,20 +18,33 @@ export const parseDate = (dateString: string | undefined | null) => {
     // Handle various date formats
     if (dateString.includes('/')) {
       // Handle DD/MM/YYYY or MM/DD/YYYY format
-      const parts = dateString.split('/');
+      const datePart = dateString.split(' ')[0].trim();
+      const parts = datePart.split('/');
       if (parts.length === 3) {
-        const day = parseInt(parts[0]);
-        const month = parseInt(parts[1]);
-        const year = parseInt(parts[2]);
-        
-        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-          // Assume DD/MM/YYYY format for consistency
+        let day = parseInt(parts[0]);
+        let month = parseInt(parts[1]);
+        const rawYear = parseInt(parts[2]);
+        const year = rawYear < 100 ? 2000 + rawYear : rawYear;
+        // Auto-detect MM/DD/YYYY: if parts[1] > 12 it must be the day — swap
+        if (month > 12 && day <= 12) {
+          const tmp = day; day = month; month = tmp;
+        }
+        if (!isNaN(year) && !isNaN(month) && !isNaN(day) && month >= 1 && month <= 12) {
           parsedDate = new Date(year, month - 1, day);
         }
       }
     } else if (dateString.includes('-')) {
-      // YYYY-MM-DD format
-      parsedDate = new Date(dateString);
+      // YYYY-MM-DD format — parse as local midnight to avoid UTC-offset date-shifting
+      const parts = dateString.split('T')[0].split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]);
+        const day = parseInt(parts[2]);
+        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+          parsedDate = new Date(year, month - 1, day);
+        }
+      }
+      if (!parsedDate) parsedDate = new Date(dateString);
     } else {
       // Try direct parsing
       parsedDate = new Date(dateString);

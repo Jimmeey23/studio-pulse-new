@@ -137,18 +137,24 @@ export const parseDate = (dateString: string): Date | null => {
       if (!isNaN(d.getTime())) return d;
     }
     
-    // Handle DD/MM/YYYY or D/M/YY format with optional time (e.g., "14/09/2025 10:00:00", "4/3/22")
+    // Handle DD/MM/YYYY or MM/DD/YYYY or D/M/YY format with optional time
+    // e.g. "14/09/2025 10:00:00", "08/25/2025", "4/3/22"
     if (dateString.includes('/')) {
       // Split by space to separate date and time, take only date part
       const datePart = dateString.split(' ')[0].trim();
       const parts = datePart.split('/');
       if (parts.length === 3) {
-        const day = parseInt(parts[0]);
-        const month = parseInt(parts[1]);
+        let day = parseInt(parts[0]);
+        let month = parseInt(parts[1]);
         const rawYear = parseInt(parts[2]);
         const year = rawYear < 100 ? 2000 + rawYear : rawYear;
 
-        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+        // Auto-detect MM/DD/YYYY format: if parts[1] > 12 it must be the day, not month — swap
+        if (month > 12 && day <= 12) {
+          const tmp = day; day = month; month = tmp;
+        }
+
+        if (!isNaN(year) && !isNaN(month) && !isNaN(day) && month >= 1 && month <= 12) {
           return new Date(year, month - 1, day);
         }
       }

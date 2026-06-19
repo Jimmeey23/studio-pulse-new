@@ -1,1 +1,2 @@
 - [Studio Pulse migration](studio-pulse-migration.md) — Lovable→Replit migration notes, API routes, proxy config, React Query retry fix, missing deps.
+- [Studio Pulse date parsing bug](studio-pulse-date-parsing.md) — parseDate MM/DD vs DD/MM auto-detection; future-month cap on all matrix computations.

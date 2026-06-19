@@ -1629,7 +1629,10 @@ const StudioPulse = memo(() => {
       monthlyMap.set(key, existing);
     });
 
-    const months = Array.from(monthlyMap.keys()).sort().reverse();
+    // Cap at current month — future-dated entries (bad data or mis-parsed dates) should not appear
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const months = Array.from(monthlyMap.keys()).filter(k => k <= currentMonthKey).sort().reverse();
     const monthLabels: Record<string, string> = Object.fromEntries(months.map((month) => [month, monthLabel(month)]));
 
     const metricRows: SalesMetricsMatrixRow[] = [
@@ -1751,7 +1754,9 @@ const StudioPulse = memo(() => {
       }
     });
 
-    const monthsSorted = Object.keys(monthly).sort();
+    const _nowSess = new Date();
+    const _curMonthSess = `${_nowSess.getFullYear()}-${String(_nowSess.getMonth() + 1).padStart(2, '0')}`;
+    const monthsSorted = Object.keys(monthly).filter(k => k <= _curMonthSess).sort();
     const trend = monthsSorted.slice(-12).map((k) => ({
       key: k,
       label: monthLabel(k),
@@ -1998,10 +2003,12 @@ const StudioPulse = memo(() => {
   );
 
   const funnelMatrix = useMemo(() => {
+    const _now = new Date();
+    const _currentMonthKey = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}`;
     const months = Array.from(new Set([
       ...studioWideLeads.map((item) => monthKeyFromDate(item.createdAt)).filter(Boolean) as string[],
       ...studioWideClients.map((item) => monthKeyFromDate(item.firstVisitDate)).filter(Boolean) as string[],
-    ])).sort().reverse();
+    ])).filter(k => k <= _currentMonthKey).sort().reverse();
 
     const monthLabels = Object.fromEntries(months.map((month) => [month, monthLabel(month)]));
     const rows: SalesMetricsMatrixRow[] = [
@@ -2059,11 +2066,13 @@ const StudioPulse = memo(() => {
   }, [studioWideClients, studioWideLeads]);
 
   const trainerMatrix = useMemo(() => {
+    const _nowTr = new Date();
+    const _curMonthTr = `${_nowTr.getFullYear()}-${String(_nowTr.getMonth() + 1).padStart(2, '0')}`;
     const months = Array.from(new Set(studioWidePayroll.map((item) => {
       const my = item.monthYear;
       if (!my) return null;
       return normalizeMonthYearToISO(my);
-    }).filter(Boolean) as string[])).sort().reverse();
+    }).filter(Boolean) as string[])).filter(k => k <= _curMonthTr).sort().reverse();
     const monthLabels = Object.fromEntries(months.map((month) => [month, monthLabel(month)]));
     const rows: SalesMetricsMatrixRow[] = [
       { label: 'Trainers Active', type: 'number', values: {} },
@@ -2117,7 +2126,9 @@ const StudioPulse = memo(() => {
   }, [studioWidePayroll]);
 
   const classMatrix = useMemo(() => {
-    const months = Array.from(new Set(studioWideSessions.map((item) => monthKeyFromDate(item.date)).filter(Boolean) as string[])).sort().reverse();
+    const _nowCl = new Date();
+    const _curMonthCl = `${_nowCl.getFullYear()}-${String(_nowCl.getMonth() + 1).padStart(2, '0')}`;
+    const months = Array.from(new Set(studioWideSessions.map((item) => monthKeyFromDate(item.date)).filter(Boolean) as string[])).filter(k => k <= _curMonthCl).sort().reverse();
     const monthLabels = Object.fromEntries(months.map((month) => [month, monthLabel(month)]));
     const rows: SalesMetricsMatrixRow[] = [
       { label: 'Sessions Conducted', type: 'number', values: {} },
@@ -2150,7 +2161,9 @@ const StudioPulse = memo(() => {
   }, [studioWideSessions]);
 
   const lapsedMatrix = useMemo(() => {
-    const months = Array.from(new Set(studioWideExpirations.map((item) => monthKeyFromDate(item.endDate)).filter(Boolean) as string[])).sort().reverse();
+    const _nowLp = new Date();
+    const _curMonthLp = `${_nowLp.getFullYear()}-${String(_nowLp.getMonth() + 1).padStart(2, '0')}`;
+    const months = Array.from(new Set(studioWideExpirations.map((item) => monthKeyFromDate(item.endDate)).filter(Boolean) as string[])).filter(k => k <= _curMonthLp).sort().reverse();
     const monthLabels = Object.fromEntries(months.map((month) => [month, monthLabel(month)]));
     const rows: SalesMetricsMatrixRow[] = [
       { label: 'Due Renewals', type: 'number', values: {} },
