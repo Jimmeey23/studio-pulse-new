@@ -1176,6 +1176,7 @@ const StudioPulse = memo(() => {
   const { setLoading } = useGlobalLoading();
   const defaultDateRange = useMemo(() => getDashboardDefaultDateRange(), []);
   const [studio, setStudio] = useState<StudioId>('all');
+  const activeStudio = STUDIOS.find((s) => s.id === studio) || STUDIOS[0];
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>(defaultDateRange);
   const previousDateRange = useMemo(() => shiftRangeBackOneMonth(dateRange), [dateRange]);
   const previousYearDateRange = useMemo(() => shiftRangeBackOneYear(dateRange), [dateRange]);
@@ -3341,7 +3342,6 @@ const StudioPulse = memo(() => {
     </div>
   );
 
-  const activeStudio = STUDIOS.find((s) => s.id === studio) || STUDIOS[0];
   const { summary: aiSummary, loading: aiLoading, generate: generateAISummary, getSummary, isLoading: aiSectionLoading, refreshAll: refreshAllSummaries } = useStudioAISummary();
   const [insightOpen, setInsightOpen] = useState(false);
   const [drillDownOpen, setDrillDownOpen] = useState(false);

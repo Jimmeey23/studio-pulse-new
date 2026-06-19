@@ -1,0 +1,36 @@
+Something went wrong
+We're sorry, but something unexpected happened. Please try refreshing the page or go back to the home page.
+
+ReferenceError: Cannot access 'activeStudio' before initialization
+
+
+    at StudioPulse (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/pages/StudioPulse.tsx?t=1781850049086:1683:20)
+    at StudioPulseRoute (<anonymous>)
+    at RenderedRoute (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=80855875:6647:26)
+    at Routes (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=80855875:7572:3)
+    at div (<anonymous>)
+    at MotionDOMComponent (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/framer-motion.js?v=683ed42f:8813:40)
+    at PopChildMeasure (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/framer-motion.js?v=683ed42f:7957:23)
+    at PopChild (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/framer-motion.js?v=683ed42f:7984:21)
+    at PresenceChild (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/framer-motion.js?v=683ed42f:8032:24)
+    at AnimatePresence (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/framer-motion.js?v=683ed42f:8109:26)
+    at PageTransition (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/components/ui/PageTransition.tsx:6:34)
+    at Suspense (<anonymous>)
+    at div (<anonymous>)
+    at RouteLoadingWrapper (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/components/RouteLoadingWrapper.tsx:5:39)
+    at AppRoutes (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/App.tsx?t=1781850049086:56:3)
+    at SectionNavigationProvider (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/contexts/SectionNavigationContext.tsx:7:45)
+    at MetricsTablesRegistryProvider (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/contexts/MetricsTablesRegistryContext.tsx:6:49)
+    at SessionsFiltersProvider (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/contexts/SessionsFiltersContext.tsx:33:43)
+    at GlobalFiltersProvider (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/contexts/GlobalFiltersContext.tsx:51:41)
+    at Router (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=80855875:7511:13)
+    at BrowserRouter (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=80855875:10816:3)
+    at AppContent (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/App.tsx?t=1781850049086:139:3)
+    at DataSourceProvider (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/contexts/DataSourceContext.tsx:24:38)
+    at Provider (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/chunk-WOGMUGW6.js?v=9c5b3dca:43:15)
+    at TooltipProvider (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=4d307534:61:5)
+    at QueryClientProvider (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/node_modules/.vite/deps/@tanstack_react-query.js?v=7f6508e7:3170:3)
+    at ErrorBoundary (https://bdc22d10-ecf0-41d9-9388-7d6a13b1cc8f-00-2idmwoqpxn0wn.sisko.replit.dev/src/components/ErrorBoundary.tsx:8:8)
+    at App (<anonymous>)
+Try Again
+Go Home
