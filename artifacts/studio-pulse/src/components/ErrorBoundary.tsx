@@ -34,6 +34,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Always log to console.error so it shows in browser dev tools
+    console.error('[ErrorBoundary] Caught error:', error);
+    console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack);
     logger.error('Uncaught error in component tree', { error, errorInfo });
     
     this.setState({ errorInfo });

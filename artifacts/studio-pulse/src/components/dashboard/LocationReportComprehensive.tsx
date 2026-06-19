@@ -12,6 +12,50 @@ interface LocationReportComprehensiveProps {
   onReady?: () => void;
 }
 
+class ReportErrorBoundary extends React.Component<
+  { children: React.ReactNode; onClose?: () => void },
+  { error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode; onClose?: () => void }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[Report] Render error:', error);
+    console.error('[Report] Component stack:', info.componentStack);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 40, fontFamily: 'monospace', background: '#fff', minHeight: '100vh' }}>
+          <button
+            onClick={this.props.onClose}
+            style={{ marginBottom: 24, padding: '8px 16px', background: '#0F2C5E', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+          >
+            ← Back to Dashboard
+          </button>
+          <h2 style={{ color: '#C0392B', marginBottom: 12 }}>Report encountered an error</h2>
+          <pre style={{ background: '#FBE7E4', padding: 16, borderRadius: 8, whiteSpace: 'pre-wrap', color: '#333', fontSize: 13 }}>
+            {this.state.error.message}
+            {'\n\n'}
+            {this.state.error.stack}
+          </pre>
+          <button
+            onClick={() => this.setState({ error: null })}
+            style={{ marginTop: 16, padding: '8px 16px', background: '#1F8A4C', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const reportCss = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
@@ -332,32 +376,38 @@ export const LocationReportComprehensive: React.FC<LocationReportComprehensivePr
 
   if (isKwalityMay2026Template) {
     return (
-      <StaticReportFrame
-        title="Kwality House Performance Report May 2026"
-        src="/kwality-house-performance-report-may-2026.html"
-        onClose={onClose}
-      />
+      <ReportErrorBoundary onClose={onClose}>
+        <StaticReportFrame
+          title="Kwality House Performance Report May 2026"
+          src="/kwality-house-performance-report-may-2026.html"
+          onClose={onClose}
+        />
+      </ReportErrorBoundary>
     );
   }
 
   if (isSupremeMay2026Template) {
     return (
-      <StaticReportFrame
-        title="Supreme HQ Studio Performance Review May 2026"
-        src="/supreme-hq-studio-performance-review-may-2026.pdf"
-        onClose={onClose}
-      />
+      <ReportErrorBoundary onClose={onClose}>
+        <StaticReportFrame
+          title="Supreme HQ Studio Performance Review May 2026"
+          src="/supreme-hq-studio-performance-review-may-2026.pdf"
+          onClose={onClose}
+        />
+      </ReportErrorBoundary>
     );
   }
 
   return (
-    <DynamicLocationReport
-      globalFilters={globalFilters}
-      updateFilters={updateFilters}
-      clearFilters={clearFilters}
-      onReady={onReady}
-      onClose={onClose}
-    />
+    <ReportErrorBoundary onClose={onClose}>
+      <DynamicLocationReport
+        globalFilters={globalFilters}
+        updateFilters={updateFilters}
+        clearFilters={clearFilters}
+        onReady={onReady}
+        onClose={onClose}
+      />
+    </ReportErrorBoundary>
   );
 };
 
