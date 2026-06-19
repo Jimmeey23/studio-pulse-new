@@ -2483,40 +2483,58 @@ const StudioPulse = memo(() => {
   // ── Peak Hour / Day-of-Week Heatmap ────────────────────────────────────
   const peakHourHeatmap = useMemo(() => {
     const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    // Per cell: track attendance/booked/lateCancels as counts, and sessionId→capacity map for accurate total capacity
-    type Cell = { attendance: number; booked: number; lateCancels: number; sessionCapacity: Map<string, number> };
+    // Per cell: track counts + unique session capacities + teacher/class name sets for rich tooltips
+    type Cell = {
+      attendance: number; booked: number; lateCancels: number;
+      sessionCapacity: Map<string, number>;
+      teachers: Set<string>; classes: Set<string>;
+    };
     const buckets: Record<string, Record<string, Cell>> = {};
-    const hourSet = new Set<number>();
+    const slotSet = new Set<string>();
 
     checkins.forEach((c) => {
       if (!inStudio(c.location, studio)) return;
       if (!isWithinRange(c.dateIST, dateRange)) return;
-      const hour = parseInt(c.time);
+      const parts = (c.time || '').split(':');
+      const hour = parseInt(parts[0]);
+      const minutes = parseInt(parts[1] || '0');
       if (isNaN(hour)) return;
-      hourSet.add(hour);
-      const slot = `${hour}:00`;
+      const roundedMins = Math.floor(minutes / 15) * 15;
+      const slot = `${hour}:${String(roundedMins).padStart(2, '0')}`;
       const day = c.dayOfWeek;
       if (!DAYS.includes(day)) return;
+      slotSet.add(slot);
       if (!buckets[slot]) buckets[slot] = {};
-      if (!buckets[slot][day]) buckets[slot][day] = { attendance: 0, booked: 0, lateCancels: 0, sessionCapacity: new Map() };
+      if (!buckets[slot][day]) buckets[slot][day] = { attendance: 0, booked: 0, lateCancels: 0, sessionCapacity: new Map(), teachers: new Set(), classes: new Set() };
       const cell = buckets[slot][day];
       if (c.checkedIn) cell.attendance += 1;
       if (c.isLateCancelled) cell.lateCancels += 1;
       cell.booked += 1;
-      // Store capacity once per unique sessionId — avoids multiplying capacity by attendee count
       if (c.sessionId && !cell.sessionCapacity.has(c.sessionId)) {
         cell.sessionCapacity.set(c.sessionId, c.capacity);
       }
+      if ((c as any).teacherName) cell.teachers.add((c as any).teacherName);
+      if ((c as any).sessionName) cell.classes.add((c as any).sessionName);
     });
 
-    const sortedSlots = Array.from(hourSet).sort((a, b) => a - b).map((h) => `${h}:00`);
+    const sortedSlots = Array.from(slotSet).sort((a, b) => {
+      const [ah, am] = a.split(':').map(Number);
+      const [bh, bm] = b.split(':').map(Number);
+      return ah !== bh ? ah - bh : am - bm;
+    });
 
-    const flatBuckets: Record<string, Record<string, { attendance: number; capacity: number; classes: number; lateCancels: number; booked: number; fillRate: number }>> = {};
+    const flatBuckets: Record<string, Record<string, {
+      attendance: number; capacity: number; classes: number; lateCancels: number;
+      booked: number; fillRate: number; teacherList: string[]; classList: string[];
+    }>> = {};
     sortedSlots.forEach((slot) => {
       flatBuckets[slot] = {};
       DAYS.forEach((day) => {
         const c = buckets[slot]?.[day];
-        if (!c) { flatBuckets[slot][day] = { attendance: 0, capacity: 0, classes: 0, lateCancels: 0, booked: 0, fillRate: 0 }; return; }
+        if (!c) {
+          flatBuckets[slot][day] = { attendance: 0, capacity: 0, classes: 0, lateCancels: 0, booked: 0, fillRate: 0, teacherList: [], classList: [] };
+          return;
+        }
         const totalCapacity = Array.from(c.sessionCapacity.values()).reduce((s, v) => s + v, 0);
         flatBuckets[slot][day] = {
           attendance: c.attendance,
@@ -2525,6 +2543,8 @@ const StudioPulse = memo(() => {
           lateCancels: c.lateCancels,
           booked: c.booked,
           fillRate: totalCapacity > 0 ? (c.attendance / totalCapacity) * 100 : 0,
+          teacherList: Array.from(c.teachers).sort(),
+          classList: Array.from(c.classes).sort(),
         };
       });
     });
@@ -4758,25 +4778,20 @@ const StudioPulse = memo(() => {
               backgroundSize: '48px 48px',
             }} />
 
-            {/* Left radial glow — continuous breathing */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: [0, 0.9, 0.5, 0.9], scale: [0.6, 1, 1.12, 1] }}
-              transition={{ duration: 1.8, ease: 'easeOut', times: [0, 0.4, 0.7, 1], repeat: Infinity, repeatType: 'reverse', repeatDelay: 1.2 }}
-              className="pointer-events-none absolute -left-24 top-1/2 -translate-y-1/2 h-[320px] w-[320px] rounded-full bg-rose-600/20 blur-[80px]"
+            {/* Left radial glow — CSS-only, compositor safe */}
+            <div
+              className="pointer-events-none absolute -left-24 top-1/2 -translate-y-1/2 h-[320px] w-[320px] rounded-full bg-rose-600/20 blur-[80px] animate-pulse"
+              style={{ willChange: 'opacity', animationDuration: '3s' }}
             />
-            {/* Right radial glow — continuous breathing offset */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: [0, 0.9, 0.5, 0.9], scale: [0.6, 1, 1.12, 1] }}
-              transition={{ duration: 1.8, delay: 0.7, ease: 'easeOut', times: [0, 0.4, 0.7, 1], repeat: Infinity, repeatType: 'reverse', repeatDelay: 0.8 }}
-              className="pointer-events-none absolute -right-24 top-1/2 -translate-y-1/2 h-[320px] w-[320px] rounded-full bg-indigo-600/20 blur-[80px]"
+            {/* Right radial glow */}
+            <div
+              className="pointer-events-none absolute -right-24 top-1/2 -translate-y-1/2 h-[320px] w-[320px] rounded-full bg-indigo-600/20 blur-[80px] animate-pulse"
+              style={{ willChange: 'opacity', animationDuration: '4s', animationDelay: '1.5s' }}
             />
-            {/* Center ambient pulse */}
-            <motion.div
-              animate={{ opacity: [0.04, 0.10, 0.04], scale: [0.9, 1.05, 0.9] }}
-              transition={{ duration: 4, ease: 'easeInOut', repeat: Infinity }}
-              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[180px] w-[400px] rounded-full bg-white/5 blur-[60px]"
+            {/* Center ambient */}
+            <div
+              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[180px] w-[400px] rounded-full bg-white/5 blur-[60px] animate-pulse"
+              style={{ willChange: 'opacity', animationDuration: '5s', animationDelay: '0.5s' }}
             />
 
             {/* Project badge — top right */}
@@ -4790,30 +4805,21 @@ const StudioPulse = memo(() => {
               <span className="text-white/70 font-bold tracking-wide">Jimmeey Gondaa</span>
             </motion.div>
 
-            {/* Logo — animated entrance + persistent pulse glow */}
+            {/* Logo — entrance only (no repeat animations) */}
             <motion.div
               initial={{ opacity: 0, y: -18, scale: 0.75 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="mb-5 flex flex-col items-center gap-2"
             >
-              {/* Glowing ring behind logo */}
               <div className="relative flex items-center justify-center">
-                <motion.div
-                  animate={{ scale: [1, 1.18, 1], opacity: [0.18, 0.38, 0.18] }}
-                  transition={{ duration: 3.2, ease: 'easeInOut', repeat: Infinity }}
-                  className="pointer-events-none absolute h-16 w-48 rounded-full bg-rose-400/20 blur-xl"
+                {/* Glow ring — CSS pulse only */}
+                <div
+                  className="pointer-events-none absolute h-16 w-48 rounded-full bg-rose-400/25 blur-xl animate-pulse"
+                  style={{ willChange: 'opacity', animationDuration: '3.5s' }}
                 />
-                <motion.div
-                  animate={{ scale: [1, 1.08, 1] }}
-                  transition={{ duration: 4.5, ease: 'easeInOut', repeat: Infinity }}
-                  className="relative flex items-center gap-3"
-                >
-                  <motion.div
-                    animate={{ scaleX: [0.6, 1, 0.6], opacity: [0, 1, 0] }}
-                    transition={{ duration: 3.2, ease: 'easeInOut', repeat: Infinity }}
-                    className="h-px w-10 bg-gradient-to-r from-transparent to-white/30"
-                  />
+                <div className="relative flex items-center gap-3">
+                  <div className="h-px w-10 bg-gradient-to-r from-transparent to-white/30 animate-pulse" style={{ animationDuration: '3s' }} />
                   <motion.img
                     src="/physique57-logo.png"
                     alt="Physique57"
@@ -4822,12 +4828,8 @@ const StudioPulse = memo(() => {
                     whileHover={{ opacity: 1, scale: 1.04 }}
                     transition={{ duration: 0.2 }}
                   />
-                  <motion.div
-                    animate={{ scaleX: [0.6, 1, 0.6], opacity: [0, 1, 0] }}
-                    transition={{ duration: 3.2, ease: 'easeInOut', repeat: Infinity, delay: 0.4 }}
-                    className="h-px w-10 bg-gradient-to-l from-transparent to-white/30"
-                  />
-                </motion.div>
+                  <div className="h-px w-10 bg-gradient-to-l from-transparent to-white/30 animate-pulse" style={{ animationDuration: '3s', animationDelay: '0.5s' }} />
+                </div>
               </div>
               {/* Studio Pulse badge */}
               <motion.div
@@ -4836,11 +4838,7 @@ const StudioPulse = memo(() => {
                 transition={{ duration: 0.5, delay: 0.45 }}
                 className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur"
               >
-                <motion.span
-                  animate={{ opacity: [0.6, 1, 0.6] }}
-                  transition={{ duration: 2, ease: 'easeInOut', repeat: Infinity }}
-                  className="h-1.5 w-1.5 rounded-full bg-rose-400"
-                />
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse" style={{ animationDuration: '2s' }} />
                 <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/50">Studio Pulse</span>
               </motion.div>
             </motion.div>
@@ -7968,11 +7966,11 @@ const StudioPulse = memo(() => {
                 {(() => {
                   type HeatMetric = typeof heatmapMetric;
                   const HEATMAP_TABS: { key: HeatMetric; label: string; icon: string; format: (v: number) => string; palette: [string, string, string]; darkThreshold: number }[] = [
-                    { key: 'attendance',  label: 'Attendance',   icon: '👥', format: (v) => String(Math.round(v)),  palette: ['#dbeafe','#3b82f6','#1e3a8a'], darkThreshold: 0.5 },
-                    { key: 'classes',     label: 'Classes',      icon: '📅', format: (v) => String(Math.round(v)),  palette: ['#ede9fe','#8b5cf6','#4c1d95'], darkThreshold: 0.5 },
-                    { key: 'booked',      label: 'Booked',       icon: '🎟️', format: (v) => String(Math.round(v)),  palette: ['#ccfbf1','#14b8a6','#134e4a'], darkThreshold: 0.5 },
-                    { key: 'lateCancels', label: 'Late Cancels', icon: '⚠️', format: (v) => String(Math.round(v)),  palette: ['#fee2e2','#ef4444','#7f1d1d'], darkThreshold: 0.5 },
-                    { key: 'fillRate',    label: 'Fill Rate',    icon: '📊', format: (v) => `${v.toFixed(0)}%`,     palette: ['#dcfce7','#22c55e','#14532d'], darkThreshold: 0.5 },
+                    { key: 'attendance',  label: 'Attendance',   icon: '👥', format: (v) => String(Math.round(v)),  palette: ['#e0f2fe','#0284c7','#0c4a6e'], darkThreshold: 0.45 },
+                    { key: 'classes',     label: 'Classes',      icon: '📅', format: (v) => String(Math.round(v)),  palette: ['#fdf4ff','#a855f7','#581c87'], darkThreshold: 0.4  },
+                    { key: 'booked',      label: 'Booked',       icon: '🎟️', format: (v) => String(Math.round(v)),  palette: ['#ecfdf5','#059669','#064e3b'], darkThreshold: 0.45 },
+                    { key: 'lateCancels', label: 'Late Cancels', icon: '⚠️', format: (v) => String(Math.round(v)),  palette: ['#fff7ed','#dc2626','#450a0a'], darkThreshold: 0.4  },
+                    { key: 'fillRate',    label: 'Fill Rate',    icon: '📊', format: (v) => `${v.toFixed(0)}%`,     palette: ['#fefce8','#f59e0b','#7c2d12'], darkThreshold: 0.4  },
                   ];
                   const activeTab = HEATMAP_TABS.find((t) => t.key === heatmapMetric)!;
 
@@ -8003,11 +8001,13 @@ const StudioPulse = memo(() => {
                   };
 
                   const fmtHour = (slot: string) => {
-                    const h = parseInt(slot);
+                    const [hStr, mStr] = slot.split(':');
+                    const h = parseInt(hStr);
+                    const m = parseInt(mStr || '0');
                     if (isNaN(h)) return slot;
                     const ampm = h < 12 ? 'AM' : 'PM';
                     const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-                    return `${h12}:00 ${ampm}`;
+                    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
                   };
 
                   // Find peak cell for annotation
@@ -8075,24 +8075,68 @@ const StudioPulse = memo(() => {
                                   const cell = peakHourHeatmap.buckets[slot]?.[day];
                                   const val = cell?.[heatmapMetric] ?? 0;
                                   const isPeak = slot === peakSlot && day === peakDay;
+                                  const teacherList = cell?.teacherList ?? [];
+                                  const classList = cell?.classList ?? [];
                                   return (
                                     <td
                                       key={day}
-                                      className="relative p-0 text-center transition-all duration-150 group-hover:opacity-90"
+                                      className="relative p-0 text-center group/cell overflow-visible"
                                       style={{ backgroundColor: val > 0 ? cellBg(val) : '#f8fafc' }}
-                                      title={`${fmtHour(slot)} · ${day} · ${activeTab.label}: ${activeTab.format(val)}`}
                                     >
-                                      <div className="flex h-11 items-center justify-center gap-0.5">
+                                      <div className="flex h-9 items-center justify-center gap-0.5">
                                         {isPeak && val > 0 && (
-                                          <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-yellow-300 shadow-[0_0_4px_2px_rgba(253,224,71,0.5)]" />
+                                          <span className="absolute top-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-yellow-300 shadow-[0_0_4px_2px_rgba(253,224,71,0.5)]" />
                                         )}
                                         <span
-                                          className="text-[12px] font-black tabular-nums"
+                                          className="text-[11px] font-black tabular-nums leading-none"
                                           style={{ color: val > 0 ? cellFg(val) : '#cbd5e1' }}
                                         >
                                           {val > 0 ? activeTab.format(val) : ''}
                                         </span>
                                       </div>
+                                      {/* Rich hover tooltip */}
+                                      {val > 0 && (
+                                        <div className="pointer-events-none absolute z-50 bottom-full left-1/2 mb-1.5 hidden group-hover/cell:block"
+                                          style={{ transform: 'translateX(-50%)', minWidth: 180, maxWidth: 240 }}
+                                        >
+                                          <div className="rounded-xl border border-white/10 bg-slate-900 p-3 shadow-2xl text-left">
+                                            <div className="text-[11px] font-bold text-white/90 mb-0.5">{fmtHour(slot)} · {day.slice(0,3)}</div>
+                                            <div className="text-[11px] font-semibold mb-2" style={{ color: activeTab.palette[1] }}>
+                                              {activeTab.label}: {activeTab.format(val)}
+                                              {heatmapMetric === 'attendance' && cell?.capacity ? ` / ${cell.capacity} cap` : ''}
+                                            </div>
+                                            {classList.length > 0 && (
+                                              <div className="mb-1.5">
+                                                <div className="text-[9px] font-bold uppercase tracking-widest text-white/30 mb-1">Classes</div>
+                                                {classList.slice(0, 5).map(cn => (
+                                                  <div key={cn} className="flex items-center gap-1.5 text-[11px] text-white/75 leading-relaxed">
+                                                    <span className="h-1 w-1 rounded-full bg-violet-400 shrink-0" />
+                                                    {cn}
+                                                  </div>
+                                                ))}
+                                                {classList.length > 5 && <div className="text-[10px] text-white/30 mt-0.5">+{classList.length - 5} more</div>}
+                                              </div>
+                                            )}
+                                            {teacherList.length > 0 && (
+                                              <div>
+                                                <div className="text-[9px] font-bold uppercase tracking-widest text-white/30 mb-1">Trainers</div>
+                                                {teacherList.slice(0, 5).map(t => (
+                                                  <div key={t} className="flex items-center gap-1.5 text-[11px] text-white/75 leading-relaxed">
+                                                    <span className="h-1 w-1 rounded-full bg-sky-400 shrink-0" />
+                                                    {t}
+                                                  </div>
+                                                ))}
+                                                {teacherList.length > 5 && <div className="text-[10px] text-white/30 mt-0.5">+{teacherList.length - 5} more</div>}
+                                              </div>
+                                            )}
+                                            {classList.length === 0 && teacherList.length === 0 && (
+                                              <div className="text-[10px] text-white/30 italic">No name data in this slot</div>
+                                            )}
+                                          </div>
+                                          {/* Arrow */}
+                                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-slate-900" />
+                                        </div>
+                                      )}
                                     </td>
                                   );
                                 })}

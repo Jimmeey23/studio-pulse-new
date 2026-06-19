@@ -107,17 +107,9 @@ const DashboardTitle = () => {
         {/* Main title container */}
         <div className="relative">
           {/* Background glow effect */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-3xl"
-            animate={{
-              opacity: [0.3, 0.6, 0.3],
-              scale: [0.8, 1.1, 0.8]
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-3xl animate-pulse"
+            style={{ willChange: 'opacity', animationDuration: '4s' }}
           />
 
           {/* Title text */}
@@ -126,23 +118,12 @@ const DashboardTitle = () => {
             className="relative text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-2 tracking-tight"
           >
             <span className="inline-block">Physique{' '}</span>
-            <motion.span
+            <span
               className={`inline-block transition-colors duration-500 ${colors[colorIndex]}`}
-              animate={{
-                textShadow: [
-                  "0 0 20px rgba(59, 130, 246, 0.5)",
-                  "0 0 30px rgba(147, 51, 234, 0.5)",
-                  "0 0 20px rgba(236, 72, 153, 0.5)"
-                ]
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                repeatType: "reverse"
-              }}
+              style={{ textShadow: '0 0 24px rgba(147, 51, 234, 0.4)' }}
             >
               57
-            </motion.span>
+            </span>
             <span className="inline-block">, India</span>
           </motion.h1>
           

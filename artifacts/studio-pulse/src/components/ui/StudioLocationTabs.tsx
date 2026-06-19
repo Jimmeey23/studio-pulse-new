@@ -326,18 +326,10 @@ export const StudioLocationTabs: React.FC<StudioLocationTabsProps> = ({
               onClick={handleCollapsedClick}
             >
               <div className="flex items-center gap-4 bg-black text-white rounded-lg p-3 hover:bg-gray-800 transition-colors duration-200 shadow-lg">
-                {/* Color-Changing Location Pin Icon */}
-                <motion.div
-                  className="flex items-center justify-center"
-                  animate={{ color: ["#ffffff", "#fef3c7", "#fed7aa", "#fbbf24", "#ffffff"] }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
+                {/* Location Pin Icon */}
+                <div className="flex items-center justify-center text-amber-300">
                   <MapPin className="w-5 h-5 drop-shadow-lg" />
-                </motion.div>
+                </div>
 
                 {/* Selected Location Info with Info Icon */}
                 <div className="flex-1 flex items-center gap-3">
@@ -352,20 +344,14 @@ export const StudioLocationTabs: React.FC<StudioLocationTabsProps> = ({
                   
                   {/* Info Popover next to name */}
                   {showInfoPopover && (
-                    <motion.div 
-                      className="flex items-center justify-center"
-                      animate={{ color: ["#ffffff", "#fef3c7", "#fed7aa", "#fbbf24", "#ffffff"] }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                      onClick={(e) => e.stopPropagation()} // Prevent location tab expansion when info icon is clicked
+                    <div
+                      className="flex items-center justify-center text-amber-200"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <div className="[&>*]:!bg-transparent [&>*]:!border-current [&>*]:!text-current">
                         <InfoPopover context={infoPopoverContext} locationId={activeLocation} />
                       </div>
-                    </motion.div>
+                    </div>
                   )}
                 </div>
 
@@ -442,56 +428,9 @@ export const StudioLocationTabs: React.FC<StudioLocationTabsProps> = ({
                       whileTap={{ scale: 0.98 }}
                       transition={{ duration: 0.3 }}
                     >
-                      {/* Animated border for active tab */}
+                      {/* Active tab border — CSS-only, no layout paint */}
                       {isActive && (
-                        <>
-                          <motion.div
-                            className="absolute top-0 left-0 h-0.5 bg-gradient-to-r from-red-500 to-red-600"
-                            initial={{ width: "0%" }}
-                            animate={{ width: "100%" }}
-                            transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
-                          />
-                          <motion.div
-                            className="absolute bottom-0 right-0 h-0.5 bg-gradient-to-r from-red-600 to-red-500"
-                            initial={{ width: "0%" }}
-                            animate={{ width: "100%" }}
-                            transition={{ duration: 1, repeat: Infinity, repeatType: "reverse", delay: 0.5 }}
-                          />
-                          <motion.div
-                            className="absolute left-0 top-0 w-0.5 bg-gradient-to-b from-red-500 to-red-600"
-                            initial={{ height: "0%" }}
-                            animate={{ height: "100%" }}
-                            transition={{ duration: 1, repeat: Infinity, repeatType: "reverse", delay: 0.25 }}
-                          />
-                          <motion.div
-                            className="absolute right-0 bottom-0 w-0.5 bg-gradient-to-b from-red-600 to-red-500"
-                            initial={{ height: "0%" }}
-                            animate={{ height: "100%" }}
-                            transition={{ duration: 1, repeat: Infinity, repeatType: "reverse", delay: 0.75 }}
-                          />
-                        </>
-                      )}
-                      {/* Animated border for active tab */}
-                      {isActive && (
-                        <motion.div
-                          className="absolute inset-0 rounded-2xl pointer-events-none"
-                          style={{
-                            background: 'linear-gradient(90deg, #dc2626, #b91c1c, #dc2626, #b91c1c)',
-                            backgroundSize: '200% 100%',
-                            padding: '0px',
-                            zIndex: -1
-                          }}
-                          animate={{
-                            backgroundPosition: ['0% 0%', '200% 0%']
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: 'linear'
-                          }}
-                        >
-                          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-red-50/80 to-red-50/80" />
-                        </motion.div>
+                        <div className="absolute inset-0 rounded-2xl pointer-events-none border-2 border-red-500/70 animate-pulse" style={{ animationDuration: '2s', willChange: 'opacity' }} />
                       )}
                       <div className="aspect-[16/9] relative overflow-hidden bg-slate-100">
                         {/* Loading spinner - only show if image is not preloaded */}
