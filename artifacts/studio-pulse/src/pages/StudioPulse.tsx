@@ -117,6 +117,7 @@ import { AdminCodeGate } from '@/components/ui/AdminCodeGate';
 import { useToast } from '@/hooks/use-toast';
 import { StudioPulseReport } from '@/components/dashboard/StudioPulseReport';
 import { geminiService, type LocationReportNarrative } from '@/services/geminiService';
+import { UnifiedExportButton, type ExportFormat } from '@/components/ui/UnifiedExportButton';
 
 /* ------------------------------------------------------------------ */
 /* Studio definitions                                                  */
@@ -4037,7 +4038,7 @@ const StudioPulse = memo(() => {
     refetchSales();
   }, [refetchSales]);
 
-  const handleExportStudioPulse = useCallback(async (format: 'pdf' | 'xlsx') => {
+  const handleExportStudioPulse = useCallback(async (format: ExportFormat) => {
     if (isExportingPulse) return;
     setIsExportingPulse(true);
 
@@ -4237,6 +4238,98 @@ const StudioPulse = memo(() => {
     ];
 
     try {
+      // ── New format handlers (early return) ────────────────────────────────
+      if (format === 'clipboard') {
+        const content = metricsRegistry.getAllTabsContent();
+        await navigator.clipboard.writeText(content);
+        toast({ title: 'Copied to clipboard!', description: 'All metric tables copied. Paste into any spreadsheet or document.' });
+        return;
+      }
+
+      if (format === 'csv') {
+        let csvContent = `Studio Pulse Export\nLocation: ${locationLabel}\nDate Range: ${dateRange.start} to ${dateRange.end}\nGenerated: ${new Date().toLocaleString()}\n\n`;
+        workbookSections.forEach(section => {
+          if (!section.rows.length) return;
+          csvContent += `\n# ${section.title}\n`;
+          csvContent += section.columns.map(camelToHeader).join(',') + '\n';
+          section.rows.forEach(row => {
+            csvContent += section.columns.map(col => {
+              const val = String(csvSafeValue((row as Record<string, any>)[col]) ?? '');
+              return val.includes(',') || val.includes('"') || val.includes('\n') ? `"${val.replace(/"/g, '""')}"` : val;
+            }).join(',') + '\n';
+          });
+        });
+        metricsRegistry.getAllTables().forEach((table) => {
+          try {
+            const { title, headers, rows } = parseRegistryTable(table.getTextContent());
+            if (!headers.length || !rows.length) return;
+            csvContent += `\n# ${title}\n`;
+            csvContent += headers.map(h => h.includes(',') ? `"${h}"` : h).join(',') + '\n';
+            rows.forEach(row => { csvContent += row.map(cell => cell.includes(',') ? `"${cell}"` : cell).join(',') + '\n'; });
+          } catch { /* skip */ }
+        });
+        const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const csvUrl = URL.createObjectURL(csvBlob);
+        const csvA = document.createElement('a'); csvA.href = csvUrl; csvA.download = `${filenameBase}.csv`; csvA.click();
+        URL.revokeObjectURL(csvUrl);
+        toast({ title: 'CSV ready', description: `Studio Pulse data exported for ${locationLabel}.` });
+        return;
+      }
+
+      if (format === 'json') {
+        const jsonPayload: Record<string, any> = {
+          meta: { location: locationLabel, dateRange: `${dateRange.start} to ${dateRange.end}`, generatedAt: new Date().toISOString() },
+          sections: {} as Record<string, any[]>,
+          dashboardTables: {} as Record<string, any[]>,
+        };
+        workbookSections.forEach(section => {
+          if (section.rows.length) jsonPayload.sections[section.title] = section.rows;
+        });
+        metricsRegistry.getAllTables().forEach((table) => {
+          try {
+            const { title, headers, rows } = parseRegistryTable(table.getTextContent());
+            if (!headers.length || !rows.length) return;
+            jsonPayload.dashboardTables[title] = rows.map(row => Object.fromEntries(headers.map((h, i) => [h, row[i] ?? ''])));
+          } catch { /* skip */ }
+        });
+        const jsonBlob = new Blob([JSON.stringify(jsonPayload, null, 2)], { type: 'application/json' });
+        const jsonUrl = URL.createObjectURL(jsonBlob);
+        const jsonA = document.createElement('a'); jsonA.href = jsonUrl; jsonA.download = `${filenameBase}.json`; jsonA.click();
+        URL.revokeObjectURL(jsonUrl);
+        toast({ title: 'JSON ready', description: `Studio Pulse structured data exported for ${locationLabel}.` });
+        return;
+      }
+
+      if (format === 'html') {
+        const htmlStyle = `<style>body{font-family:system-ui,sans-serif;background:#f8fafc;color:#0f172a;padding:2rem;max-width:1300px;margin:0 auto}h1{font-size:1.75rem;font-weight:800;margin-bottom:.25rem}.meta{color:#64748b;font-size:.875rem;margin-bottom:2rem}h2{font-size:.875rem;font-weight:700;margin:2rem 0 .5rem;padding:.5rem 1rem;background:#1e293b;color:#fff;border-radius:8px}table{width:100%;border-collapse:collapse;font-size:.8rem;margin-bottom:1.5rem;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)}th{background:#334155;color:#fff;padding:8px 12px;text-align:left;font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}td{padding:7px 12px;border-bottom:1px solid #f1f5f9}tr:last-child td{border-bottom:none}tr:nth-child(even) td{background:#f8fafc}</style>`;
+        let htmlContent = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Studio Pulse — ${locationLabel}</title>${htmlStyle}</head><body><h1>Studio Pulse Export</h1><div class="meta">Location: ${locationLabel} · Date Range: ${dateRange.start} to ${dateRange.end} · Generated: ${new Date().toLocaleString()}</div>`;
+        workbookSections.forEach(section => {
+          if (!section.rows.length) return;
+          htmlContent += `<h2>${section.title}</h2><table><thead><tr>${section.columns.map(c => `<th>${camelToHeader(c)}</th>`).join('')}</tr></thead><tbody>`;
+          section.rows.slice(0, 500).forEach(row => {
+            htmlContent += `<tr>${section.columns.map(col => `<td>${csvSafeValue((row as Record<string, any>)[col]) ?? ''}</td>`).join('')}</tr>`;
+          });
+          htmlContent += '</tbody></table>';
+        });
+        metricsRegistry.getAllTables().forEach((table) => {
+          try {
+            const { title, headers, rows } = parseRegistryTable(table.getTextContent());
+            if (!headers.length || !rows.length) return;
+            htmlContent += `<h2>${title}</h2><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+            rows.slice(0, 500).forEach(row => { htmlContent += `<tr>${row.map(c => `<td>${c}</td>`).join('')}</tr>`; });
+            htmlContent += '</tbody></table>';
+          } catch { /* skip */ }
+        });
+        htmlContent += '</body></html>';
+        const htmlBlob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+        const htmlUrl = URL.createObjectURL(htmlBlob);
+        const htmlA = document.createElement('a'); htmlA.href = htmlUrl; htmlA.download = `${filenameBase}.html`; htmlA.click();
+        URL.revokeObjectURL(htmlUrl);
+        toast({ title: 'HTML report ready', description: `Studio Pulse styled web report exported for ${locationLabel}.` });
+        return;
+      }
+
+      // ── Existing XLSX / PDF paths ─────────────────────────────────────────
       if (format === 'xlsx') {
         const wb = XLSX.utils.book_new();
         const metaSheet = XLSX.utils.aoa_to_sheet([
@@ -4697,22 +4790,59 @@ const StudioPulse = memo(() => {
               <span className="text-white/70 font-bold tracking-wide">Jimmeey Gondaa</span>
             </motion.div>
 
-            {/* Physique57 logo */}
+            {/* Logo — animated entrance + persistent pulse glow */}
             <motion.div
-              initial={{ opacity: 0, y: -12, scale: 0.85 }}
+              initial={{ opacity: 0, y: -18, scale: 0.75 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-5 flex items-center justify-center"
+              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-5 flex flex-col items-center gap-2"
             >
-              <div className="relative flex items-center gap-3">
-                <div className="h-px w-10 bg-gradient-to-r from-transparent to-white/20" />
-                <img
-                  src="/physique57-logo.png"
-                  alt="Physique57"
-                  className="h-7 w-auto object-contain brightness-0 invert opacity-70"
+              {/* Glowing ring behind logo */}
+              <div className="relative flex items-center justify-center">
+                <motion.div
+                  animate={{ scale: [1, 1.18, 1], opacity: [0.18, 0.38, 0.18] }}
+                  transition={{ duration: 3.2, ease: 'easeInOut', repeat: Infinity }}
+                  className="pointer-events-none absolute h-16 w-48 rounded-full bg-rose-400/20 blur-xl"
                 />
-                <div className="h-px w-10 bg-gradient-to-l from-transparent to-white/20" />
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 4.5, ease: 'easeInOut', repeat: Infinity }}
+                  className="relative flex items-center gap-3"
+                >
+                  <motion.div
+                    animate={{ scaleX: [0.6, 1, 0.6], opacity: [0, 1, 0] }}
+                    transition={{ duration: 3.2, ease: 'easeInOut', repeat: Infinity }}
+                    className="h-px w-10 bg-gradient-to-r from-transparent to-white/30"
+                  />
+                  <motion.img
+                    src="/physique57-logo.png"
+                    alt="Physique57"
+                    className="h-8 w-auto object-contain brightness-0 invert"
+                    style={{ opacity: 0.85 }}
+                    whileHover={{ opacity: 1, scale: 1.04 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                  <motion.div
+                    animate={{ scaleX: [0.6, 1, 0.6], opacity: [0, 1, 0] }}
+                    transition={{ duration: 3.2, ease: 'easeInOut', repeat: Infinity, delay: 0.4 }}
+                    className="h-px w-10 bg-gradient-to-l from-transparent to-white/30"
+                  />
+                </motion.div>
               </div>
+              {/* Studio Pulse badge */}
+              <motion.div
+                initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.45 }}
+                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur"
+              >
+                <motion.span
+                  animate={{ opacity: [0.6, 1, 0.6] }}
+                  transition={{ duration: 2, ease: 'easeInOut', repeat: Infinity }}
+                  className="h-1.5 w-1.5 rounded-full bg-rose-400"
+                />
+                <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/50">Studio Pulse</span>
+              </motion.div>
             </motion.div>
 
             {/* Main title — word-by-word reveal */}
@@ -4820,24 +4950,10 @@ const StudioPulse = memo(() => {
             >
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
-            <button
-              onClick={() => handleExportStudioPulse('xlsx')}
-              disabled={isExportingPulse}
-              title="Export Excel"
-              className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white/70 px-3 text-[11px] font-semibold text-slate-600 shadow-sm backdrop-blur transition hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50"
-            >
-              <FileSpreadsheet className="h-3.5 w-3.5" />
-              Excel
-            </button>
-            <button
-              onClick={() => handleExportStudioPulse('pdf')}
-              disabled={isExportingPulse}
-              title="Export PDF"
-              className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white/70 px-3 text-[11px] font-semibold text-slate-600 shadow-sm backdrop-blur transition hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50"
-            >
-              <FileText className="h-3.5 w-3.5" />
-              PDF
-            </button>
+            <UnifiedExportButton
+              onExport={handleExportStudioPulse}
+              isExporting={isExportingPulse}
+            />
             {/* Master toggle — expand/collapse all section toggles */}
             <button
               onClick={handleMasterToggle}

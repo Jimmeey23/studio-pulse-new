@@ -16,7 +16,7 @@ interface ClientConversionMonthOnMonthByTypeTableProps {
   onRowClick?: (row: any) => void;
 }
 
-type MetricKey = 'trials' | 'newMembers' | 'converted' | 'retained' | 'retentionPct' | 'conversionPct' | 'avgLtv' | 'totalLtv' | 'avgConvDays' | 'avgVisits';
+type MetricKey = 'trials' | 'newMembers' | 'converted' | 'retained' | 'retentionPct' | 'conversionPct' | 'avgLtv' | 'totalLtv' | 'avgConvDays' | 'avgVisits' | 'conv30d' | 'conv45d' | 'conv60d' | 'ret30d' | 'ret45d' | 'ret60d';
 
 interface MonthCell {
   trials: number;
@@ -31,7 +31,7 @@ interface MonthCell {
   avgVisits: number;
 }
 
-const METRIC_OPTS: { value: MetricKey; label: string }[] = [
+const METRIC_OPTS: { value: MetricKey; label: string; group?: string }[] = [
   { value: 'trials', label: 'Trials' },
   { value: 'newMembers', label: 'New Members' },
   { value: 'converted', label: 'Converted' },
@@ -42,6 +42,12 @@ const METRIC_OPTS: { value: MetricKey; label: string }[] = [
   { value: 'totalLtv', label: 'Total LTV' },
   { value: 'avgConvDays', label: 'Avg Conv Days' },
   { value: 'avgVisits', label: 'Avg Visits' },
+  { value: 'conv30d', label: 'Conv 30d %', group: 'window' },
+  { value: 'conv45d', label: 'Conv 45d %', group: 'window' },
+  { value: 'conv60d', label: 'Conv 60d %', group: 'window' },
+  { value: 'ret30d', label: 'Ret 30d %', group: 'window' },
+  { value: 'ret45d', label: 'Ret 45d %', group: 'window' },
+  { value: 'ret60d', label: 'Ret 60d %', group: 'window' },
 ];
 
 const MONTHS_SHOWN = 30;
@@ -81,11 +87,18 @@ function buildCell(clients: NewClientData[], metric: MetricKey): number {
     case 'totalLtv': return totalLtv;
     case 'avgConvDays': return convIntervals.length > 0 ? convIntervals.reduce((s, v) => s + v, 0) / convIntervals.length : 0;
     case 'avgVisits': return visitsList.length > 0 ? visitsList.reduce((s, v) => s + v, 0) / visitsList.length : 0;
+    case 'conv30d': return newMembers > 0 ? (clients.filter(c => isInNewClientCohort(c) && c.conversionStatus === 'Converted' && c.conversionSpan > 0 && c.conversionSpan <= 30).length / newMembers) * 100 : 0;
+    case 'conv45d': return newMembers > 0 ? (clients.filter(c => isInNewClientCohort(c) && c.conversionStatus === 'Converted' && c.conversionSpan > 0 && c.conversionSpan <= 45).length / newMembers) * 100 : 0;
+    case 'conv60d': return newMembers > 0 ? (clients.filter(c => isInNewClientCohort(c) && c.conversionStatus === 'Converted' && c.conversionSpan > 0 && c.conversionSpan <= 60).length / newMembers) * 100 : 0;
+    case 'ret30d': return newMembers > 0 ? (clients.filter(c => isInNewClientCohort(c) && c.retentionStatus === 'Retained' && c.conversionSpan > 0 && c.conversionSpan <= 30).length / newMembers) * 100 : 0;
+    case 'ret45d': return newMembers > 0 ? (clients.filter(c => isInNewClientCohort(c) && c.retentionStatus === 'Retained' && c.conversionSpan > 0 && c.conversionSpan <= 45).length / newMembers) * 100 : 0;
+    case 'ret60d': return newMembers > 0 ? (clients.filter(c => isInNewClientCohort(c) && c.retentionStatus === 'Retained' && c.conversionSpan > 0 && c.conversionSpan <= 60).length / newMembers) * 100 : 0;
   }
 }
 
 function fmtCell(value: number, metric: MetricKey): string {
   if (metric === 'retentionPct' || metric === 'conversionPct') return `${value.toFixed(1)}%`;
+  if (['conv30d', 'conv45d', 'conv60d', 'ret30d', 'ret45d', 'ret60d'].includes(metric)) return `${value.toFixed(1)}%`;
   if (metric === 'avgLtv' || metric === 'totalLtv') return formatCurrency(value);
   if (metric === 'avgConvDays') return `${value.toFixed(0)}d`;
   if (metric === 'avgVisits') return value.toFixed(1);
