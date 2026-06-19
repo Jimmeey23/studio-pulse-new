@@ -6,6 +6,7 @@ import openaiRouter from "./openai-proxy";
 import geminiRouter from "./gemini-proxy";
 import deepseekRouter from "./deepseek-proxy";
 import googleTokenRouter from "./google-token";
+import googleAuthRouter from "./google-auth";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use("/openai", openaiRouter);
 router.use("/gemini", geminiRouter);
 router.use("/deepseek", deepseekRouter);
 router.use("/google/token", googleTokenRouter);
+router.use("/auth/google", googleAuthRouter);
 
 export default router;

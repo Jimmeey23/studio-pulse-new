@@ -20,6 +20,7 @@ import { UniversalElementCopyAssist } from "@/components/ui/UniversalElementCopy
 import { LazyConsolidatedReportExporterDialog } from "@/components/lazy/LazyConsolidatedReportExporterDialog";
 import { DataSourceProvider, useDataSource } from '@/contexts/DataSourceContext';
 import { OfflineAccessManager } from '@/components/ui/OfflineAccessManager';
+import { GoogleSetupWizard } from '@/components/GoogleSetupWizard';
 import StudioPulse from "./pages/StudioPulse";
 
 const queryClient = new QueryClient({
@@ -126,6 +127,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <GoogleSetupWizard />
           <DataSourceProvider>
             <AppContent />
           </DataSourceProvider>
