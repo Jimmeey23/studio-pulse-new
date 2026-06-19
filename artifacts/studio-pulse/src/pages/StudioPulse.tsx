@@ -2728,7 +2728,6 @@ const StudioPulse = memo(() => {
   // Sync state → URL params
   useEffect(() => {
     const params = new URLSearchParams();
-    if (searchParams.get('mv') === '1') params.set('mv', '1');
     params.set('studio', studio);
     params.set('from', dateRange.start);
     params.set('to', dateRange.end);
@@ -4527,10 +4526,6 @@ const StudioPulse = memo(() => {
   // Lock viewer controls when following
   const viewerLocked = presenterMode.role === 'viewer' && presenterMode.isConnected;
 
-  if (monthViewMode) {
-    return <LocationReport />;
-  }
-
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* ── Full-page data loader ── show until every sheet has responded */}
@@ -4768,11 +4763,13 @@ const StudioPulse = memo(() => {
             </button>
             <button
               onClick={() => {
-                const params = new URLSearchParams(searchParams);
-                params.set('mv', '1');
-                setSearchParams(params);
+                const params = new URLSearchParams();
+                params.set('studio', studio);
+                params.set('from', dateRange.start);
+                params.set('to', dateRange.end);
+                window.open(`/location-report?${params.toString()}`, '_blank');
               }}
-              title="Open location report"
+              title="Open location report in new tab"
               className={cn(
                 'flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-semibold shadow-sm backdrop-blur transition',
                 'border-slate-200 bg-white/70 text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -4874,9 +4871,6 @@ const StudioPulse = memo(() => {
         </div>
         </div>{/* end viewer-lock wrapper */}
 
-        {monthViewMode ? (
-          <LocationReport />
-        ) : (
         <>
         {reportMode && (
           <StudioPulseReport
@@ -7965,7 +7959,6 @@ const StudioPulse = memo(() => {
           </motion.div>
         </AnimatePresence>
         </>
-        )}
       </div>
 
       {aiPanel && (
