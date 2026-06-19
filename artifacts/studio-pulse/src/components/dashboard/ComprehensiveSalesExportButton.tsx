@@ -61,7 +61,7 @@ interface ComprehensiveSalesExportButtonProps {
   renderTrigger?: boolean;
 }
 
-type ExportFormat = 'csv' | 'xlsx' | 'txt' | 'json' | 'pdf';
+type ExportFormat = 'csv' | 'xlsx' | 'txt' | 'json' | 'html' | 'pdf';
 type DateRangeMode = 'current' | 'custom';
 
 interface ExportConfig {
@@ -113,6 +113,7 @@ const FORMAT_LABELS: Record<ExportFormat, string> = {
   xlsx: 'Excel workbook',
   txt: 'Text report',
   json: 'JSON bundle',
+  html: 'HTML report',
   pdf: 'Print-ready PDF',
 };
 
@@ -136,7 +137,33 @@ const escapeHtml = (value: string) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-const normalizeCellText = (value: string) => value.replace(/[↑↓▲▼]/g, '').replace(/\s+/g, ' ').trim();
+const normalizeCellText = (value: string) => value.replace(/[↑↓▲▼→←]/g, '').replace(/\s+/g, ' ').trim();
+
+const CURRENCY_HEADER_RE = /revenue|amount|value|sales|mrp|price|pay(?:ment)?|ltv|discount|gross|net|vat|fee|cost|earn/i;
+const PERCENT_HEADER_RE = /rate|percent|%|fill|penetration|conversion|margin|growth/i;
+
+const formatCellForExport = (rawText: string, header = ''): string => {
+  const value = normalizeCellText(rawText);
+  if (!value || value === '-' || value === '—') return value;
+
+  if (value.includes('₹')) return value.replace(/\s+/g, '');
+  if (value.includes('%')) return value;
+
+  const numStr = value.replace(/,/g, '');
+  const num = parseFloat(numStr);
+  const isPlainNumber = !isNaN(num) && /^[\d,.\s]+$/.test(value);
+
+  if (isPlainNumber) {
+    if (CURRENCY_HEADER_RE.test(header) && Math.abs(num) >= 100) {
+      return '₹' + num.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    }
+    if (PERCENT_HEADER_RE.test(header) && num >= 0 && num <= 100 && value.length <= 6) {
+      return num.toFixed(1) + '%';
+    }
+  }
+
+  return value;
+};
 
 const SUMMARY_ROW_LABEL_PATTERN = /^(grand\s+total|totals?|subtotals?)$/i;
 const METRIC_SELECTOR_LABEL_PATTERN = /metrics:/i;
@@ -330,7 +357,12 @@ const restoreGroupedRowsForTable = async (state: ExpandedGroupState) => {
   }
 };
 
-const extractTableRows = (tableElement: HTMLTableElement, tableHasGroupedRows: boolean, headerTableRow: HTMLTableRowElement | null) => {
+const extractTableRows = (
+  tableElement: HTMLTableElement,
+  tableHasGroupedRows: boolean,
+  headerTableRow: HTMLTableRowElement | null,
+  headers: string[] = []
+) => {
   return Array.from(tableElement.querySelectorAll('tr'))
     .filter((row): row is HTMLTableRowElement => row instanceof HTMLTableRowElement)
     .filter((row) => row !== headerTableRow)
@@ -339,7 +371,7 @@ const extractTableRows = (tableElement: HTMLTableElement, tableHasGroupedRows: b
       return {
         row,
         cells,
-        values: cells.map((cell) => normalizeCellText(cell.textContent || '')),
+        values: cells.map((cell, idx) => formatCellForExport(cell.textContent || '', headers[idx] ?? '')),
       };
     })
     .filter(({ row, cells }) => !shouldExcludeExportRow(row, cells, tableHasGroupedRows))
@@ -365,7 +397,7 @@ const buildTableExportData = (tableElement: HTMLTableElement, index: number, met
     id,
     name: metricLabel ? `${baseName} — ${metricLabel}` : baseName,
     headers,
-    rows: extractTableRows(tableElement, tableHasGroupedRows, headerTableRow),
+    rows: extractTableRows(tableElement, tableHasGroupedRows, headerTableRow, headers),
   };
 };
 
@@ -379,8 +411,12 @@ const shouldExcludeExportRow = (
   const hasToggleButton = Boolean(row.querySelector('button'));
   const hasSummaryLabel = SUMMARY_ROW_LABEL_PATTERN.test(firstNonEmptyCell);
   const hasWideGroupingCell = cells.some((cell) => cell.colSpan > 1);
+  const isDataGroupRow =
+    row.hasAttribute('data-group') ||
+    row.classList.contains('group-row') ||
+    row.getAttribute('aria-expanded') !== null;
 
-  if (hasSummaryLabel || hasWideGroupingCell) {
+  if (hasSummaryLabel || hasWideGroupingCell || isDataGroupRow) {
     return true;
   }
 
@@ -414,30 +450,47 @@ const buildCsvContent = (bundle: ExportBundle, section: ExportSection, table: Ta
 };
 
 const buildTextReport = (bundle: ExportBundle) => {
+  const RULE = '═'.repeat(72);
+  const rule2 = '─'.repeat(72);
+
   const lines: string[] = [
-    '════════════════════════════════════════════════════════════',
+    RULE,
     ` ${bundle.title}`,
-    '════════════════════════════════════════════════════════════',
+    RULE,
     '',
-    `Generated: ${new Date(bundle.generatedAt).toLocaleString()}`,
-    `Location: ${bundle.locationName}`,
-    `Date Range: ${bundle.dateRange.label}`,
-    `Sections: ${bundle.sections.length}`,
+    `  Generated  : ${new Date(bundle.generatedAt).toLocaleString()}`,
+    `  Location   : ${bundle.locationName}`,
+    `  Date Range : ${bundle.dateRange.label}`,
+    `  Sections   : ${bundle.sections.length}`,
     '',
   ];
 
   bundle.sections.forEach((section, sectionIndex) => {
-    lines.push(`## ${sectionIndex + 1}. ${section.heading}`);
+    lines.push(rule2);
+    lines.push(`  ${sectionIndex + 1}. ${section.heading}`);
+    lines.push(rule2);
     lines.push('');
+
     section.tables.forEach((table, tableIndex) => {
-      lines.push(`### ${sectionIndex + 1}.${tableIndex + 1} ${table.name}`);
-      lines.push(`Columns: ${table.headers.length} | Rows: ${table.rows.length}`);
+      lines.push(`  ${sectionIndex + 1}.${tableIndex + 1}  ${table.name}`);
+      lines.push(`  ${table.headers.length} columns · ${table.rows.length} rows`);
       lines.push('');
+
       if (table.headers.length > 0) {
-        lines.push(table.headers.join(' | '));
-        lines.push(table.headers.map(() => '---').join(' | '));
+        const allRows = [table.headers, ...table.rows];
+        const colWidths = table.headers.map((_, ci) =>
+          Math.min(40, Math.max(...allRows.map((r) => (r[ci] ?? '').length)))
+        );
+
+        const pad = (str: string, width: number) => str.padEnd(width).slice(0, width);
+        const divider = colWidths.map((w) => '─'.repeat(w)).join('─┼─');
+
+        lines.push('  ' + colWidths.map((w, ci) => pad(table.headers[ci] ?? '', w)).join(' │ '));
+        lines.push('  ' + divider);
+        table.rows.forEach((row) => {
+          lines.push('  ' + colWidths.map((w, ci) => pad(row[ci] ?? '', w)).join(' │ '));
+        });
       }
-      table.rows.forEach((row) => lines.push(row.join(' | ')));
       lines.push('');
     });
   });
@@ -445,31 +498,72 @@ const buildTextReport = (bundle: ExportBundle) => {
   return lines.join('\n');
 };
 
+const classifyCell = (value: string, header: string): string => {
+  if (value.includes('₹')) return 'currency';
+  if (value.includes('%')) return 'pct';
+  const h = header.toLowerCase();
+  if (CURRENCY_HEADER_RE.test(h)) return 'currency';
+  if (PERCENT_HEADER_RE.test(h)) return 'pct';
+  if (/^[\d,.\s]+$/.test(value.trim()) && value.trim().length > 0) return 'num';
+  return '';
+};
+
 const buildPrintableHtml = (bundle: ExportBundle) => {
   const styles = `
     <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; color: #0f172a; }
-      h1 { font-size: 24px; margin-bottom: 12px; }
-      h2 { font-size: 18px; margin: 28px 0 10px; color: #1e293b; }
-      h3 { font-size: 14px; margin: 16px 0 8px; color: #475569; }
-      .meta { font-size: 12px; color: #64748b; margin-bottom: 4px; }
-      table { border-collapse: collapse; width: 100%; margin: 10px 0 20px; font-size: 12px; }
-      th, td { border: 1px solid #e2e8f0; padding: 6px 8px; text-align: left; }
-      thead th { background: #0f172a; color: white; }
-      .page-break { page-break-after: always; }
+      *{box-sizing:border-box}
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:32px;color:#0f172a;background:#fff}
+      .report-header{background:#0f172a;color:#fff;padding:22px 32px;margin:-32px -32px 28px;display:flex;justify-content:space-between;align-items:flex-start}
+      .report-header h1{font-size:20px;margin:0 0 4px;letter-spacing:-0.02em}
+      .report-header .sub{font-size:12px;opacity:.65;margin:0}
+      .filter-bar{display:flex;flex-wrap:wrap;gap:12px 20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 16px;margin-bottom:28px;font-size:12px}
+      .fi{display:flex;gap:5px;align-items:center}
+      .fl{color:#64748b;font-weight:500}
+      .fv{color:#0f172a;font-weight:700}
+      h2{font-size:16px;color:#1e293b;margin:36px 0 10px;padding-bottom:7px;border-bottom:2px solid #e2e8f0;display:flex;align-items:center;gap:8px}
+      h2 .badge{font-size:11px;font-weight:600;background:#f1f5f9;color:#64748b;border-radius:4px;padding:2px 7px;letter-spacing:.04em}
+      h3{font-size:13px;font-weight:600;color:#475569;margin:22px 0 6px}
+      .tbl-meta{font-size:11px;color:#94a3b8;margin-bottom:7px}
+      table{border-collapse:collapse;width:100%;margin-bottom:26px;font-size:12px}
+      thead th{background:#0f172a;color:#fff;padding:7px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+      tbody tr:nth-child(even){background:#f8fafc}
+      td{padding:6px 10px;border-bottom:1px solid #e2e8f0;vertical-align:top;white-space:nowrap}
+      td.num{text-align:right;font-variant-numeric:tabular-nums}
+      td.currency{text-align:right;font-weight:600;color:#059669;font-variant-numeric:tabular-nums}
+      td.pct{text-align:right;color:#6366f1}
+      .page-break{page-break-after:always;margin:32px 0 0}
+      @media print{
+        body{padding:0}
+        .report-header{margin:0 0 20px}
+        table{font-size:10px}
+        thead th{font-size:9px;padding:5px 7px}
+        td{padding:4px 7px}
+      }
     </style>
   `;
 
-  let html = `<!doctype html><html><head><meta charset="utf-8" />${styles}<title>${escapeHtml(bundle.title)}</title></head><body>`;
-  html += `<h1>${escapeHtml(bundle.title)}</h1>`;
-  html += `<div class="meta">Generated: ${escapeHtml(new Date(bundle.generatedAt).toLocaleString())}</div>`;
-  html += `<div class="meta">Location: ${escapeHtml(bundle.locationName)}</div>`;
-  html += `<div class="meta">Date Range: ${escapeHtml(bundle.dateRange.label)}</div>`;
+  const genTime = new Date(bundle.generatedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+  let html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${styles}<title>${escapeHtml(bundle.title)}</title></head><body>`;
+
+  html += `<div class="report-header"><div><h1>${escapeHtml(bundle.title)}</h1><p class="sub">Studio Pulse · Physique 57</p></div><div style="text-align:right;font-size:12px;opacity:.65">${escapeHtml(genTime)}</div></div>`;
+
+  html += `<div class="filter-bar">`;
+  html += `<div class="fi"><span class="fl">Location</span><span class="fv">${escapeHtml(bundle.locationName)}</span></div>`;
+  html += `<div class="fi"><span class="fl">Date Range</span><span class="fv">${escapeHtml(bundle.dateRange.label)}</span></div>`;
+  if (bundle.dateRange.start && bundle.dateRange.end) {
+    html += `<div class="fi"><span class="fl">From</span><span class="fv">${escapeHtml(bundle.dateRange.start)}</span></div>`;
+    html += `<div class="fi"><span class="fl">To</span><span class="fv">${escapeHtml(bundle.dateRange.end)}</span></div>`;
+  }
+  html += `<div class="fi"><span class="fl">Sections</span><span class="fv">${bundle.sections.length}</span></div>`;
+  html += `</div>`;
 
   bundle.sections.forEach((section, sectionIndex) => {
-    html += `<h2>${escapeHtml(section.heading)}</h2>`;
+    const totalTables = section.tables.length;
+    html += `<h2>${escapeHtml(section.heading)}<span class="badge">${totalTables} table${totalTables !== 1 ? 's' : ''}</span></h2>`;
+
     section.tables.forEach((table) => {
       html += `<h3>${escapeHtml(table.name)}</h3>`;
+      html += `<div class="tbl-meta">${table.headers.length} columns &middot; ${table.rows.length} rows</div>`;
       html += '<table><thead><tr>';
       table.headers.forEach((header) => {
         html += `<th>${escapeHtml(header)}</th>`;
@@ -477,13 +571,15 @@ const buildPrintableHtml = (bundle: ExportBundle) => {
       html += '</tr></thead><tbody>';
       table.rows.forEach((row) => {
         html += '<tr>';
-        row.forEach((cell) => {
-          html += `<td>${escapeHtml(cell)}</td>`;
+        row.forEach((cell, ci) => {
+          const cls = classifyCell(cell, table.headers[ci] ?? '');
+          html += `<td${cls ? ` class="${cls}"` : ''}>${escapeHtml(cell)}</td>`;
         });
         html += '</tr>';
       });
       html += '</tbody></table>';
     });
+
     if (sectionIndex < bundle.sections.length - 1) {
       html += '<div class="page-break"></div>';
     }
@@ -836,6 +932,11 @@ export const ComprehensiveSalesExportButton: React.FC<ComprehensiveSalesExportBu
     XLSX.writeFile(workbook, `${baseFileName}.xlsx`);
   }, []);
 
+  const exportHtmlBundle = useCallback((bundle: ExportBundle, baseFileName: string) => {
+    const html = buildPrintableHtml(bundle);
+    downloadBlob(new Blob([html], { type: 'text/html;charset=utf-8;' }), `${baseFileName}.html`);
+  }, []);
+
   const exportPdfBundle = useCallback((bundle: ExportBundle) => {
     const html = buildPrintableHtml(bundle);
     const printWindow = window.open('', '_blank');
@@ -933,6 +1034,8 @@ export const ComprehensiveSalesExportButton: React.FC<ComprehensiveSalesExportBu
         exportTextBundle(bundle, fullFileName);
       } else if (exportFormat === 'json') {
         exportJsonBundle(bundle, fullFileName);
+      } else if (exportFormat === 'html') {
+        exportHtmlBundle(bundle, fullFileName);
       } else {
         exportPdfBundle(bundle);
       }
@@ -969,6 +1072,7 @@ export const ComprehensiveSalesExportButton: React.FC<ComprehensiveSalesExportBu
     exportConfig.currentView,
     exportCsvBundle,
     exportFormat,
+    exportHtmlBundle,
     exportJsonBundle,
     exportPdfBundle,
     exportTextBundle,
@@ -1033,6 +1137,7 @@ export const ComprehensiveSalesExportButton: React.FC<ComprehensiveSalesExportBu
                   <SelectItem value="csv">CSV bundle (.csv/.zip)</SelectItem>
                   <SelectItem value="txt">Text report (.txt)</SelectItem>
                   <SelectItem value="json">JSON bundle (.json)</SelectItem>
+                  <SelectItem value="html">HTML report (.html)</SelectItem>
                   <SelectItem value="pdf">Print-ready PDF</SelectItem>
                 </SelectContent>
               </Select>
@@ -1174,7 +1279,7 @@ export const ComprehensiveSalesExportButton: React.FC<ComprehensiveSalesExportBu
               ) : (
                 <>
                   {exportFormat === 'xlsx' || exportFormat === 'csv' ? <FileSpreadsheet className="h-4 w-4" /> : null}
-                  {exportFormat === 'txt' ? <FileText className="h-4 w-4" /> : null}
+                  {exportFormat === 'txt' || exportFormat === 'html' ? <FileText className="h-4 w-4" /> : null}
                   {exportFormat === 'json' ? <FileJson className="h-4 w-4" /> : null}
                   {exportFormat === 'pdf' ? <Printer className="h-4 w-4" /> : null}
                   Export {exportFormat.toUpperCase()}
