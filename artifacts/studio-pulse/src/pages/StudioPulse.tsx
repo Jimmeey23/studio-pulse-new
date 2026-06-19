@@ -2739,6 +2739,13 @@ const StudioPulse = memo(() => {
     }
   }, [salesStats, sessionStats, lcStats, clientStats, expirationStats, leadStats, trainerStats, activeStudio.name, dateRange]);
 
+  // Auto-regenerate the report when location or date changes while the report is open
+  useEffect(() => {
+    if (!reportOpen) return;
+    handleOpenReport();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studio, dateRange]);
+
   // Init state from URL params (one-time on mount)
   useEffect(() => {
     if (didInitFromUrl.current) return;
