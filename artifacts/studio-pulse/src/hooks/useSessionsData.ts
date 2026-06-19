@@ -97,8 +97,10 @@ export const useSessionsData = () => {
       setData(sessionsData);
       setError(null);
     } catch (err) {
-      logger.error('Error fetching sessions data:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      logger.error('Error fetching sessions data:', { message: msg, raw: err });
       setError('Failed to load sessions data');
+      setTimeout(() => fetchSessionsData(), 30_000);
     } finally {
       setLoading(false);
     }

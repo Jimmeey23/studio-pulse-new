@@ -188,6 +188,7 @@ export const useExpirationsData = () => {
     } catch (err) {
       logger.error('Error fetching expirations data:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      setTimeout(() => fetchExpirationsData(), 30_000);
     } finally {
       setLoading(false);
     }

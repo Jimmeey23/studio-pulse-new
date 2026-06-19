@@ -231,6 +231,7 @@ export const useNewClientData = () => {
     } catch (err) {
       logger.error('Error fetching new client data:', err);
       setError('Failed to load new client data');
+      setTimeout(() => fetchNewClientData(), 30_000);
     } finally {
       setLoading(false);
     }

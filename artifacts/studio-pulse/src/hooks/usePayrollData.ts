@@ -132,6 +132,7 @@ export const usePayrollData = () => {
       console.error('Error fetching payroll data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load payroll data');
       setData([]);
+      setTimeout(() => fetchPayrollData(), 30_000);
     } finally {
       setIsLoading(false);
     }

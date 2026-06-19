@@ -47,32 +47,45 @@ export const getGoogleAccessToken = async (): Promise<string> => {
     return cachedToken;
   }
 
-  try {
-    // Call server-side proxy — OAuth secrets never leave the server
-    const response = await fetch(GOOGLE_CONFIG.TOKEN_URL, {
-      method: 'GET',
-    });
+  const RETRY_DELAYS = [0, 2000, 5000, 10000];
 
-    if (!response.ok) {
-      const err: any = new Error(`Token refresh failed: ${response.status}`);
-      err.status = response.status;
-      throw err;
+  for (let attempt = 0; attempt < RETRY_DELAYS.length; attempt++) {
+    if (RETRY_DELAYS[attempt] > 0) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAYS[attempt]));
     }
 
-    const tokenData = await response.json();
-    if (tokenData.error) {
-      throw new Error(tokenData.error);
+    try {
+      const response = await fetch(GOOGLE_CONFIG.TOKEN_URL, { method: 'GET' });
+
+      if (response.status === 503 && attempt < RETRY_DELAYS.length - 1) {
+        continue;
+      }
+
+      if (!response.ok) {
+        const err: any = new Error(`Token refresh failed: ${response.status}`);
+        err.status = response.status;
+        throw err;
+      }
+
+      const tokenData = await response.json();
+      if (tokenData.error) {
+        throw new Error(tokenData.error);
+      }
+
+      cachedToken = tokenData.access_token;
+      tokenExpiry = Date.now() + (tokenData.expires_in || 3600) * 1000;
+
+      return cachedToken as string;
+    } catch (error: any) {
+      if (attempt < RETRY_DELAYS.length - 1 && (!error.status || error.status === 503)) {
+        continue;
+      }
+      console.error('Error getting access token:', error);
+      throw error;
     }
-
-    // Cache the token (typically valid for 1 hour)
-    cachedToken = tokenData.access_token;
-    tokenExpiry = Date.now() + (tokenData.expires_in || 3600) * 1000;
-
-    return cachedToken as string;
-  } catch (error) {
-    console.error('Error getting access token:', error);
-    throw error;
   }
+
+  throw new Error('Token refresh failed after retries');
 };
 
 /**

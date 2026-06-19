@@ -175,6 +175,7 @@ export const useLeadsData = () => {
     } catch (err) {
       logger.error('Error fetching leads data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load leads data');
+      setTimeout(() => fetchLeadsData(), 30_000);
     } finally {
       setLoading(false);
     }
