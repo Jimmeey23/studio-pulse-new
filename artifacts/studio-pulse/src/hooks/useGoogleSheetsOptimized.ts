@@ -143,10 +143,14 @@ export const useGoogleSheetsOptimized = () => {
   const query = useQuery({
     queryKey: ['sales-data'],
     queryFn: fetchSalesData,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
-    retry: 3,
+    refetchOnMount: false,
+    retry: (failureCount, error: any) => {
+      if (error?.status >= 400) return false;
+      return failureCount < 1;
+    },
   });
 
   return {

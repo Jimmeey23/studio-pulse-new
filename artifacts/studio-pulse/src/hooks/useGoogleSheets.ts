@@ -283,7 +283,7 @@ export const useGoogleSheets = () => {
       if (isMountedRef.current) {
         logger.error('Error fetching sales data:', err);
         setError('Failed to load sales data');
-        setTimeout(() => fetchSalesData(), 30_000);
+        if (!((err as any)?.status >= 400)) setTimeout(() => fetchSalesData(), 30_000);
       }
     } finally {
       if (isMountedRef.current) {

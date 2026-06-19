@@ -25,17 +25,23 @@ import StudioPulse from "./pages/StudioPulse";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10 * 60 * 1000, // 10 minutes (increased for better caching)
-      gcTime: 60 * 60 * 1000,    // 60 minutes (increased cache retention)
+      staleTime: 10 * 60 * 1000,
+      gcTime: 60 * 60 * 1000,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-      retry: 1,
+      refetchOnReconnect: false,
+      refetchOnMount: false,          // Don't re-fire errored queries on remount
+      retry: (failureCount, error: any) => {
+        // 4xx/5xx from our API = missing credentials, not transient — stop immediately
+        if (error?.status >= 400) return false;
+        return failureCount < 1;
+      },
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 15000),
       networkMode: 'online',
       refetchInterval: false,
       refetchIntervalInBackground: false,
     },
     mutations: {
-      retry: 1,
+      retry: 0,
       networkMode: 'online',
     },
   },
