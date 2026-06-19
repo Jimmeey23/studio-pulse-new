@@ -580,117 +580,109 @@ export const NewClientMembershipPurchaseTable: React.FC<NewClientMembershipPurch
               </div>
             </div>
 
-            <div className="overflow-auto" style={{ maxHeight: '600px' }} data-table="client-retention-new-client-purchases" data-table-name="New Client Membership Purchases">
-              <table className="w-full border-collapse" data-table="client-retention-new-client-purchases" data-table-name="New Client Membership Purchases">
+            <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '520px' }} data-table="client-retention-new-client-purchases" data-table-name="New Client Membership Purchases">
+              <table className="w-full min-w-[640px] border-collapse text-sm" data-table="client-retention-new-client-purchases" data-table-name="New Client Membership Purchases">
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-slate-950 text-white">
                     {groupBy !== 'clientType' && (
-                      <th className="text-left py-2 px-3 text-xs font-semibold uppercase tracking-wider border-r border-slate-700" style={{ width: '300px', minWidth: '300px', maxHeight: '35px' }}>
+                      <th className="text-left py-3 px-4 text-[10px] font-semibold uppercase tracking-widest border-r border-slate-700/60 whitespace-nowrap" style={{ width: '240px', minWidth: '180px' }}>
                         Membership Type
                       </th>
                     )}
                     {groupBy !== 'membership' && (
-                      <th className="text-left py-2 px-3 text-xs font-semibold uppercase tracking-wider border-r border-slate-700" style={{ width: '100px', minWidth: '100px', maxHeight: '35px' }}>
+                      <th className="text-left py-3 px-4 text-[10px] font-semibold uppercase tracking-widest border-r border-slate-700/60 whitespace-nowrap" style={{ width: '120px', minWidth: '100px' }}>
                         Client Type
                       </th>
                     )}
-                    <th className="text-center py-2 px-3 text-xs font-semibold uppercase tracking-wider border-r border-slate-700" style={{ width: '100px', minWidth: '100px', maxHeight: '35px' }}>
+                    <th className="text-center py-3 px-4 text-[10px] font-semibold uppercase tracking-widest border-r border-slate-700/60 whitespace-nowrap" style={{ width: '80px' }}>
                       Units
                     </th>
-                    <th className="text-center py-2 px-3 text-xs font-semibold uppercase tracking-wider border-r border-slate-700" style={{ width: '100px', minWidth: '100px', maxHeight: '35px' }}>
+                    <th className="text-center py-3 px-4 text-[10px] font-semibold uppercase tracking-widest border-r border-slate-700/60 whitespace-nowrap" style={{ width: '80px' }}>
                       Clients
                     </th>
-                    <th className="text-right py-2 px-3 text-xs font-semibold uppercase tracking-wider border-r border-slate-700" style={{ width: '100px', minWidth: '100px', maxHeight: '35px' }}>
+                    <th className="text-right py-3 px-4 text-[10px] font-semibold uppercase tracking-widest border-r border-slate-700/60 whitespace-nowrap" style={{ width: '110px' }}>
                       Total Value
                     </th>
-                    <th className="text-right py-2 px-3 text-xs font-semibold uppercase tracking-wider border-r border-slate-700" style={{ width: '100px', minWidth: '100px', maxHeight: '35px' }}>
+                    <th className="text-right py-3 px-4 text-[10px] font-semibold uppercase tracking-widest border-r border-slate-700/60 whitespace-nowrap" style={{ width: '110px' }}>
                       Avg Value
                     </th>
-                    <th className="text-center py-2 px-3 text-xs font-semibold uppercase tracking-wider border-r border-slate-700" style={{ width: '100px', minWidth: '100px', maxHeight: '35px' }}>
+                    <th className="text-center py-3 px-4 text-[10px] font-semibold uppercase tracking-widest border-r border-slate-700/60 whitespace-nowrap" style={{ width: '90px' }}>
                       Avg Days
                     </th>
-                    <th className="text-center py-2 px-3 text-xs font-semibold uppercase tracking-wider" style={{ width: '100px', minWidth: '100px', maxHeight: '35px' }}>
+                    <th className="text-center py-3 px-4 text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap" style={{ width: '90px' }}>
                       Avg Visits
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {displayedData.map((row, idx) => (
-                    <tr key={idx} className="border-b border-gray-200 hover:bg-slate-50 transition-colors" style={{ maxHeight: '35px' }}>
+                    <tr key={idx} className={`border-b border-gray-100 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-indigo-50/40`}>
                       {groupBy !== 'clientType' && (
-                        <td className="py-2 px-3 text-sm text-slate-700 font-medium border-r border-gray-200 cursor-pointer hover:text-indigo-600 hover:underline truncate" 
-                            style={{ maxHeight: '35px' }}
+                        <td className="py-2.5 px-4 text-sm text-slate-800 font-medium border-r border-gray-100 cursor-pointer hover:text-indigo-600 hover:underline max-w-[240px] truncate" 
                             onClick={() => handleCellClick(row, 'membershipType', 'Membership Overview')}>
                           {row.membershipType}
                         </td>
                       )}
                       {groupBy !== 'membership' && (
-                        <td className="py-2 px-3 text-sm text-slate-600 border-r border-gray-200 cursor-pointer hover:text-indigo-600 hover:underline truncate" 
-                            style={{ maxHeight: '35px' }}
+                        <td className="py-2.5 px-4 text-sm text-slate-600 border-r border-gray-100 cursor-pointer hover:text-indigo-600 hover:underline whitespace-nowrap" 
                             onClick={() => handleCellClick(row, 'clientType', 'Client Type Analysis')}>
                           {row.clientType}
                         </td>
                       )}
-                      <td className="py-2 px-3 text-sm text-center text-slate-700 border-r border-gray-200 cursor-pointer hover:text-indigo-600 hover:underline" 
-                          style={{ maxHeight: '35px' }}
+                      <td className="py-2.5 px-4 text-sm text-center text-slate-700 border-r border-gray-100 cursor-pointer hover:text-indigo-600 hover:underline"
                           onClick={() => handleCellClick(row, 'units', 'Units Sold Analysis')}>
                         {formatNumber(row.units)}
                       </td>
-                      <td className="py-2 px-3 text-sm text-center text-slate-700 border-r border-gray-200 cursor-pointer hover:text-indigo-600 hover:underline" 
-                          style={{ maxHeight: '35px' }}
+                      <td className="py-2.5 px-4 text-sm text-center text-slate-700 border-r border-gray-100 cursor-pointer hover:text-indigo-600 hover:underline"
                           onClick={() => handleCellClick(row, 'newClientsCount', 'Client Details')}>
                         {formatNumber(row.newClientsCount)}
                       </td>
-                      <td className="py-2 px-3 text-sm text-right text-slate-700 font-medium border-r border-gray-200 cursor-pointer hover:text-indigo-600 hover:underline" 
-                          style={{ maxHeight: '35px' }}
+                      <td className="py-2.5 px-4 text-sm text-right text-slate-800 font-medium border-r border-gray-100 cursor-pointer hover:text-indigo-600 hover:underline"
                           onClick={() => handleCellClick(row, 'totalRevenue', 'Revenue Breakdown')}>
                         {formatCurrency(row.totalRevenue)}
                       </td>
-                      <td className="py-2 px-3 text-sm text-right text-slate-700 border-r border-gray-200 cursor-pointer hover:text-indigo-600 hover:underline" 
-                          style={{ maxHeight: '35px' }}
+                      <td className="py-2.5 px-4 text-sm text-right text-slate-700 border-r border-gray-100 cursor-pointer hover:text-indigo-600 hover:underline"
                           onClick={() => handleCellClick(row, 'avgRevenue', 'Average Value Analysis')}>
                         {formatCurrency(row.avgRevenue)}
                       </td>
-                      <td className="py-2 px-3 text-sm text-center text-slate-700 border-r border-gray-200 cursor-pointer hover:text-indigo-600 hover:underline" 
-                          style={{ maxHeight: '35px' }}
+                      <td className="py-2.5 px-4 text-sm text-center text-slate-700 border-r border-gray-100 cursor-pointer hover:text-indigo-600 hover:underline"
                           onClick={() => handleCellClick(row, 'avgDaysTaken', 'Conversion Timeline')}>
-                        {row.avgDaysTaken > 0 ? `${row.avgDaysTaken.toFixed(1)}` : 'N/A'}
+                        {row.avgDaysTaken > 0 ? `${row.avgDaysTaken.toFixed(1)}d` : '—'}
                       </td>
-                      <td className="py-2 px-3 text-sm text-center text-slate-700 cursor-pointer hover:text-indigo-600 hover:underline" 
-                          style={{ maxHeight: '35px' }}
+                      <td className="py-2.5 px-4 text-sm text-center text-slate-700 cursor-pointer hover:text-indigo-600 hover:underline"
                           onClick={() => handleCellClick(row, 'avgVisitsPostTrial', 'Visit Patterns')}>
                         {row.avgVisitsPostTrial.toFixed(1)}
                       </td>
                     </tr>
                   ))}
                   {/* Totals Row */}
-                  <tr className="retention-totals-row border-t-4 border-pink-700 font-bold" style={{ ...totalsRowStyle, maxHeight: '35px' }}>
+                  <tr className="retention-totals-row border-t-2 border-slate-300 font-bold bg-slate-900 text-white" style={totalsRowStyle}>
                     {groupBy !== 'clientType' && (
-                      <td className="border-r py-2 px-3 text-sm" style={{ ...totalsCellStyle, maxHeight: '35px' }}>
+                      <td className="border-r border-slate-700 py-3 px-4 text-sm" style={totalsCellStyle}>
                         {totals.membershipType}
                       </td>
                     )}
                     {groupBy !== 'membership' && (
-                      <td className="border-r py-2 px-3 text-sm" style={{ ...totalsCellStyle, maxHeight: '35px' }}>
+                      <td className="border-r border-slate-700 py-3 px-4 text-sm" style={totalsCellStyle}>
                         {totals.clientType}
                       </td>
                     )}
-                    <td className="border-r py-2 px-3 text-sm text-center" style={{ ...totalsCellStyle, maxHeight: '35px' }}>
+                    <td className="border-r border-slate-700 py-3 px-4 text-sm text-center" style={totalsCellStyle}>
                       {formatNumber(totals.units)}
                     </td>
-                    <td className="border-r py-2 px-3 text-sm text-center" style={{ ...totalsCellStyle, maxHeight: '35px' }}>
+                    <td className="border-r border-slate-700 py-3 px-4 text-sm text-center" style={totalsCellStyle}>
                       {formatNumber(totals.newClientsCount)}
                     </td>
-                    <td className="border-r py-2 px-3 text-sm text-right font-semibold" style={{ ...totalsCellStyle, maxHeight: '35px' }}>
+                    <td className="border-r border-slate-700 py-3 px-4 text-sm text-right font-semibold" style={totalsCellStyle}>
                       {formatCurrency(totals.totalRevenue)}
                     </td>
-                    <td className="border-r py-2 px-3 text-sm text-right" style={{ ...totalsCellStyle, maxHeight: '35px' }}>
+                    <td className="border-r border-slate-700 py-3 px-4 text-sm text-right" style={totalsCellStyle}>
                       {formatCurrency(totals.avgRevenue)}
                     </td>
-                    <td className="border-r py-2 px-3 text-sm text-center" style={{ ...totalsCellStyle, maxHeight: '35px' }}>
-                      {totals.avgDaysTaken > 0 ? totals.avgDaysTaken.toFixed(1) : 'N/A'}
+                    <td className="border-r border-slate-700 py-3 px-4 text-sm text-center" style={totalsCellStyle}>
+                      {totals.avgDaysTaken > 0 ? `${totals.avgDaysTaken.toFixed(1)}d` : '—'}
                     </td>
-                    <td className="py-2 px-3 text-sm text-center" style={{ ...totalsCellStyle, maxHeight: '35px' }}>
+                    <td className="py-3 px-4 text-sm text-center" style={totalsCellStyle}>
                       {totals.avgVisitsPostTrial.toFixed(1)}
                     </td>
                   </tr>

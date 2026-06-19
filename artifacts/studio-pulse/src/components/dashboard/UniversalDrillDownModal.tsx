@@ -148,7 +148,7 @@ export const UniversalDrillDownModal: React.FC<UniversalDrillDownModalProps> = (
       case 'client':
         return relatedData.filter(item => item.memberId === data.memberId || item.firstName === data.firstName);
       default:
-        return relatedData.slice(0, 200);
+        return relatedData.length > 0 ? relatedData.slice(0, 500) : [];
     }
   }, [data, relatedData, type]);
 

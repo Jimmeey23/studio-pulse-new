@@ -30,7 +30,6 @@ import {
   Bell,
   BookOpen,
   CalendarClock,
-  CalendarDays,
   ChevronDown,
   ChevronRight,
   ChevronUp,
@@ -87,7 +86,7 @@ import { ClientConversionMonthOnMonthByTypeTable, NewClientMembershipPurchasesTa
 import { FloatingAISectionPanel } from '@/components/dashboard/FloatingAISectionPanel';
 import { UnifiedTopBottomSellers } from '@/components/dashboard/UnifiedTopBottomSellers';
 import DetailedComparisonView from '@/components/dashboard/DetailedComparisonView';
-import LocationReport from '@/pages/LocationReport';
+import { LocationReportComprehensive } from '@/components/dashboard/LocationReportComprehensive';
 import { useMetricsTablesRegistry } from '@/contexts/MetricsTablesRegistryContext';
 
 import { useGoogleSheets } from '@/hooks/useGoogleSheets';
@@ -4594,19 +4593,25 @@ const StudioPulse = memo(() => {
               backgroundSize: '48px 48px',
             }} />
 
-            {/* Left radial glow */}
+            {/* Left radial glow — continuous breathing */}
             <motion.div
               initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.8, ease: 'easeOut' }}
+              animate={{ opacity: [0, 0.9, 0.5, 0.9], scale: [0.6, 1, 1.12, 1] }}
+              transition={{ duration: 1.8, ease: 'easeOut', times: [0, 0.4, 0.7, 1], repeat: Infinity, repeatType: 'reverse', repeatDelay: 1.2 }}
               className="pointer-events-none absolute -left-24 top-1/2 -translate-y-1/2 h-[320px] w-[320px] rounded-full bg-rose-600/20 blur-[80px]"
             />
-            {/* Right radial glow */}
+            {/* Right radial glow — continuous breathing offset */}
             <motion.div
               initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.8, delay: 0.2, ease: 'easeOut' }}
+              animate={{ opacity: [0, 0.9, 0.5, 0.9], scale: [0.6, 1, 1.12, 1] }}
+              transition={{ duration: 1.8, delay: 0.7, ease: 'easeOut', times: [0, 0.4, 0.7, 1], repeat: Infinity, repeatType: 'reverse', repeatDelay: 0.8 }}
               className="pointer-events-none absolute -right-24 top-1/2 -translate-y-1/2 h-[320px] w-[320px] rounded-full bg-indigo-600/20 blur-[80px]"
+            />
+            {/* Center ambient pulse */}
+            <motion.div
+              animate={{ opacity: [0.04, 0.10, 0.04], scale: [0.9, 1.05, 0.9] }}
+              transition={{ duration: 4, ease: 'easeInOut', repeat: Infinity }}
+              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[180px] w-[400px] rounded-full bg-white/5 blur-[60px]"
             />
 
             {/* Project badge — top right */}
@@ -4761,23 +4766,6 @@ const StudioPulse = memo(() => {
               <FileText className="h-3.5 w-3.5" />
               PDF
             </button>
-            <button
-              onClick={() => {
-                const params = new URLSearchParams();
-                params.set('studio', studio);
-                params.set('from', dateRange.start);
-                params.set('to', dateRange.end);
-                window.open(`/location-report?${params.toString()}`, '_blank');
-              }}
-              title="Open location report in new tab"
-              className={cn(
-                'flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-semibold shadow-sm backdrop-blur transition',
-                'border-slate-200 bg-white/70 text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              )}
-            >
-              <CalendarDays className="h-3.5 w-3.5" />
-              Monthly Report View
-            </button>
             {/* Master toggle — expand/collapse all section toggles */}
             <button
               onClick={handleMasterToggle}
@@ -4873,24 +4861,20 @@ const StudioPulse = memo(() => {
 
         <>
         {reportMode && (
-          <StudioPulseReport
-            studioName={activeStudio.name}
-            dateRange={dateRange}
-            salesStats={salesStats}
-            sessionStats={sessionStats}
-            sessionIntelligenceRows={sessionIntelligence.rows}
-            classSlotRows={reportSlotRows}
-            trainerRows={trainerRankingsExtended.rows}
-            clientStats={clientStats}
-            funnelRows={funnelRankings.rows}
-            lcStats={lcStats}
-            expirationStats={expirationStats}
-            lapsedByMembership={lapsedByMembership}
-            salesMatrix={salesMetricsMatrix}
-            getSummary={getSummary}
-            sectionEdits={sectionEdits}
-            onClose={() => setReportMode(false)}
-          />
+          <div className="fixed inset-0 z-[250] overflow-y-auto bg-[#0A0A0A]">
+            <button
+              onClick={() => setReportMode(false)}
+              className="fixed right-5 top-5 z-[260] flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
+              title="Close report"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="mx-auto max-w-[1380px] px-0 pb-10">
+              <LocationReportComprehensive onReady={() => {}} />
+            </div>
+          </div>
         )}
         <AnimatePresence mode="wait">
           <motion.div
@@ -5568,11 +5552,24 @@ const StudioPulse = memo(() => {
                 <NewClientMembershipPurchasesTable
                   data={filteredClients}
                   onRowClick={(row) => {
-                    const matched = filteredClients.filter((c) =>
-                      isInNewClientCohort(c) &&
-                      String(c.membershipsBoughtPostTrial || '').split(',').map((m) => m.trim()).includes(row.name)
+                    const rowName = (row.name || '').trim().toLowerCase();
+                    const newCohort = filteredClients.filter((c) => isInNewClientCohort(c));
+                    const matched = newCohort.filter((c) => {
+                      const memberships = String(c.membershipsBoughtPostTrial || '')
+                        .split(',')
+                        .map((m) => m.trim().toLowerCase())
+                        .filter(Boolean);
+                      return memberships.some((m) =>
+                        m === rowName || m.includes(rowName) || rowName.includes(m)
+                      );
+                    });
+                    const drillData = matched.length > 0 ? matched : newCohort;
+                    openMetricDrillDown(
+                      row.name || 'Membership detail',
+                      'client',
+                      { name: row.name, rawData: drillData, filteredTransactionData: drillData },
+                      drillData
                     );
-                    openMetricDrillDown(row.name || 'Membership detail', 'member', { name: row.name, rawData: matched, filteredTransactionData: matched }, matched);
                   }}
                 />
               </div>
