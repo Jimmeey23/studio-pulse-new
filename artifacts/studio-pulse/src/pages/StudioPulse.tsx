@@ -4861,19 +4861,8 @@ const StudioPulse = memo(() => {
 
         <>
         {reportMode && (
-          <div className="fixed inset-0 z-[250] overflow-y-auto bg-[#0A0A0A]">
-            <button
-              onClick={() => setReportMode(false)}
-              className="fixed right-5 top-5 z-[260] flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
-              title="Close report"
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="mx-auto max-w-[1380px] px-0 pb-10">
-              <LocationReportComprehensive onReady={() => {}} />
-            </div>
+          <div className="fixed inset-0 z-[250] overflow-y-auto bg-white">
+            <LocationReportComprehensive onReady={() => {}} onClose={() => setReportMode(false)} />
           </div>
         )}
         <AnimatePresence mode="wait">

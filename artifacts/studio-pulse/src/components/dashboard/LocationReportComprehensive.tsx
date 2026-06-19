@@ -13,8 +13,238 @@ interface LocationReportComprehensiveProps {
 }
 
 const reportCss = `
-.p57-report-shell{--bg:#ffffff;--bg2:#f8f9fc;--bg3:#f0f2f7;--surface:#ffffff;--surface2:#f4f6fb;--border:#dde2ed;--border2:#c8d0e0;--text:#0d1117;--text-2:#3a4355;--text-muted:#5a6474;--text-light:#8c95a6;--blue:#0d2137;--blue-mid:#1a3f6b;--blue-light:#2b6cb0;--blue-pale:#e8f0f9;--yellow:#c8960c;--yellow-deep:#a07508;--yellow-pale:#fef9ec;--yellow-mid:#e8b94f;--positive:#1a6b3c;--positive-bg:#edf7f2;--warn:#b54708;--warn-bg:#fff4ec;--red:#991b1b;--red-bg:#fef2f2;--shadow:0 1px 4px rgba(13,33,55,.06),0 4px 16px rgba(13,33,55,.06);--shadow-lg:0 4px 24px rgba(13,33,55,.10);--radius:12px;--radius-sm:7px;background:var(--bg);color:var(--text);font-family:Georgia,'Times New Roman',serif;line-height:1.65;font-size:15px}
-.p57-report-shell *{box-sizing:border-box}.p57-report-filter{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(14px)}.p57-report-filter-inner{max-width:1400px;margin:0 auto;padding:12px 60px}.hero{background:var(--blue);color:#fff;position:relative;overflow:hidden}.hero-inner{max-width:1400px;margin:0 auto;padding:80px 60px 0}.hero-top{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;padding-bottom:60px}.hero-label{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--yellow-mid);margin-bottom:16px}.hero h1{font-size:clamp(38px,4.5vw,64px);font-weight:400;line-height:1.08;color:#fff;margin:0 0 20px}.hero h1 span{color:var(--yellow-mid)}.hero-desc{font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:1.7;color:rgba(255,255,255,.55);max-width:430px}.hero-verdict{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius);padding:28px 32px}.hero-verdict-title{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--yellow-mid);margin-bottom:14px}.hero-verdict p{font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:1.75;color:rgba(255,255,255,.72);margin:0}.hero-verdict strong{color:#fff;font-weight:600}.hero-kpi-bar{background:rgba(255,255,255,.04);border-top:1px solid rgba(255,255,255,.1);padding:36px 60px}.hero-kpis{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(7,1fr);gap:0}.hero-kpi{padding:0 28px 0 0;border-right:1px solid rgba(255,255,255,.1);margin-right:28px}.hero-kpi:last-child{border-right:none;margin-right:0}.hero-kpi-label{font-family:'Helvetica Neue',Arial,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px}.hero-kpi-val{font-size:26px;color:#fff;letter-spacing:-.5px;line-height:1;margin-bottom:5px}.hero-kpi-delta{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px}.d-up{color:#4ade80}.d-down{color:#f87171}.d-neu{color:rgba(255,255,255,.4)}.wrap{max-width:1400px;margin:0 auto;padding:0 60px}.section{padding:72px 0 40px}.section-divider{height:1px;background:var(--border)}.sh{margin-bottom:44px;display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}.sh-eyebrow{font-family:'Helvetica Neue',Arial,sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--yellow);margin-bottom:10px;display:flex;align-items:center;gap:10px}.sh-eyebrow:before{content:'';display:block;width:24px;height:1px;background:var(--yellow)}.sh-title{font-size:clamp(22px,2.5vw,32px);font-weight:400;color:var(--text);line-height:1.15}.sh-right{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:1.75;color:var(--text-muted);padding-top:4px;border-left:2px solid var(--border);padding-left:24px}.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 32px;box-shadow:var(--shadow)}.card-title{font-family:'Helvetica Neue',Arial,sans-serif;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--text-light);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}.g32{display:grid;grid-template-columns:3fr 2fr;gap:20px}.mb20{margin-bottom:20px}.mb32{margin-bottom:32px}.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px}.kpi-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px 22px;position:relative;overflow:hidden}.kpi-box:after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--yellow)}.kpi-box.blue:after{background:var(--blue)}.kpi-box.positive:after{background:var(--positive)}.kpi-box.warn:after{background:var(--warn)}.kpi-box.red:after{background:var(--red)}.kpi-label{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-light);margin-bottom:6px}.kpi-val{font-size:26px;color:var(--text);letter-spacing:-.5px;margin-bottom:4px;line-height:1}.kpi-sub{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:var(--text-muted)}.tbl-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12.5px}thead th{text-align:left;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-light);padding:10px 14px;border-bottom:1px solid var(--border2);background:var(--bg2);font-weight:500;white-space:nowrap}tbody td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text-2);vertical-align:middle}tbody tr:last-child td{border-bottom:none}tbody tr:hover td{background:var(--bg2)}.tr{text-align:right}.tn{color:var(--text);font-weight:600}.t-blue{color:var(--blue-light);font-weight:600}.t-yellow{color:var(--yellow);font-weight:600}.t-green{color:var(--positive)}.t-warn{color:var(--warn)}.t-red{color:var(--red)}.t-muted{color:var(--text-light)}.bar-wrap{display:flex;align-items:center;gap:8px}.bar-bg{flex:1;height:5px;background:var(--border2);border-radius:3px;overflow:hidden;min-width:60px}.bar-fill{height:100%;border-radius:3px;background:var(--blue-light)}.bar-fill.yellow{background:var(--yellow)}.bar-fill.green{background:var(--positive)}.bar-fill.warn{background:var(--warn)}.bar-fill.red{background:var(--red)}.bar-pct{font-size:11px;color:var(--text-muted);width:34px;text-align:right;flex-shrink:0}.badge{display:inline-flex;align-items:center;font-family:'Helvetica Neue',Arial,sans-serif;font-size:10px;letter-spacing:.3px;padding:2px 9px;border-radius:20px;font-weight:500;white-space:nowrap}.badge-blue{background:var(--blue-pale);color:var(--blue-light)}.badge-yellow{background:var(--yellow-pale);color:var(--yellow-deep)}.badge-green{background:var(--positive-bg);color:var(--positive)}.badge-warn{background:var(--warn-bg);color:var(--warn)}.badge-red{background:var(--red-bg);color:var(--red)}.highlight{background:linear-gradient(135deg,var(--blue-pale),var(--yellow-pale));border-left:3px solid var(--yellow);padding:24px 30px;border-radius:0 var(--radius) var(--radius) 0;font-family:'Helvetica Neue',Arial,sans-serif;color:var(--text-2);line-height:1.8}.insight-panel{display:grid;gap:12px}.insight{padding:16px 18px;background:var(--bg2);border-radius:var(--radius-sm);border-left:3px solid var(--yellow);font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--text-muted);line-height:1.65}.insight strong{display:block;color:var(--text);margin-bottom:4px}.insight.blue{border-left-color:var(--blue-light)}.insight.green{border-left-color:var(--positive)}.insight.warn{border-left-color:var(--warn)}.action-list{counter-reset:action}.action-item{counter-increment:action;display:grid;grid-template-columns:44px 1fr;gap:18px;padding:22px 0;border-bottom:1px solid var(--border)}.action-item:last-child{border-bottom:none}.action-num:before{content:counter(action);display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:var(--blue);color:#fff;border-radius:50%;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px}.action-title{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;color:var(--text);margin-bottom:5px}.action-desc{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--text-muted);line-height:1.7}.footer-note{padding:48px 0 72px;text-align:center;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-light)}@media(max-width:1100px){.hero-kpis{grid-template-columns:repeat(3,1fr);gap:24px}.hero-kpi{border-right:0;margin-right:0}.kpi-strip{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.p57-report-filter-inner,.hero-inner,.hero-kpi-bar,.wrap{padding-left:24px;padding-right:24px}.hero-top,.sh,.g2,.g3,.g32{grid-template-columns:1fr}.hero-kpis{grid-template-columns:1fr 1fr}.hero-top{gap:28px;padding-bottom:36px}.section{padding:48px 0 28px}}`;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+.p57r {
+  --bg:#FFFFFF; --bg-soft:#F4F6FA; --bg-card:#FFFFFF; --bg-card-hover:#FAFBFD;
+  --bg-inset:#EEF1F6; --border:#E1E5EE; --border-strong:#C8CFDD;
+  --text:#0B1A33; --text-muted:#5A6478; --text-subtle:#8C93A3;
+  --primary:#0F2C5E; --primary-2:#1E4A8F; --primary-3:#2E6BD3; --primary-soft:#E6ECF7;
+  --accent:#F5C518; --accent-2:#FFD84D; --accent-soft:#FFF7D6;
+  --good:#1F8A4C; --good-soft:#E1F4E9;
+  --warn:#B87900; --warn-soft:#FFF1D1;
+  --bad:#C0392B; --bad-soft:#FBE7E4;
+  --shadow-sm:0 1px 2px rgba(15,44,94,.04),0 1px 1px rgba(15,44,94,.03);
+  --shadow:0 4px 12px rgba(15,44,94,.06),0 2px 4px rgba(15,44,94,.04);
+  --shadow-lg:0 12px 32px rgba(15,44,94,.08),0 4px 12px rgba(15,44,94,.05);
+  --radius-sm:6px; --radius:10px; --radius-lg:16px;
+  --sans:'Inter','Helvetica Neue',Helvetica,Arial,system-ui,sans-serif;
+  --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+  --mono:'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;
+  background:var(--bg); color:var(--text);
+  font-family:var(--sans); font-size:14px; line-height:1.55;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  font-feature-settings:'ss01','cv11','tnum';
+  min-height:100vh;
+}
+.p57r *{box-sizing:border-box}
+.p57r a{color:var(--primary-3);text-decoration:none}
+.p57r a:hover{text-decoration:underline}
+.p57r .cont{max-width:1340px;margin:0 auto;padding:0 32px}
+
+/* Sticky filter bar */
+.p57r .filter-bar{
+  position:sticky;top:0;z-index:40;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  padding:10px 32px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.p57r .filter-bar-inner{max-width:1340px;margin:0 auto;width:100%;display:flex;align-items:center;gap:16px}
+
+/* Hero */
+.p57r .hero{
+  position:relative;padding:56px 0 44px;overflow:hidden;
+  border-bottom:1px solid var(--border);
+}
+.p57r .hero::before{
+  content:"";position:absolute;top:-120px;right:-80px;
+  width:440px;height:440px;
+  background:radial-gradient(circle,var(--accent) 0%,transparent 65%);
+  opacity:.14;filter:blur(20px);pointer-events:none;
+}
+.p57r .hero::after{
+  content:"";position:absolute;bottom:-180px;left:-80px;
+  width:480px;height:480px;
+  background:radial-gradient(circle,var(--primary-3) 0%,transparent 60%);
+  opacity:.10;filter:blur(30px);pointer-events:none;
+}
+.p57r .hero-inner{position:relative;z-index:1}
+.p57r .hero-eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:6px 14px 6px 6px;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:999px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-muted);font-weight:600;margin-bottom:24px;box-shadow:var(--shadow-sm);
+}
+.p57r .hero-eyebrow .dot{
+  width:22px;height:22px;background:var(--primary);color:white;
+  border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;
+}
+.p57r .hero h1{
+  font-family:var(--serif);
+  font-size:clamp(36px,4.8vw,62px);
+  line-height:1.04;letter-spacing:-.025em;
+  margin:0 0 16px;font-weight:600;color:var(--text);max-width:920px;
+}
+.p57r .hero h1 .acc-blue{color:var(--primary)}
+.p57r .hero h1 .acc-yellow{
+  background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+}
+.p57r .hero-sub{font-size:16px;color:var(--text-muted);max-width:720px;line-height:1.6;margin:0 0 32px}
+.p57r .hero-meta{
+  display:flex;flex-wrap:wrap;gap:24px 40px;
+  margin-bottom:36px;padding:20px 0;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+}
+.p57r .hero-meta-item .label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-subtle);font-weight:600;margin-bottom:5px}
+.p57r .hero-meta-item .value{font-size:14px;color:var(--text);font-weight:500}
+
+/* KPI cards grid */
+.p57r .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media(max-width:1100px){.p57r .kpi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.p57r .kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.p57r .kpi-card{
+  position:relative;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:16px 16px 14px;overflow:hidden;
+  transition:all 180ms ease;
+}
+.p57r .kpi-card:hover{transform:translateY(-2px);border-color:var(--border-strong);box-shadow:var(--shadow)}
+.p57r .kpi-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary)}
+.p57r .kpi-card.tone-good::before{background:var(--good)}
+.p57r .kpi-card.tone-warn::before{background:var(--warn)}
+.p57r .kpi-card.tone-bad::before{background:var(--bad)}
+.p57r .kpi-label{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin-bottom:7px}
+.p57r .kpi-value{font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:-.02em;color:var(--text);line-height:1.1;margin-bottom:3px}
+.p57r .kpi-sub{font-size:11px;color:var(--text-subtle);margin-bottom:10px}
+.p57r .kpi-trends{display:flex;gap:8px;font-size:11px;flex-wrap:wrap}
+.p57r .kpi-trend{display:inline-flex;align-items:center;gap:4px}
+.p57r .trend-label{color:var(--text-subtle);font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+
+/* Badges */
+.p57r .badge{display:inline-flex;align-items:center;padding:1px 7px;border-radius:4px;font-size:10.5px;font-weight:600;font-family:var(--mono);letter-spacing:-.01em}
+.p57r .badge.good{background:var(--good-soft);color:var(--good)}
+.p57r .badge.bad{background:var(--bad-soft);color:var(--bad)}
+.p57r .badge.warn{background:var(--warn-soft);color:var(--warn)}
+.p57r .badge.neutral{background:var(--bg-inset);color:var(--text-muted)}
+
+/* Report sections */
+.p57r .report-section{padding:52px 0 28px;border-top:1px solid var(--border)}
+.p57r .report-section:first-of-type{border-top:none}
+.p57r .section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;gap:24px;flex-wrap:wrap}
+.p57r .section-header-left{max-width:760px}
+.p57r .section-eyebrow{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:4px;font-weight:700;margin-bottom:12px}
+.p57r .section-title{font-family:var(--serif);font-size:32px;font-weight:600;letter-spacing:-.02em;margin:0 0 10px;color:var(--text);line-height:1.18}
+.p57r .section-deck{font-size:14px;color:var(--text-muted);line-height:1.6;margin:0;max-width:700px}
+.p57r .section-anchor{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-subtle);font-weight:600;white-space:nowrap}
+
+/* Split grid */
+.p57r .split-grid{display:grid;grid-template-columns:1fr 1.45fr;gap:24px;align-items:start;margin-bottom:32px}
+@media(max-width:1060px){.p57r .split-grid{grid-template-columns:1fr}}
+
+/* Insights pane */
+.p57r .insights-pane{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;position:relative}
+.p57r .insights-pane::before{content:"";position:absolute;left:0;top:22px;bottom:22px;width:3px;background:var(--accent);border-radius:0 2px 2px 0}
+.p57r .pane-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin:0 0 14px;padding-left:12px}
+.p57r .data-pane{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:8px;overflow:hidden}
+
+/* Insight cards */
+.p57r .insight-card{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px dashed var(--border)}
+.p57r .insight-card:last-child{border-bottom:none;padding-bottom:0}
+.p57r .insight-card:first-child{padding-top:0}
+.p57r .insight-num{flex-shrink:0;width:30px;height:30px;background:var(--primary-soft);color:var(--primary);border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono)}
+.p57r .insight-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;letter-spacing:-.005em}
+.p57r .insight-text{font-size:12px;color:var(--text-muted);line-height:1.55}
+.p57r .insight-text strong{color:var(--text);font-weight:600;background:var(--accent-soft);padding:0 3px;border-radius:2px}
+
+/* Data tables */
+.p57r .table-wrap{overflow-x:auto;border-radius:var(--radius)}
+.p57r table.data-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;font-variant-numeric:tabular-nums}
+.p57r table.data-table thead th{text-align:right;padding:11px 13px;background:var(--bg-inset);color:var(--text-muted);font-weight:600;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0}
+.p57r table.data-table thead th:first-child{text-align:left;border-top-left-radius:var(--radius)}
+.p57r table.data-table thead th:last-child{border-top-right-radius:var(--radius)}
+.p57r table.data-table tbody td{padding:10px 13px;border-bottom:1px solid var(--border);text-align:right;color:var(--text);vertical-align:middle}
+.p57r table.data-table tbody td.metric-name{text-align:left;color:var(--text);font-weight:500}
+.p57r table.data-table tbody tr:hover{background:var(--bg-card-hover)}
+.p57r table.data-table tbody tr:last-child td{border-bottom:none}
+.p57r .num strong{color:var(--primary);font-weight:600}
+.p57r .totals-row td{background:var(--bg-inset);font-weight:600;border-top:2px solid var(--primary)}
+.p57r .totals-row td.metric-name{color:var(--primary)}
+
+/* Worked / didn't work cards */
+.p57r .worked-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:32px}
+@media(max-width:768px){.p57r .worked-grid{grid-template-columns:1fr}}
+.p57r .worked-card{display:flex;align-items:flex-start;gap:11px;padding:13px 15px;border-radius:var(--radius);background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--good)}
+.p57r .worked-card.neg{border-left-color:var(--bad)}
+.p57r .worked-icon{flex-shrink:0;width:22px;height:22px;background:var(--good-soft);color:var(--good);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;font-family:var(--mono)}
+.p57r .worked-card.neg .worked-icon{background:var(--bad-soft);color:var(--bad)}
+.p57r .worked-title{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:2px}
+.p57r .worked-text{font-size:12px;color:var(--text-muted);line-height:1.5}
+.p57r .worked-text strong{color:var(--text);font-weight:600;background:var(--accent-soft);padding:0 3px;border-radius:2px}
+
+/* Action cards */
+.p57r .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px}
+@media(max-width:900px){.p57r .action-grid{grid-template-columns:1fr}}
+.p57r .action-card{display:flex;gap:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;position:relative;overflow:hidden}
+.p57r .action-card::before{content:"";position:absolute;top:0;right:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--primary) 0%,var(--accent) 100%)}
+.p57r .action-num{flex-shrink:0;width:40px;height:40px;background:var(--primary);color:white;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:17px;font-weight:600}
+.p57r .action-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px}
+.p57r .action-text{font-size:12.5px;color:var(--text-muted);line-height:1.6;margin-bottom:10px}
+.p57r .action-text strong{color:var(--text);font-weight:600}
+.p57r .meta-pill{font-size:11px;padding:3px 9px;background:var(--bg-inset);color:var(--text-muted);border-radius:999px;font-weight:500;display:inline-block;margin:3px 3px 0 0}
+
+/* Conclusions */
+.p57r .conclusions-block{background:linear-gradient(135deg,var(--primary-soft) 0%,var(--bg-card) 100%);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
+.p57r .conclusion-item{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px dashed var(--border)}
+.p57r .conclusion-item:last-child{border-bottom:none;padding-bottom:0}
+.p57r .conclusion-item:first-child{padding-top:0}
+.p57r .conclusion-num{flex-shrink:0;width:24px;height:24px;background:var(--accent);color:var(--primary);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--mono)}
+.p57r .conclusion-text{font-size:13px;color:var(--text);line-height:1.55;font-weight:500}
+.p57r .conclusion-text strong{color:var(--primary);font-weight:700}
+
+/* Funnel stages */
+.p57r .funnel-stages{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+@media(max-width:768px){.p57r .funnel-stages{grid-template-columns:1fr 1fr}}
+.p57r .funnel-stage{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;position:relative;text-align:center}
+.p57r .funnel-stage-num{font-family:var(--serif);font-size:34px;font-weight:600;color:var(--primary);letter-spacing:-.02em;line-height:1;margin-bottom:5px}
+.p57r .funnel-stage.conv .funnel-stage-num{color:var(--good)}
+.p57r .funnel-stage-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin-bottom:6px}
+.p57r .funnel-stage-sub{font-size:11px;color:var(--text-subtle)}
+
+/* Callout */
+.p57r .callout{background:linear-gradient(135deg,var(--primary-soft) 0%,var(--bg-card) 100%);border-left:3px solid var(--accent);border-radius:var(--radius);padding:16px 20px;font-size:13px;color:var(--text);line-height:1.6;margin:18px 0}
+.p57r .callout strong{color:var(--primary);font-weight:600}
+
+/* Subsection */
+.p57r .subsection{margin-top:36px;margin-bottom:14px}
+.p57r .subsection-title{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.015em;color:var(--text);margin:0 0 6px}
+.p57r .subsection-deck{font-size:13px;color:var(--text-muted);margin:0 0 16px;max-width:800px;line-height:1.55}
+
+/* KPI strip */
+.p57r .kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px}
+@media(max-width:900px){.p57r .kpi-strip{grid-template-columns:repeat(3,1fr)}}
+.p57r .kpi-strip-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.p57r .kpi-strip-label{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-subtle);font-weight:600;margin-bottom:5px}
+.p57r .kpi-strip-val{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.02em;color:var(--text);line-height:1.15;margin-bottom:2px}
+.p57r .kpi-strip-sub{font-size:11px;color:var(--text-subtle)}
+
+/* Share bar */
+.p57r .share-bar{display:inline-flex;align-items:center;gap:7px;width:110px}
+.p57r .share-fill{height:5px;background:linear-gradient(90deg,var(--primary) 0%,var(--primary-3) 100%);border-radius:3px;min-width:2px}
+.p57r .share-bar span{font-size:10.5px;color:var(--text-muted);font-family:var(--mono)}
+
+/* Footer */
+.p57r .report-footer{padding:40px 0 52px;border-top:1px solid var(--border);margin-top:52px;text-align:center}
+.p57r .report-footer p{font-size:12px;color:var(--text-subtle);line-height:1.6}
+.p57r .report-footer strong{color:var(--text-muted)}
+
+/* Color utilities */
+.p57r .fill-high{color:var(--good);font-weight:600}
+.p57r .fill-mid{color:var(--warn);font-weight:600}
+.p57r .fill-low{color:var(--bad);font-weight:600}
+`;
 
 const compactCurrency = (n: number) => {
   if (Math.abs(n) >= 1e7) return `₹${(n / 1e7).toFixed(2)}Cr`;
@@ -22,9 +252,19 @@ const compactCurrency = (n: number) => {
   return formatCurrency(n);
 };
 
-const percent = (n: number) => formatPercentage(Number.isFinite(n) ? n : 0);
+const pct = (n: number) => formatPercentage(Number.isFinite(n) ? n : 0);
+const num = (n: number) => formatNumber(n);
+const cur = (n: number) => formatCurrency(n);
+const barW = (v: number, max: number) => `${Math.max(2, Math.min(100, max ? (v / max) * 100 : 0))}%`;
 
-const barWidth = (value: number, max: number) => `${Math.max(4, Math.min(100, max ? (value / max) * 100 : 0))}%`;
+const Badge: React.FC<{ value: number; fmt?: 'pct' | 'num' | 'cur'; invert?: boolean }> = ({ value, fmt = 'pct', invert = false }) => {
+  const pos = invert ? value < 0 : value > 0;
+  const neg = invert ? value > 0 : value < 0;
+  const cls = pos ? 'good' : neg ? 'bad' : 'neutral';
+  const prefix = value > 0 ? '+' : '';
+  const label = fmt === 'pct' ? `${prefix}${value.toFixed(1)}%` : fmt === 'cur' ? `${prefix}${compactCurrency(Math.abs(value))}` : `${prefix}${num(value)}`;
+  return <span className={`badge ${cls}`}>{label}</span>;
+};
 
 const getStudioLocationLabel = (studio: string | null) => {
   if (studio === 'supreme') return 'Supreme HQ, Bandra';
@@ -34,13 +274,16 @@ const getStudioLocationLabel = (studio: string | null) => {
   return '';
 };
 
-const BackToDashboardButton = () => {
+const BackButton: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const navigate = useNavigate();
-
+  const handleClick = () => {
+    if (onClose) { onClose(); return; }
+    navigate('/studio-pulse', { replace: true });
+  };
   return (
     <button
       type="button"
-      onClick={() => navigate('/studio-pulse', { replace: true })}
+      onClick={handleClick}
       className="fixed left-4 top-4 z-[1000] inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/65 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur transition hover:bg-black/85"
     >
       <ArrowLeft className="h-3.5 w-3.5" />
@@ -49,9 +292,9 @@ const BackToDashboardButton = () => {
   );
 };
 
-const StaticReportFrame: React.FC<{ title: string; src: string }> = ({ title, src }) => (
+const StaticReportFrame: React.FC<{ title: string; src: string; onClose?: () => void }> = ({ title, src, onClose }) => (
   <div className="min-h-screen bg-[#0A0A0A]">
-    <BackToDashboardButton />
+    <BackButton onClose={onClose} />
     <iframe
       title={title}
       src={src}
@@ -60,18 +303,25 @@ const StaticReportFrame: React.FC<{ title: string; src: string }> = ({ title, sr
   </div>
 );
 
-export const LocationReportComprehensive: React.FC<LocationReportComprehensiveProps> = ({ onReady }) => {
+export const LocationReportComprehensive: React.FC<LocationReportComprehensiveProps & { onClose?: () => void }> = ({ onReady, onClose }) => {
   const { filters: globalFilters, updateFilters, clearFilters } = useGlobalFilters();
   const [searchParams] = useSearchParams();
   const studioParam = searchParams.get('studio');
   const toParam = searchParams.get('to');
   const urlLocationLabel = getStudioLocationLabel(studioParam);
   const effectiveLocationLabel = urlLocationLabel || (globalFilters.location.length ? globalFilters.location.join(' · ') : 'All locations');
+  // Use start date for month determination (end may be exclusive/+1 day)
+  const effectiveStartDate = globalFilters.dateRange.start;
   const effectiveEndDate = toParam || globalFilters.dateRange.end;
+
   const isMay2026 = React.useMemo(() => {
+    // Check start date first (most reliable), fallback to end
+    const start = new Date(`${effectiveStartDate}T00:00:00`);
     const end = new Date(`${effectiveEndDate}T00:00:00`);
-    return !Number.isNaN(end.getTime()) && end.getFullYear() === 2026 && end.getMonth() === 4;
-  }, [effectiveEndDate]);
+    const ref = !Number.isNaN(start.getTime()) ? start : end;
+    return ref.getFullYear() === 2026 && ref.getMonth() === 4;
+  }, [effectiveStartDate, effectiveEndDate]);
+
   const effectiveLocationText = `${effectiveLocationLabel} ${studioParam || ''}`.toLowerCase();
   const isKwalityMay2026Template = isMay2026 && effectiveLocationText.includes('kwality');
   const isSupremeMay2026Template = isMay2026 && (effectiveLocationText.includes('supreme') || effectiveLocationText.includes('bandra'));
@@ -85,6 +335,7 @@ export const LocationReportComprehensive: React.FC<LocationReportComprehensivePr
       <StaticReportFrame
         title="Kwality House Performance Report May 2026"
         src="/kwality-house-performance-report-may-2026.html"
+        onClose={onClose}
       />
     );
   }
@@ -94,6 +345,7 @@ export const LocationReportComprehensive: React.FC<LocationReportComprehensivePr
       <StaticReportFrame
         title="Supreme HQ Studio Performance Review May 2026"
         src="/supreme-hq-studio-performance-review-may-2026.pdf"
+        onClose={onClose}
       />
     );
   }
@@ -104,6 +356,7 @@ export const LocationReportComprehensive: React.FC<LocationReportComprehensivePr
       updateFilters={updateFilters}
       clearFilters={clearFilters}
       onReady={onReady}
+      onClose={onClose}
     />
   );
 };
@@ -113,15 +366,33 @@ const DynamicLocationReport: React.FC<{
   updateFilters: ReturnType<typeof useGlobalFilters>['updateFilters'];
   clearFilters: ReturnType<typeof useGlobalFilters>['clearFilters'];
   onReady?: () => void;
-}> = ({ globalFilters, updateFilters, clearFilters, onReady }) => {
+  onClose?: () => void;
+}> = ({ globalFilters, updateFilters, clearFilters, onReady, onClose }) => {
   const { metrics, isLoading, generateFullReport } = useLocationReportData();
   const [report, setReport] = React.useState<LocationReportNarrative | null>(null);
   const [reportLoading, setReportLoading] = React.useState(false);
 
+  // Use start date for month label (end can be exclusive/+1 day which would show wrong month)
   const selectedMonth = React.useMemo(() => {
+    const start = new Date(`${globalFilters.dateRange.start}T00:00:00`);
     const end = new Date(`${globalFilters.dateRange.end}T00:00:00`);
-    return Number.isNaN(end.getTime()) ? 'Selected month' : format(end, 'MMMM yyyy');
-  }, [globalFilters.dateRange.end]);
+    const ref = !Number.isNaN(start.getTime()) ? start : end;
+    return Number.isNaN(ref.getTime()) ? 'Selected period' : format(ref, 'MMMM yyyy');
+  }, [globalFilters.dateRange.start, globalFilters.dateRange.end]);
+
+  // Period label: "01 May 2026 — 31 May 2026"
+  const periodLabel = React.useMemo(() => {
+    const start = new Date(`${globalFilters.dateRange.start}T00:00:00`);
+    const rawEnd = new Date(`${globalFilters.dateRange.end}T00:00:00`);
+    // If end is 1st of a month (exclusive), use last day of previous month
+    const end = rawEnd.getDate() === 1
+      ? new Date(rawEnd.getFullYear(), rawEnd.getMonth(), 0)
+      : rawEnd;
+    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+      return `${format(start, 'dd MMM yyyy')} — ${format(end, 'dd MMM yyyy')}`;
+    }
+    return selectedMonth;
+  }, [globalFilters.dateRange.start, globalFilters.dateRange.end, selectedMonth]);
 
   const locationLabel = globalFilters.location.length ? globalFilters.location.join(' · ') : 'All locations';
 
@@ -133,9 +404,7 @@ const DynamicLocationReport: React.FC<{
     if (!metrics || reportLoading) return;
     setReportLoading(true);
     generateFullReport()
-      .then((next) => {
-        if (next) setReport(next);
-      })
+      .then((next) => { if (next) setReport(next); })
       .catch(() => undefined)
       .finally(() => setReportLoading(false));
   }, [generateFullReport, metrics, reportLoading]);
@@ -148,226 +417,432 @@ const DynamicLocationReport: React.FC<{
     return (
       <div className="flex min-h-[70vh] items-center justify-center bg-white text-slate-700">
         <div className="flex items-center gap-3 text-sm">
-          <RefreshCw className="h-4 w-4 animate-spin" />
-          Building {selectedMonth} report...
+          <RefreshCw className="h-4 w-4 animate-spin text-indigo-600" />
+          Building {selectedMonth} report…
         </div>
       </div>
     );
   }
 
   const m = metrics;
-  const verdict = report?.overallVerdict || `${locationLabel} closed ${selectedMonth} with ${compactCurrency(m.grossRevenue ?? m.totalRevenue)} gross revenue, ${compactCurrency(m.netRevenue)} net revenue, ${formatNumber(m.totalTransactions)} transactions, and a ${percent(m.fillRate)} studio-session fill rate.`;
+  const verdict = report?.overallVerdict || `${locationLabel} closed ${selectedMonth} with ${compactCurrency(m.totalRevenue)} gross revenue, ${compactCurrency(m.netRevenue)} net revenue, ${num(m.totalTransactions)} transactions, and a ${pct(m.fillRate)} studio fill rate.`;
   const sessionMax = Math.max(m.barreSessions, m.powerCycleSessions, m.strengthSessions, 1);
   const funnelMax = Math.max(m.totalLeads, m.newClientsAcquired, m.leadsConverted, 1);
-  const leadRows = Object.entries(m.leadsBySource || {})
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8);
-  const actions = report?.recommendations?.length
-    ? report.recommendations
-    : [
-        'Review late cancellation behavior and create a member follow-up path for repeat offenders.',
-        'Use high-performing class formats as the anchor for next-month schedule planning.',
-        'Prioritize lead sources with the strongest conversion signal and reduce effort on low-yield channels.',
-      ];
+  const leadRows = Object.entries(m.leadsBySource || {}).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const highlights = report?.highlights?.length ? report.highlights : [
+    'Revenue and transaction volume provide the clearest read of monthly commercial health.',
+    'Fill rate and average class size indicate demand relative to scheduled supply.',
+    'Conversion and retention rates signal the health of the member lifecycle funnel.',
+  ];
+  const actions = report?.recommendations?.length ? report.recommendations : [
+    'Review late-cancel behavior and create a follow-up path for repeat offenders.',
+    'Use highest-performing class formats as anchor for next month schedule planning.',
+    'Prioritise lead sources with the strongest conversion signal and reduce effort on low-yield channels.',
+    'Audit discount policy against gross-to-net ratio to recover margin.',
+  ];
+
+  const kpiCards = [
+    { label: 'Gross Revenue', value: compactCurrency(m.totalRevenue), sub: `${num(m.totalTransactions)} transactions`, tone: '' },
+    { label: 'Net Revenue', value: compactCurrency(m.netRevenue), sub: `${pct(m.totalRevenue ? (m.netRevenue / m.totalRevenue) * 100 : 0)} net ratio`, tone: 'tone-good' },
+    { label: 'Fill Rate', value: pct(m.fillRate), sub: `${m.avgClassSize.toFixed(1)} avg class size`, tone: m.fillRate >= 50 ? 'tone-good' : m.fillRate >= 35 ? 'tone-warn' : 'tone-bad' },
+    { label: 'Conversion', value: pct(m.conversionRate), sub: `${num(m.leadsConverted)} of ${num(m.totalLeads)} leads`, tone: m.conversionRate >= 20 ? 'tone-good' : m.conversionRate >= 12 ? 'tone-warn' : 'tone-bad' },
+    { label: 'Churn Rate', value: pct(m.churnRate), sub: `${num(m.churnedMembers)} lapsed members`, tone: m.churnRate <= 20 ? 'tone-good' : m.churnRate <= 40 ? 'tone-warn' : 'tone-bad' },
+    { label: 'Discount Rate', value: pct(m.discountRate), sub: `${compactCurrency(m.totalDiscounts)} discounted`, tone: m.discountRate <= 10 ? 'tone-good' : m.discountRate <= 20 ? 'tone-warn' : 'tone-bad' },
+  ];
+
+  const summaryInsights = highlights.slice(0, 6).map((text, i) => ({ num: String(i + 1).padStart(2, '0'), text }));
+
+  const headlineMetrics = [
+    { name: 'Gross Revenue', value: cur(m.totalRevenue) },
+    { name: 'Net Revenue', value: cur(m.netRevenue) },
+    { name: 'Transactions', value: num(m.totalTransactions) },
+    { name: 'Unique Members', value: num(m.uniqueMembers) },
+    { name: 'Avg Transaction Value', value: cur(m.avgTransactionValue) },
+    { name: 'Avg Revenue / Member', value: cur(m.avgSpendPerMember) },
+    { name: 'Discount Value', value: cur(m.totalDiscounts) },
+    { name: 'Discount Rate', value: pct(m.discountRate) },
+  ];
+
+  const sessionRows = [
+    { name: 'Barre', count: m.barreSessions, fill: '' },
+    { name: 'PowerCycle', count: m.powerCycleSessions, fill: '' },
+    { name: 'Strength Lab', count: m.strengthSessions, fill: '' },
+  ];
 
   return (
-    <div className="p57-report-shell">
-      <BackToDashboardButton />
+    <div className="p57r">
+      <BackButton onClose={onClose} />
       <style>{reportCss}</style>
-      <div className="p57-report-filter">
-        <div className="p57-report-filter-inner">
+
+      {/* Sticky filter bar */}
+      <div className="p57r filter-bar">
+        <div className="filter-bar-inner">
           <AutoCloseFilterSection filters={globalFilters} onFiltersChange={updateFilters} onReset={clearFilters} />
         </div>
       </div>
 
-      <section className="hero">
-        <div className="hero-inner">
-          <div className="hero-top">
-            <div>
-              <div className="hero-label">Senior Management Review · {locationLabel} · {selectedMonth}</div>
-              <h1>{locationLabel}<br /><span>Performance Report</span></h1>
-              <p className="hero-desc">A full-spectrum business intelligence review covering revenue, studio-session performance, instructor analytics, new client acquisition, lapsed membership diagnostics, and strategic action items.</p>
+      {/* ── HERO ── */}
+      <div className="p57r hero">
+        <div className="p57r cont">
+          <div className="p57r hero-inner">
+            <div className="p57r hero-eyebrow">
+              <span className="p57r dot">P57</span>
+              Senior Management Review · Period: {periodLabel}
             </div>
-            <div className="hero-verdict">
-              <div className="hero-verdict-title">Executive Summary</div>
-              <p><strong>{selectedMonth} read:</strong> {verdict}</p>
+            <h1 className="p57r">
+              <span className="p57r acc-blue">{locationLabel}</span> studio performance<br />
+              for <span className="p57r acc-yellow">{selectedMonth}</span> — revenue, operations, and member lifecycle.
+            </h1>
+            <p className="p57r hero-sub">
+              A data-led review of the studio's commercial and operational performance in {selectedMonth}, benchmarked against the active filters applied in the dashboard. Every section surfaces a business decision — fill rate, trainer deployment, discount discipline, and membership retention.
+            </p>
+            <div className="p57r hero-meta">
+              <div className="p57r hero-meta-item">
+                <span className="p57r label">Location</span>
+                <span className="p57r value">{locationLabel}</span>
+              </div>
+              <div className="p57r hero-meta-item">
+                <span className="p57r label">Period</span>
+                <span className="p57r value">{periodLabel}</span>
+              </div>
+              <div className="p57r hero-meta-item">
+                <span className="p57r label">Reporting basis</span>
+                <span className="p57r value">Net Sales · {num(m.totalSessions)} sessions · {num(m.uniqueMembers)} unique buyers</span>
+              </div>
+              <div className="p57r hero-meta-item">
+                <span className="p57r label">Audience</span>
+                <span className="p57r value">Senior Management · Board Review</span>
+              </div>
+            </div>
+            <div className="p57r kpi-grid">
+              {kpiCards.map((k) => (
+                <div key={k.label} className={`p57r kpi-card ${k.tone}`}>
+                  <div className="p57r kpi-label">{k.label}</div>
+                  <div className="p57r kpi-value">{k.value}</div>
+                  <div className="p57r kpi-sub">{k.sub}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-        <div className="hero-kpi-bar">
-          <div className="hero-kpis">
+      </div>
+
+      {/* ── SECTION 01: EXECUTIVE SUMMARY ── */}
+      <section className="p57r report-section">
+        <div className="p57r cont">
+          <div className="p57r section-header">
+            <div className="p57r section-header-left">
+              <span className="p57r section-eyebrow">01 · Executive Summary</span>
+              <h2 className="p57r section-title">
+                {report?.executiveSummary
+                  ? report.executiveSummary.slice(0, 120) + (report.executiveSummary.length > 120 ? '…' : '')
+                  : `${selectedMonth} performance at a glance — revenue, session utilisation, and member lifecycle health.`}
+              </h2>
+              <p className="p57r section-deck">{verdict}</p>
+            </div>
+            <div className="p57r section-anchor">Section 01 / 04</div>
+          </div>
+
+          <div className="p57r split-grid">
+            <div className="p57r insights-pane">
+              <div className="p57r pane-title">Key Insights · {selectedMonth}</div>
+              {summaryInsights.map((ins, i) => (
+                <div className="p57r insight-card" key={i}>
+                  <div className="p57r insight-num">{ins.num}</div>
+                  <div>
+                    <div className="p57r insight-text">{ins.text}</div>
+                  </div>
+                </div>
+              ))}
+              {summaryInsights.length === 0 && (
+                <div className="p57r insight-card">
+                  <div className="p57r insight-num">01</div>
+                  <div>
+                    <div className="p57r insight-title">Report summary</div>
+                    <div className="p57r insight-text">{verdict}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p57r data-pane">
+              <div className="p57r pane-title" style={{ padding: '14px 14px 8px' }}>Headline KPI Table · {selectedMonth}</div>
+              <div className="p57r table-wrap">
+                <table className="p57r data-table">
+                  <thead>
+                    <tr>
+                      <th>Metric</th>
+                      <th>{selectedMonth}</th>
+                      <th>Context</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {headlineMetrics.map((row) => (
+                      <tr key={row.name}>
+                        <td className="metric-name">{row.name}</td>
+                        <td className="num"><strong>{row.value}</strong></td>
+                        <td className="num">—</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Conclusions */}
+          <div className="p57r subsection">
+            <h3 className="p57r subsection-title">Data-backed conclusions</h3>
+          </div>
+          <div className="p57r conclusions-block">
             {[
-              ['Gross Revenue', compactCurrency(m.totalRevenue), `${formatNumber(m.totalTransactions)} transactions`, 'd-up'],
-              ['Net Revenue', compactCurrency(m.netRevenue), `${percent(m.netRevenue && m.totalRevenue ? (m.netRevenue / m.totalRevenue) * 100 : 0)} net ratio`, 'd-up'],
-              ['Transactions', formatNumber(m.totalTransactions), `${formatNumber(m.uniqueMembers)} unique members`, 'd-neu'],
-              ['Unique Members', formatNumber(m.uniqueMembers), `${compactCurrency(m.avgSpendPerMember)} avg spend`, 'd-neu'],
-              ['New Clients', formatNumber(m.newClientsAcquired), `${percent(m.leadConversionRate)} lead conversion`, 'd-up'],
-              ['Avg Txn Value', compactCurrency(m.avgTransactionValue), 'per transaction', 'd-neu'],
-              ['Late Cancels', formatNumber(m.lateCancellations), m.lateCancellations > 0 ? 'action required' : 'stable', m.lateCancellations > 0 ? 'd-down' : 'd-up'],
-            ].map(([label, value, delta, klass]) => (
-              <div className="hero-kpi" key={label}>
-                <div className="hero-kpi-label">{label}</div>
-                <div className="hero-kpi-val">{value}</div>
-                <div className={`hero-kpi-delta ${klass}`}>{delta}</div>
+              `Gross revenue of ${compactCurrency(m.totalRevenue)} with ${num(m.totalTransactions)} transactions represents the period baseline.`,
+              `Net revenue of ${compactCurrency(m.netRevenue)} after VAT gives a ${pct(m.totalRevenue ? (m.netRevenue / m.totalRevenue) * 100 : 0)} net ratio.`,
+              `Studio fill rate of ${pct(m.fillRate)} with ${m.avgClassSize.toFixed(1)} average class size across ${num(m.totalSessions)} sessions.`,
+              `${num(m.lateCancellations)} late cancellations represent operational capacity loss worth reviewing.`,
+              `Conversion rate of ${pct(m.conversionRate)} from ${num(m.totalLeads)} leads — ${num(m.leadsConverted)} converted.`,
+              `Churn rate at ${pct(m.churnRate)} with ${num(m.churnedMembers)} lapsed members. Retention at ${pct(m.retentionRate)}.`,
+            ].map((text, i) => (
+              <div className="p57r conclusion-item" key={i}>
+                <span className="p57r conclusion-num">{String(i + 1).padStart(2, '0')}</span>
+                <span className="p57r conclusion-text">{text}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <div className="wrap">
-        <section className="section">
-          <div className="sh">
-            <div>
-              <div className="sh-eyebrow">01 · Financial Performance</div>
-              <div className="sh-title">Revenue, Sales Mix<br />& Comparative Health</div>
+      {/* ── SECTION 02: STUDIO SESSION PERFORMANCE ── */}
+      <section className="p57r report-section">
+        <div className="p57r cont">
+          <div className="p57r section-header">
+            <div className="p57r section-header-left">
+              <span className="p57r section-eyebrow">02 · Studio Session Performance</span>
+              <h2 className="p57r section-title">Demand, utilisation &amp; format mix</h2>
+              <p className="p57r section-deck">{report?.sessionNarrative || 'Studio session performance combines total sessions, check-ins, fill rate, average class size, format mix, and late-cancellation pressure.'}</p>
             </div>
-            <div className="sh-right">{report?.revenueNarrative || 'Revenue quality is summarized through gross sales, net sales, transaction behavior, average spend, discount pressure, and member-level purchasing activity for the selected month and location.'}</div>
+            <div className="p57r section-anchor">Section 02 / 04</div>
           </div>
-          <div className="highlight mb32">{report?.executiveSummary || verdict}</div>
-          <div className="kpi-strip mb32">
-            <div className="kpi-box"><div className="kpi-label">Gross Sales</div><div className="kpi-val">{compactCurrency(m.totalRevenue)}</div><div className="kpi-sub">selected period</div></div>
-            <div className="kpi-box blue"><div className="kpi-label">Net Sales</div><div className="kpi-val">{compactCurrency(m.netRevenue)}</div><div className="kpi-sub">{compactCurrency(m.vatAmount)} VAT</div></div>
-            <div className="kpi-box positive"><div className="kpi-label">Avg Txn Value</div><div className="kpi-val">{compactCurrency(m.avgTransactionValue)}</div><div className="kpi-sub">per transaction</div></div>
-            <div className="kpi-box warn"><div className="kpi-label">Discount Rate</div><div className="kpi-val">{percent(m.discountRate)}</div><div className="kpi-sub">{compactCurrency(m.totalDiscounts)} discount value</div></div>
-            <div className="kpi-box red"><div className="kpi-label">Churn Rate</div><div className="kpi-val">{percent(m.churnRate)}</div><div className="kpi-sub">{formatNumber(m.churnedMembers)} lapsed members</div></div>
+
+          <div className="p57r kpi-strip">
+            {[
+              { label: 'Sessions', val: num(m.totalSessions), sub: 'scheduled' },
+              { label: 'Check-ins', val: num(m.totalCheckIns), sub: 'attended' },
+              { label: 'Fill Rate', val: pct(m.fillRate), sub: `${m.avgClassSize.toFixed(1)} avg size` },
+              { label: 'Late Cancels', val: num(m.lateCancellations), sub: 'policy review needed' },
+              { label: 'Capacity Use', val: pct(m.capacityUtilization), sub: 'available seats used' },
+            ].map((k) => (
+              <div className="p57r kpi-strip-card" key={k.label}>
+                <div className="p57r kpi-strip-label">{k.label}</div>
+                <div className="p57r kpi-strip-val">{k.val}</div>
+                <div className="p57r kpi-strip-sub">{k.sub}</div>
+              </div>
+            ))}
           </div>
-          <div className="g32 mb32">
-            <div className="card">
-              <div className="card-title">Full Sales Metrics Comparison — Selected Month Performance</div>
-              <div className="tbl-wrap">
-                <table><thead><tr><th>Metric</th><th className="tr">Value</th><th className="tr">Context</th></tr></thead><tbody>
-                  <tr><td className="tn">Gross Revenue</td><td className="tr t-blue">{formatCurrency(m.totalRevenue)}</td><td className="tr">All recorded sales</td></tr>
-                  <tr><td className="tn">Net Revenue</td><td className="tr t-blue">{formatCurrency(m.netRevenue)}</td><td className="tr">After VAT</td></tr>
-                  <tr><td className="tn">Transactions</td><td className="tr">{formatNumber(m.totalTransactions)}</td><td className="tr">Sales count</td></tr>
-                  <tr><td className="tn">Unique Members</td><td className="tr">{formatNumber(m.uniqueMembers)}</td><td className="tr">Distinct purchasing members</td></tr>
-                  <tr><td className="tn">Average Spend / Member</td><td className="tr">{formatCurrency(m.avgSpendPerMember)}</td><td className="tr">Gross revenue divided by unique members</td></tr>
-                </tbody></table>
+
+          <div className="p57r split-grid">
+            <div className="p57r data-pane">
+              <div className="p57r pane-title" style={{ padding: '14px 14px 8px' }}>Format Mix — Sessions &amp; Share</div>
+              <div className="p57r table-wrap">
+                <table className="p57r data-table">
+                  <thead>
+                    <tr>
+                      <th>Format</th>
+                      <th>Sessions</th>
+                      <th>Share</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sessionRows.map((row) => (
+                      <tr key={row.name}>
+                        <td className="metric-name">{row.name}</td>
+                        <td className="num">{num(row.count)}</td>
+                        <td>
+                          <div className="p57r share-bar">
+                            <div className="p57r share-fill" style={{ width: barW(row.count, sessionMax) }} />
+                            <span>{pct((row.count / Math.max(m.totalSessions, 1)) * 100)}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="totals-row">
+                      <td className="metric-name">Total</td>
+                      <td className="num">{num(m.totalSessions)}</td>
+                      <td className="num">100%</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
-            <div className="card">
-              <div className="card-title">Financial Insights</div>
-              <div className="insight-panel">
-                {(report?.highlights?.length ? report.highlights : ['Net revenue and transaction behavior provide the cleanest view of monthly sales quality.', 'Average transaction value shows the strength of package and membership purchasing.', 'Discount rate should be monitored against campaign intent and margin impact.']).slice(0, 5).map((text, index) => (
-                  <div className={`insight ${index % 3 === 0 ? 'blue' : index % 3 === 1 ? 'green' : 'warn'}`} key={text}><strong>{index === 0 ? 'Primary read' : `Insight ${index + 1}`}</strong>{text}</div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
 
-      <div className="section-divider" />
-
-      <div className="wrap">
-        <section className="section">
-          <div className="sh">
-            <div>
-              <div className="sh-eyebrow">02 · Studio Session Performance</div>
-              <div className="sh-title">Demand, Utilisation<br />& Format Mix</div>
-            </div>
-            <div className="sh-right">{report?.sessionNarrative || 'Studio-session performance combines total sessions, check-ins, fill rate, average class size, format mix, and late-cancellation pressure.'}</div>
-          </div>
-          <div className="kpi-strip mb32">
-            <div className="kpi-box"><div className="kpi-label">Sessions</div><div className="kpi-val">{formatNumber(m.totalSessions)}</div><div className="kpi-sub">scheduled</div></div>
-            <div className="kpi-box blue"><div className="kpi-label">Check-ins</div><div className="kpi-val">{formatNumber(m.totalCheckIns)}</div><div className="kpi-sub">attended</div></div>
-            <div className="kpi-box positive"><div className="kpi-label">Fill Rate</div><div className="kpi-val">{percent(m.fillRate)}</div><div className="kpi-sub">{m.avgClassSize.toFixed(1)} avg class size</div></div>
-            <div className="kpi-box warn"><div className="kpi-label">Late Cancels</div><div className="kpi-val">{formatNumber(m.lateCancellations)}</div><div className="kpi-sub">{formatCurrency(m.lateCancellationRevenueLoss)} revenue impact</div></div>
-            <div className="kpi-box red"><div className="kpi-label">Capacity Use</div><div className="kpi-val">{percent(m.capacityUtilization)}</div><div className="kpi-sub">available seats used</div></div>
-          </div>
-          <div className="card mb32">
-            <div className="card-title">Format Mix — Sessions and Share</div>
-            <div className="tbl-wrap">
-              <table><thead><tr><th>Format</th><th className="tr">Sessions</th><th>Mix</th></tr></thead><tbody>
-                {[
-                  ['Barre', m.barreSessions, ''],
-                  ['PowerCycle', m.powerCycleSessions, 'yellow'],
-                  ['Strength', m.strengthSessions, 'green'],
-                ].map(([name, count, klass]) => (
-                  <tr key={name as string}><td className="tn">{name}</td><td className="tr t-blue">{formatNumber(count as number)}</td><td><div className="bar-wrap"><div className="bar-bg"><div className={`bar-fill ${klass}`} style={{ width: barWidth(count as number, sessionMax) }} /></div><span className="bar-pct">{percent(((count as number) / Math.max(m.totalSessions, 1)) * 100)}</span></div></td></tr>
-                ))}
-              </tbody></table>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <div className="section-divider" />
-
-      <div className="wrap">
-        <section className="section">
-          <div className="sh">
-            <div>
-              <div className="sh-eyebrow">03 · Acquisition & Retention</div>
-              <div className="sh-title">Lead Flow, Conversion<br />& Member Continuity</div>
-            </div>
-            <div className="sh-right">{report?.acquisitionNarrative || 'Acquisition and retention intelligence connects lead volume, converted leads, new clients, retention rate, churn, and source quality.'}</div>
-          </div>
-          <div className="g2 mb32">
-            <div className="card">
-              <div className="card-title">Lead Funnel</div>
-              <table><thead><tr><th>Stage</th><th className="tr">Count</th><th>Progress</th></tr></thead><tbody>
-                {[
-                  ['Total Leads', m.totalLeads],
-                  ['New Clients', m.newClientsAcquired],
-                  ['Converted Leads', m.leadsConverted],
-                ].map(([label, value], index) => (
-                  <tr key={label as string}><td className="tn">{label}</td><td className="tr">{formatNumber(value as number)}</td><td><div className="bar-wrap"><div className="bar-bg"><div className={`bar-fill ${index === 1 ? 'green' : index === 2 ? 'yellow' : ''}`} style={{ width: barWidth(value as number, funnelMax) }} /></div><span className="bar-pct">{percent(((value as number) / funnelMax) * 100)}</span></div></td></tr>
-                ))}
-              </tbody></table>
-            </div>
-            <div className="card">
-              <div className="card-title">Lead Sources</div>
-              <table><thead><tr><th>Source</th><th className="tr">Leads</th></tr></thead><tbody>
-                {(leadRows.length ? leadRows : [['No source data', 0] as [string, number]]).map(([source, count]) => (
-                  <tr key={source}><td className="tn">{source}</td><td className="tr">{formatNumber(count)}</td></tr>
-                ))}
-              </tbody></table>
-            </div>
-          </div>
-          <div className="kpi-strip mb32">
-            <div className="kpi-box positive"><div className="kpi-label">Retention</div><div className="kpi-val">{percent(m.retentionRate)}</div><div className="kpi-sub">member continuity</div></div>
-            <div className="kpi-box red"><div className="kpi-label">Churned</div><div className="kpi-val">{formatNumber(m.churnedMembers)}</div><div className="kpi-sub">members</div></div>
-            <div className="kpi-box blue"><div className="kpi-label">Avg LTV</div><div className="kpi-val">{compactCurrency(m.averageLTV)}</div><div className="kpi-sub">new-client cohort</div></div>
-            <div className="kpi-box"><div className="kpi-label">Conversion</div><div className="kpi-val">{percent(m.conversionRate)}</div><div className="kpi-sub">trial-to-converted</div></div>
-            <div className="kpi-box warn"><div className="kpi-label">Avg Conversion</div><div className="kpi-val">{m.avgConversionDays.toFixed(1)}</div><div className="kpi-sub">days</div></div>
-          </div>
-        </section>
-      </div>
-
-      <div className="section-divider" />
-
-      <div className="wrap">
-        <section className="section">
-          <div className="sh">
-            <div>
-              <div className="sh-eyebrow">04 · Instructor & Action Readout</div>
-              <div className="sh-title">Delivery Benchmarks<br />& Next Moves</div>
-            </div>
-            <div className="sh-right">{report?.retentionNarrative || 'The closing readout translates performance signals into focused management actions for the next reporting cycle.'}</div>
-          </div>
-          <div className="g3 mb32">
-            <div className="card"><div className="card-title">Top Instructor Revenue</div><div className="kpi-val">{m.topTrainerName}</div><div className="kpi-sub">{formatCurrency(m.topTrainerRevenue)}</div></div>
-            <div className="card"><div className="card-title">Instructors</div><div className="kpi-val">{formatNumber(m.totalTrainers)}</div><div className="kpi-sub">{m.sessionsPerTrainer.toFixed(1)} sessions per instructor</div></div>
-            <div className="card"><div className="card-title">Revenue / Instructor</div><div className="kpi-val">{compactCurrency(m.revenuePerTrainer)}</div><div className="kpi-sub">selected period</div></div>
-          </div>
-          <div className="card">
-            <div className="card-title">Management Action Items</div>
-            <div className="action-list">
-              {actions.slice(0, 6).map((action) => (
-                <div className="action-item" key={action}>
-                  <div className="action-num" />
+            <div className="p57r insights-pane">
+              <div className="p57r pane-title">Session Insights</div>
+              {[
+                { title: 'Fill rate efficiency', text: `Studio ran ${num(m.totalSessions)} sessions with ${num(m.totalCheckIns)} total check-ins — a ${pct(m.fillRate)} fill rate at ${m.avgClassSize.toFixed(1)} average class size.` },
+                { title: 'Late cancellation pressure', text: `${num(m.lateCancellations)} late cancellations represent capacity held but not delivered, creating potential penalty-enforcement opportunities.` },
+                { title: 'Capacity utilization', text: `Overall capacity utilization at ${pct(m.capacityUtilization)} indicates room for demand-generation focus on lower-fill formats.` },
+              ].map((ins, i) => (
+                <div className="p57r insight-card" key={i}>
+                  <div className="p57r insight-num">{String(i + 1).padStart(2, '0')}</div>
                   <div>
-                    <div className="action-title">Next-cycle priority</div>
-                    <div className="action-desc">{action}</div>
+                    <div className="p57r insight-title">{ins.title}</div>
+                    <div className="p57r insight-text">{ins.text}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </section>
-        <div className="footer-note">Physique 57 India · Monthly Performance Intelligence · {locationLabel} · {selectedMonth}</div>
-      </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 03: ACQUISITION & RETENTION ── */}
+      <section className="p57r report-section">
+        <div className="p57r cont">
+          <div className="p57r section-header">
+            <div className="p57r section-header-left">
+              <span className="p57r section-eyebrow">03 · Acquisition &amp; Retention</span>
+              <h2 className="p57r section-title">Lead flow, conversion &amp; member continuity</h2>
+              <p className="p57r section-deck">{report?.acquisitionNarrative || 'Acquisition and retention connects lead volume, converted leads, new clients, retention rate, churn, and source quality.'}</p>
+            </div>
+            <div className="p57r section-anchor">Section 03 / 04</div>
+          </div>
+
+          {/* Funnel stages */}
+          <div className="p57r funnel-stages">
+            {[
+              { label: 'Total Leads', val: num(m.totalLeads), sub: 'top of funnel', cls: '' },
+              { label: 'New Clients', val: num(m.newClientsAcquired), sub: 'acquired this period', cls: '' },
+              { label: 'Converted', val: num(m.leadsConverted), sub: `${pct(m.leadConversionRate)} of leads`, cls: 'conv' },
+              { label: 'Avg LTV', val: compactCurrency(m.averageLTV), sub: 'new-client cohort', cls: '' },
+            ].map((stage) => (
+              <div key={stage.label} className={`p57r funnel-stage ${stage.cls}`}>
+                <div className="p57r funnel-stage-num">{stage.val}</div>
+                <div className="p57r funnel-stage-label">{stage.label}</div>
+                <div className="p57r funnel-stage-sub">{stage.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="p57r split-grid">
+            <div className="p57r data-pane">
+              <div className="p57r pane-title" style={{ padding: '14px 14px 8px' }}>Lead Sources · {selectedMonth}</div>
+              <div className="p57r table-wrap">
+                <table className="p57r data-table">
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th>Leads</th>
+                      <th>Share</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(leadRows.length ? leadRows : [['No source data', 0]]).map(([source, count]) => (
+                      <tr key={source}>
+                        <td className="metric-name">{source}</td>
+                        <td className="num">{num(count as number)}</td>
+                        <td>
+                          <div className="p57r share-bar">
+                            <div className="p57r share-fill" style={{ width: barW(count as number, funnelMax) }} />
+                            <span>{pct(((count as number) / Math.max(m.totalLeads, 1)) * 100)}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="p57r data-pane">
+              <div className="p57r pane-title" style={{ padding: '14px 14px 8px' }}>Retention &amp; Churn Metrics</div>
+              <div className="p57r table-wrap">
+                <table className="p57r data-table">
+                  <thead>
+                    <tr>
+                      <th>Metric</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { name: 'Retention Rate', val: pct(m.retentionRate) },
+                      { name: 'Churn Rate', val: pct(m.churnRate) },
+                      { name: 'Churned Members', val: num(m.churnedMembers) },
+                      { name: 'Avg Conversion Days', val: `${m.avgConversionDays.toFixed(1)} days` },
+                      { name: 'Conversion Rate', val: pct(m.conversionRate) },
+                      { name: 'Lead Conversion Rate', val: pct(m.leadConversionRate) },
+                      { name: 'Average LTV', val: cur(m.averageLTV) },
+                    ].map((row) => (
+                      <tr key={row.name}>
+                        <td className="metric-name">{row.name}</td>
+                        <td className="num"><strong>{row.val}</strong></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 04: INSTRUCTOR & ACTION READOUT ── */}
+      <section className="p57r report-section">
+        <div className="p57r cont">
+          <div className="p57r section-header">
+            <div className="p57r section-header-left">
+              <span className="p57r section-eyebrow">04 · Instructor &amp; Action Readout</span>
+              <h2 className="p57r section-title">Delivery benchmarks &amp; next moves</h2>
+              <p className="p57r section-deck">{report?.retentionNarrative || 'The closing readout translates performance signals into focused management actions for the next reporting cycle.'}</p>
+            </div>
+            <div className="p57r section-anchor">Section 04 / 04</div>
+          </div>
+
+          {/* Instructor KPI strip */}
+          <div className="p57r kpi-strip" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+            {[
+              { label: 'Top Instructor', val: m.topTrainerName || 'N/A', sub: cur(m.topTrainerRevenue) },
+              { label: 'Instructors', val: num(m.totalTrainers), sub: `${m.sessionsPerTrainer.toFixed(1)} sessions each` },
+              { label: 'Revenue / Instructor', val: compactCurrency(m.revenuePerTrainer), sub: 'selected period' },
+            ].map((k) => (
+              <div className="p57r kpi-strip-card" key={k.label}>
+                <div className="p57r kpi-strip-label">{k.label}</div>
+                <div className="p57r kpi-strip-val">{k.val}</div>
+                <div className="p57r kpi-strip-sub">{k.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Action items */}
+          <div className="p57r subsection">
+            <h3 className="p57r subsection-title">Action items for the next 30 days</h3>
+            <p className="p57r subsection-deck">Each action is anchored to performance signals from this period and designed for immediate execution.</p>
+          </div>
+          <div className="p57r action-grid">
+            {actions.slice(0, 6).map((action, i) => (
+              <div className="p57r action-card" key={i}>
+                <div className="p57r action-num">{String(i + 1).padStart(2, '0')}</div>
+                <div>
+                  <div className="p57r action-title">Next-cycle priority #{i + 1}</div>
+                  <div className="p57r action-text">{action}</div>
+                  <div>
+                    <span className="p57r meta-pill">Priority: High</span>
+                    <span className="p57r meta-pill">Impact: Medium–High</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Footer */}
+          <div className="p57r report-footer">
+            <p>
+              <strong>Physique 57 India · Monthly Performance Intelligence</strong><br />
+              {locationLabel} · {selectedMonth} · Generated by Studio Pulse
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
