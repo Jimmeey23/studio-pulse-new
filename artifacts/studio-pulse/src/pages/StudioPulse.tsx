@@ -116,6 +116,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { AdminCodeGate } from '@/components/ui/AdminCodeGate';
 import { useToast } from '@/hooks/use-toast';
 import { StudioPulseReport } from '@/components/dashboard/StudioPulseReport';
+import { geminiService, type LocationReportNarrative } from '@/services/geminiService';
 
 /* ------------------------------------------------------------------ */
 /* Studio definitions                                                  */
@@ -2656,7 +2657,9 @@ const StudioPulse = memo(() => {
   const [isExportingPulse, setIsExportingPulse] = useState(false);
   const monthViewMode = searchParams.get('mv') === '1';
   const aiSummaryCacheOnly = import.meta.env.VITE_TESTMODE === 'true' && searchParams.get('testmode') !== 'false';
-  const [reportMode, setReportMode] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [aiNarrative, setAiNarrative] = useState<LocationReportNarrative | null>(null);
   const [sectionEdits, setSectionEdits] = useState<Record<string, string>>(() => {
     try { return JSON.parse(localStorage.getItem('sp_section_edits_v1') || '{}'); } catch { return {}; }
   });
@@ -2685,6 +2688,55 @@ const StudioPulse = memo(() => {
       return next;
     });
   }, []);
+
+  const handleOpenReport = useCallback(async () => {
+    setReportLoading(true);
+    setReportOpen(true);
+    try {
+      const narrative = await geminiService.generateLocationReport(
+        {
+          totalRevenue: salesStats.gross,
+          netRevenue: salesStats.net,
+          vatAmount: salesStats.gross - salesStats.net,
+          totalTransactions: salesStats.txns,
+          uniqueMembers: salesStats.members,
+          avgTransactionValue: salesStats.atv,
+          avgSpendPerMember: salesStats.members > 0 ? salesStats.net / salesStats.members : 0,
+          totalDiscounts: salesStats.discount,
+          discountRate: salesStats.discountPenetration,
+          totalSessions: sessionStats.totalSessions,
+          totalCheckIns: sessionStats.attendance,
+          fillRate: sessionStats.avgFill,
+          lateCancellations: lcStats.total,
+          totalTrainers: trainerStats.all.length,
+          avgClassSize: sessionStats.totalSessions > 0 ? sessionStats.attendance / sessionStats.totalSessions : 0,
+          revenuePerTrainer: trainerStats.all.length > 0 ? salesStats.net / trainerStats.all.length : 0,
+          topTrainerName: trainerStats.top[0]?.name || 'N/A',
+          topTrainerRevenue: trainerStats.top[0]?.paid || 0,
+          newClientsAcquired: clientStats.newClients,
+          conversionRate: clientStats.conversionRate,
+          retentionRate: clientStats.retentionRate,
+          churnRate: expirationStats.lapsedPct,
+          churnedMembers: expirationStats.lapsed,
+          totalLeads: leadStats.total,
+          leadsConverted: leadStats.converted,
+          leadConversionRate: leadStats.conversionRate,
+          overallScore: Math.round(
+            Math.min(100, (sessionStats.avgFill * 0.3) + (clientStats.conversionRate * 0.25) + (clientStats.retentionRate * 0.2) +
+              ((1 - salesStats.discountPenetration / 100) * 20) + (salesStats.net > 0 ? Math.min(25, 25) : 0))
+          ),
+          revenueGrowth: salesStats.growth.net ?? 0,
+        },
+        activeStudio.name,
+        `${dateRange.start} to ${dateRange.end}`
+      );
+      setAiNarrative(narrative);
+    } catch (err) {
+      console.error('AI report generation failed:', err);
+    } finally {
+      setReportLoading(false);
+    }
+  }, [salesStats, sessionStats, lcStats, clientStats, expirationStats, leadStats, trainerStats, activeStudio.name, dateRange]);
 
   // Init state from URL params (one-time on mount)
   useEffect(() => {
@@ -4782,17 +4834,22 @@ const StudioPulse = memo(() => {
             </button>
             {/* Report Mode toggle */}
             <button
-              onClick={() => setReportMode((v) => !v)}
-              title={reportMode ? 'Exit Report Mode' : 'Enter Report Mode — focused single-month view'}
+              onClick={handleOpenReport}
+              disabled={reportLoading}
+              title="Generate AI Report for current filters"
               className={cn(
                 'flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-semibold shadow-sm backdrop-blur transition',
-                reportMode
-                  ? 'border-blue-400 bg-blue-600 text-white hover:bg-blue-700'
+                reportLoading
+                  ? 'border-blue-300 bg-blue-50 text-blue-400 cursor-not-allowed'
                   : 'border-slate-200 bg-white/70 text-slate-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
               )}
             >
-              <BookOpen className="h-3.5 w-3.5" />
-              Report
+              {reportLoading ? (
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-blue-300 border-t-blue-600" />
+              ) : (
+                <BookOpen className="h-3.5 w-3.5" />
+              )}
+              {reportLoading ? 'Generating…' : 'Report'}
             </button>
             {/* Refresh Summaries */}
             <button
@@ -4860,10 +4917,135 @@ const StudioPulse = memo(() => {
         </div>{/* end viewer-lock wrapper */}
 
         <>
-        {reportMode && (
-          <div className="fixed inset-0 z-[250] overflow-y-auto bg-white">
-            <LocationReportComprehensive onReady={() => {}} onClose={() => setReportMode(false)} />
+        {/* AI Report Loading Overlay */}
+        {reportLoading && (
+          <div className="fixed inset-0 z-[300] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-6 max-w-sm text-center">
+              <div className="relative h-16 w-16">
+                <div className="absolute inset-0 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
+                <div className="absolute inset-2 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-400" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-slate-800" style={{ fontFamily: 'Georgia, serif' }}>Generating AI Report</p>
+                <p className="mt-1 text-sm text-slate-500">Analysing {activeStudio.name} · {dateRange.start} to {dateRange.end}</p>
+                <p className="mt-2 text-xs text-slate-400">Gemini is reading your filtered metrics and writing the executive narrative…</p>
+              </div>
+              <div className="flex gap-1.5">
+                {['Sales', 'Sessions', 'Trainers', 'Leads', 'Retention'].map((s, i) => (
+                  <span
+                    key={s}
+                    className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 animate-pulse"
+                    style={{ animationDelay: `${i * 0.15}s` }}
+                  >{s}</span>
+                ))}
+              </div>
+            </div>
           </div>
+        )}
+
+        {/* AI-Powered Studio Pulse Report */}
+        {reportOpen && !reportLoading && (
+          <StudioPulseReport
+            studioName={activeStudio.name}
+            dateRange={dateRange}
+            salesStats={{
+              gross: salesStats.gross,
+              net: salesStats.net,
+              txns: salesStats.txns,
+              members: salesStats.members,
+              discount: salesStats.discount,
+              discountPenetration: salesStats.discountPenetration,
+              atv: salesStats.atv,
+              growth: {
+                net: salesStats.growth.net ?? 0,
+                gross: salesStats.growth.gross ?? 0,
+                txns: salesStats.growth.txns ?? 0,
+                members: salesStats.growth.members ?? 0,
+              },
+            }}
+            sessionStats={{
+              totalSessions: sessionStats.totalSessions,
+              attendance: sessionStats.attendance,
+              avgFill: sessionStats.avgFill,
+              empty: sessionStats.empty,
+            }}
+            sessionIntelligenceRows={sessionIntelligence.rows.map((r) => ({
+              name: r.name,
+              sessions: r.sessions,
+              visits: r.visits,
+              capacity: r.capacity,
+              fillRate: r.fillRate,
+              lateCancels: r.lateCancels ?? 0,
+              cancellationRate: r.cancellationRate ?? 0,
+              compositeScore: r.compositeScore ?? 0,
+              revenue: r.revenue ?? 0,
+            }))}
+            classSlotRows={reportSlotRows}
+            trainerRows={trainerRankingsExtended.rows.map((t) => ({
+              name: t.name,
+              sessions: t.sessions,
+              customers: t.customers,
+              classAvg: t.classAvg,
+              paid: t.paid,
+              fillRate: t.fillRate,
+              utilization: t.utilization,
+              conversionRate: t.conversionRate,
+              retentionRate: t.retentionRate,
+              revenueScore: t.revenueScore,
+              lateCancels: t.lateCancels,
+              totalNew: t.totalNew,
+              totalConverted: t.totalConverted,
+              rank: t.rank,
+            }))}
+            clientStats={{
+              newClients: clientStats.newClients,
+              converted: clientStats.converted,
+              retained: clientStats.retained,
+              conversionRate: clientStats.conversionRate,
+              retentionRate: clientStats.retentionRate,
+              avgLtv: clientStats.avgLtv,
+              lapsed: clientStats.lapsed,
+            }}
+            funnelRows={funnelRankings.rows.map((f) => ({
+              name: f.name,
+              leads: f.leads,
+              trials: f.trials,
+              converted: f.converted,
+              conversionRate: f.conversionRate,
+              ltv: f.ltv,
+              membershipsBought: f.membershipsBought,
+              retained: f.retained,
+            }))}
+            lcStats={{ total: lcStats.total, sameDay: lcStats.sameDay, penalty: lcStats.penalty }}
+            expirationStats={{
+              total: expirationStats.total,
+              lapsed: expirationStats.lapsed,
+              renewed: expirationStats.renewed,
+              churned: expirationStats.churned,
+              lapsedPct: expirationStats.lapsedPct,
+              avgLtvLapsed: expirationStats.avgLtvLapsed,
+            }}
+            lapsedByMembership={lapsedByMembership}
+            salesMatrix={salesMetricsMatrix}
+            getSummary={(key: string) => {
+              if (!aiNarrative) return null;
+              const map: Record<string, string[]> = {
+                executive: [aiNarrative.executiveSummary],
+                revenue: [aiNarrative.revenueNarrative],
+                operations: [aiNarrative.operationsNarrative],
+                clients: [aiNarrative.clientNarrative],
+                highlights: aiNarrative.highlights,
+                concerns: aiNarrative.concerns,
+                recommendations: aiNarrative.recommendations,
+                verdict: [aiNarrative.overallVerdict],
+                management: aiNarrative.managementLines,
+              };
+              const bullets = map[key];
+              return bullets ? { bullets } : null;
+            }}
+            sectionEdits={sectionEdits}
+            onClose={() => { setReportOpen(false); setAiNarrative(null); }}
+          />
         )}
         <AnimatePresence mode="wait">
           <motion.div
