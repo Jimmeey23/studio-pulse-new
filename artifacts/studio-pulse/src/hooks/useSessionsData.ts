@@ -100,7 +100,11 @@ export const useSessionsData = () => {
       const msg = err instanceof Error ? err.message : String(err);
       logger.error('Error fetching sessions data:', { message: msg, raw: err });
       setError('Failed to load sessions data');
-      setTimeout(() => fetchSessionsData(), 30_000);
+      // Only retry on transient errors (network, 5xx). 400 = wrong tab name = permanent.
+      const isPermanent = msg.includes('400') || msg.includes('INVALID_ARGUMENT') || msg.includes('Unable to parse range');
+      if (!isPermanent) {
+        setTimeout(() => fetchSessionsData(), 30_000);
+      }
     } finally {
       setLoading(false);
     }

@@ -229,6 +229,151 @@ export const discoverPageTables = (root: ParentNode = document): DiscoveredTable
     });
 };
 
+// ── File download helper ───────────────────────────────────────────────────
+const downloadFile = (content: string, filename: string, mimeType: string) => {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+const safeFilename = (name: string) =>
+  name.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+
+const dateSuffix = () => new Date().toISOString().split('T')[0];
+
+// ── Table → cleaned DOM clone (no grouped rows, no button-only cells) ──────
+const cloneTableClean = (container: HTMLElement): HTMLElement => {
+  const source = (container.querySelector('table') as HTMLElement | null) || container;
+  const clone = source.cloneNode(true) as HTMLElement;
+
+  // Remove grouped rows (keep totals)
+  const tbody = clone.querySelector('tbody');
+  if (tbody) {
+    Array.from(tbody.querySelectorAll('tr')).forEach(row => {
+      if (isGroupedTableRow(row) && !isTotalsTableRow(row)) row.remove();
+    });
+  }
+
+  // Clear button-only cells (e.g. the copy-button header cell)
+  clone.querySelectorAll('td, th').forEach(cell => {
+    const hasOnlyBtn =
+      cell.querySelector('button') !== null &&
+      !(cell.textContent?.trim().replace(/[\s\n\r]+/g, ''));
+    if (hasOnlyBtn) (cell as HTMLElement).innerHTML = '';
+  });
+
+  return clone;
+};
+
+// ── JSON extraction ────────────────────────────────────────────────────────
+export const extractTableJSON = (
+  container: HTMLElement,
+  tableName: string,
+): { title: string; exportedAt: string; headers: string[]; rows: Record<string, string>[] } => {
+  const clone = cloneTableClean(container);
+
+  const headers: string[] = [];
+  clone
+    .querySelectorAll('thead th, thead td, tr:first-child th, tr:first-child td')
+    .forEach(cell => {
+      const t = cell.textContent?.trim() || '';
+      if (t) headers.push(t);
+    });
+
+  const rows: Record<string, string>[] = [];
+  clone.querySelectorAll('tbody tr, tr:not(:first-child)').forEach(row => {
+    if (isGroupedTableRow(row)) return;
+    const cells: string[] = [];
+    row.querySelectorAll('td, th').forEach(c => cells.push(c.textContent?.trim() || ''));
+    if (!cells.some(v => v !== '')) return;
+
+    const obj: Record<string, string> = {};
+    cells.forEach((val, i) => {
+      const key = headers[i] || `Column ${i + 1}`;
+      if (key) obj[key] = val;
+    });
+    rows.push(obj);
+  });
+
+  return { title: tableName, exportedAt: new Date().toISOString(), headers, rows };
+};
+
+// ── Download as HTML ───────────────────────────────────────────────────────
+export const downloadAsHTML = (container: HTMLElement, tableName: string) => {
+  const clone = cloneTableClean(container);
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${tableName}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+           background: #f8fafc; margin: 0; padding: 24px; color: #374151; }
+    .card { background: #fff; border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.1); border: 1px solid #e2e8f0; overflow: hidden; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0;
+                   background: linear-gradient(135deg,#f8fafc,#f1f5f9); }
+    .card-title  { margin: 0; font-size: 18px; font-weight: 600; color: #111827; }
+    .card-sub    { margin: 4px 0 0; font-size: 13px; color: #6b7280; }
+    .wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: linear-gradient(135deg,#f8fafc,#f1f5f9);
+               border-bottom: 2px solid #e2e8f0; }
+    th { padding: 10px 14px; text-align: left; font-weight: 600; color: #374151;
+         border-right: 1px solid #e5e7eb; white-space: nowrap; }
+    th:last-child { border-right: none; }
+    tbody tr { border-bottom: 1px solid #f3f4f6; }
+    tbody tr:nth-child(even) { background: #f9fafb; }
+    td { padding: 9px 14px; color: #374151; border-right: 1px solid #f3f4f6; }
+    td:last-child { border-right: none; }
+    tfoot tr { background: #1e293b; color: #f8fafc; font-weight: 600; }
+    tfoot td { padding: 10px 14px; border-right: 1px solid #334155; }
+    tfoot td:last-child { border-right: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">${tableName}</h2>
+      <p class="card-sub">Exported ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+    </div>
+    <div class="wrap">${clone.outerHTML}</div>
+  </div>
+</body>
+</html>`;
+
+  downloadFile(html, `${safeFilename(tableName)}_${dateSuffix()}.html`, 'text/html');
+};
+
+// ── Download as JSON ───────────────────────────────────────────────────────
+export const downloadAsJSON = (container: HTMLElement, tableName: string) => {
+  const data = extractTableJSON(container, tableName);
+  downloadFile(
+    JSON.stringify(data, null, 2),
+    `${safeFilename(tableName)}_${dateSuffix()}.json`,
+    'application/json',
+  );
+};
+
+// ── Download as Text ───────────────────────────────────────────────────────
+export const downloadAsText = (container: HTMLElement, tableName: string) => {
+  const text = extractTableTextFromContainer(container, tableName);
+  downloadFile(
+    text,
+    `${safeFilename(tableName)}_${dateSuffix()}.txt`,
+    'text/plain',
+  );
+};
+
+// ── All-tables text ────────────────────────────────────────────────────────
 export const buildAllTablesText = (root: ParentNode = document) => {
   const dateStamp = new Date().toLocaleDateString();
   const timeStamp = new Date().toLocaleTimeString();
