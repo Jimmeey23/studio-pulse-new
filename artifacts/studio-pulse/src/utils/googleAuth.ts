@@ -13,11 +13,13 @@ const GOOGLE_CONFIG = {
 
 // Spreadsheet IDs
 export const SPREADSHEET_IDS = {
-  PAYROLL: import.meta.env.VITE_PAYROLL_SPREADSHEET_ID || '149ILDqovzZA6FRUJKOwzutWdVqmqWBtWPfzG3A0zxTI',
-  NEW_CLIENTS: import.meta.env.VITE_PAYROLL_SPREADSHEET_ID || '149ILDqovzZA6FRUJKOwzutWdVqmqWBtWPfzG3A0zxTI',
-  SESSIONS: import.meta.env.VITE_SESSIONS_SPREADSHEET_ID || '16wFlke0bHFcmfn-3UyuYlGnImBq0DY7ouVYAlAFTZys',
+  PAYROLL:     import.meta.env.VITE_PAYROLL_SPREADSHEET_ID     || '149ILDqovzZA6FRUJKOwzutWdVqmqWBtWPfzG3A0zxTI',
+  NEW_CLIENTS: import.meta.env.VITE_NEW_CLIENTS_SPREADSHEET_ID || '',
+  // Sessions and Checkins live in the same spreadsheet — keep this ID in sync with the
+  // hardcoded ID in useCheckinsData.ts and useLateCancellationsData.ts.
+  SESSIONS:    import.meta.env.VITE_SESSIONS_SPREADSHEET_ID    || '1a7XKv2WCog7o8nYuV8YcFdqtfPYJNRO6DelJ6Hn_z6Q',
   EXPIRATIONS: import.meta.env.VITE_EXPIRATIONS_SPREADSHEET_ID || '1x-0iFgnYmEqt-b2MfAgHVx5CErcX5NtZYB9p5Rh6f1I',
-  SALES: import.meta.env.VITE_SALES_SPREADSHEET_ID || '1HbGnJk-peffUp7XoXSlsL55924E9yUt8cP_h93cdTT0',
+  SALES:       import.meta.env.VITE_SALES_SPREADSHEET_ID       || '1HbGnJk-peffUp7XoXSlsL55924E9yUt8cP_h93cdTT0',
 };
 
 // Token cache

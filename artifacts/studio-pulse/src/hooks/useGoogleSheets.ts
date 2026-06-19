@@ -4,8 +4,6 @@ import { SalesData } from '@/types/dashboard';
 import { requestCache } from '@/utils/performanceOptimizations';
 import { getGoogleAccessToken, parseNumericValue } from '@/utils/googleAuth';
 import { createLogger } from '@/utils/logger';
-import { useDataSource } from '@/contexts/DataSourceContext';
-import { loadDatasetRowsForMode } from '@/lib/offlineDatasetLoader';
 
 const logger = createLogger('useGoogleSheets');
 
@@ -17,44 +15,33 @@ export const useGoogleSheets = () => {
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
-  const { mode } = useDataSource();
 
   const fetchSalesData = async () => {
-    // Abort previous request if still pending
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
     abortControllerRef.current = new AbortController();
-    
+
     try {
       setLoading(true);
       setError(null);
-      
-      const { rows } = await loadDatasetRowsForMode('sales', mode, async () => {
-        const result = await requestCache.fetch('google-sheets-sales', async () => {
-          logger.info('Fetching sales data from Google Sheets...');
-          const accessToken = await getGoogleAccessToken();
-          
-          const response = await fetch(
-            `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sales?alt=json`,
-            {
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-              },
-              signal: abortControllerRef.current?.signal,
-            }
-          );
 
-          if (!response.ok) {
-            throw new Error('Failed to fetch data');
+      const result = await requestCache.fetch('google-sheets-sales', async () => {
+        logger.info('Fetching sales data from Google Sheets...');
+        const accessToken = await getGoogleAccessToken();
+
+        const response = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sales?alt=json`,
+          {
+            headers: { 'Authorization': `Bearer ${accessToken}` },
+            signal: abortControllerRef.current?.signal,
           }
-
-          return response.json();
-        });
-
-        return result.values || [];
+        );
+        if (!response.ok) throw new Error('Failed to fetch data');
+        return response.json();
       });
+
+      const rows = result.values || [];
       
       // Raw data from Google Sheets received
       
@@ -307,14 +294,14 @@ export const useGoogleSheets = () => {
   useEffect(() => {
     isMountedRef.current = true;
     fetchSalesData();
-    
+
     return () => {
       isMountedRef.current = false;
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
     };
-  }, [mode]);
+  }, []);
 
   return { data, loading, error, refetch: fetchSalesData };
 };

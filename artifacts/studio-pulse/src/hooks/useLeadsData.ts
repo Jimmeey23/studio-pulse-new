@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { LeadsData } from '@/types/leads';
 import { getGoogleAccessToken } from '@/utils/googleAuth';
 import { createLogger } from '@/utils/logger';
-import { useDataSource } from '@/contexts/DataSourceContext';
-import { loadDatasetRowsForMode } from '@/lib/offlineDatasetLoader';
 
 const logger = createLogger('useLeadsData');
 const SPREADSHEET_ID = "1dQMNF69WnXVQdhlLvUZTig3kL97NA21k6eZ9HRu6xiQ";
@@ -95,33 +93,22 @@ export const useLeadsData = () => {
   const [data, setData] = useState<LeadsData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { mode } = useDataSource();
-
   const fetchLeadsData = async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const { rows } = await loadDatasetRowsForMode('leads', mode, async () => {
-        const accessToken = await getGoogleAccessToken();
-        
-        const sheetName = encodeURIComponent('◉ Leads');
-        const response = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetName}?alt=json`,
-          {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-            },
-          }
-        );
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch leads data: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        return result.values || [];
-      });
+      const accessToken = await getGoogleAccessToken();
+      const sheetName = encodeURIComponent('◉ Leads');
+      const response = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetName}?alt=json`,
+        { headers: { 'Authorization': `Bearer ${accessToken}` } }
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch leads data: ${response.statusText}`);
+      }
+      const result = await response.json();
+      const rows = result.values || [];
       
       logger.info(`Fetched ${rows.length} rows from leads sheet`);
       
@@ -195,7 +182,7 @@ export const useLeadsData = () => {
 
   useEffect(() => {
     fetchLeadsData();
-  }, [mode]);
+  }, []);
 
   return { data, loading, error, refetch: fetchLeadsData };
 };

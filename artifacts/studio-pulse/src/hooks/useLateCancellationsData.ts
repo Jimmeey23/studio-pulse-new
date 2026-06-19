@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { LateCancellationsData } from '@/types/dashboard';
 import { fetchGoogleSheet, parseNumericValue } from '@/utils/googleAuth';
 import { createLogger } from '@/utils/logger';
-import { useDataSource } from '@/contexts/DataSourceContext';
-import { loadDatasetRowsForMode } from '@/lib/offlineDatasetLoader';
 
 const logger = createLogger('useLateCancellationsData');
 
@@ -115,11 +113,9 @@ const buildLegacyCheckinsRows = (rows: any[][]): any[] => {
 
 export const useLateCancellationsData = () => {
   const [data, setData] = useState<LateCancellationsData[]>([]);
-  // New: retain all raw checkins (unfiltered) for additional analytics
   const [allCheckins, setAllCheckins] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { mode } = useDataSource();
 
   const fetchLateCancellationsData = async () => {
     try {
@@ -128,21 +124,12 @@ export const useLateCancellationsData = () => {
       logger.info('Fetching late cancellations data from Google Sheets...');
 
       const [lateCancellationRows, rawCheckinRows] = await Promise.all([
-        (async () => {
-          if (mode === 'offline') {
-            logger.warn('Late cancellations sheet is unavailable in offline mode; returning empty live dataset.');
-            return [] as any[][];
-          }
-
-          return fetchGoogleSheet(LATE_CANCELLATIONS_SPREADSHEET_ID, LATE_CANCELLATIONS_SHEET_NAME, {
-            valueRenderOption: 'FORMATTED_VALUE'
-          });
-        })(),
-        loadDatasetRowsForMode('checkins', mode, async () => {
-          return fetchGoogleSheet(CHECKINS_SPREADSHEET_ID, CHECKINS_SHEET_NAME, {
-            valueRenderOption: 'FORMATTED_VALUE'
-          });
-        }).then(result => result.rows)
+        fetchGoogleSheet(LATE_CANCELLATIONS_SPREADSHEET_ID, LATE_CANCELLATIONS_SHEET_NAME, {
+          valueRenderOption: 'FORMATTED_VALUE'
+        }),
+        fetchGoogleSheet(CHECKINS_SPREADSHEET_ID, CHECKINS_SHEET_NAME, {
+          valueRenderOption: 'FORMATTED_VALUE'
+        }),
       ]);
       
       logger.info('Late cancellations fetch result:', {
@@ -273,7 +260,7 @@ export const useLateCancellationsData = () => {
 
   useEffect(() => {
     fetchLateCancellationsData();
-  }, [mode]);
+  }, []);
 
   return { data, allCheckins, loading, error, refetch: fetchLateCancellationsData };
 };

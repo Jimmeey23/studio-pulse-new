@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react';
 import { fetchGoogleSheet, parseNumericValue, SPREADSHEET_IDS } from '@/utils/googleAuth';
 import { createLogger } from '@/utils/logger';
-import { useDataSource } from '@/contexts/DataSourceContext';
-import { loadDatasetRowsForMode } from '@/lib/offlineDatasetLoader';
 
 const logger = createLogger('useSessionsData');
 
@@ -44,17 +42,13 @@ export const useSessionsData = () => {
   const [data, setData] = useState<SessionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { mode } = useDataSource();
-
   const fetchSessionsData = async () => {
     try {
       setLoading(true);
       logger.info('Fetching sessions data...');
-      
-      const { rows } = await loadDatasetRowsForMode('sessions', mode, async () => {
-        return fetchGoogleSheet(SPREADSHEET_IDS.SESSIONS, 'Sessions', {
-          valueRenderOption: 'FORMATTED_VALUE'
-        });
+
+      const rows = await fetchGoogleSheet(SPREADSHEET_IDS.SESSIONS, 'Sessions', {
+        valueRenderOption: 'FORMATTED_VALUE'
       });
       
       if (rows.length < 2) {
@@ -112,7 +106,7 @@ export const useSessionsData = () => {
 
   useEffect(() => {
     fetchSessionsData();
-  }, [mode]);
+  }, []);
 
   return { data, loading, error, refetch: fetchSessionsData };
 };

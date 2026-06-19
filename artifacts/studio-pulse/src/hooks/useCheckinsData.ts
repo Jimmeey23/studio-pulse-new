@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchGoogleSheet, parseNumericValue } from '@/utils/googleAuth';
 import { createLogger } from '@/utils/logger';
-import { useDataSource } from '@/contexts/DataSourceContext';
-import { loadDatasetRowsForMode } from '@/lib/offlineDatasetLoader';
 
 const logger = createLogger('useCheckinsData');
 const SPREADSHEET_ID = "1a7XKv2WCog7o8nYuV8YcFdqtfPYJNRO6DelJ6Hn_z6Q";
@@ -41,7 +39,6 @@ export const useCheckinsData = () => {
   const [data, setData] = useState<CheckinData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { mode } = useDataSource();
 
   const parseBoolean = (value: string | boolean): boolean => {
     if (typeof value === 'boolean') return value;
@@ -52,11 +49,9 @@ export const useCheckinsData = () => {
     try {
       logger.info('Fetching checkins data...');
       setLoading(true);
-      
-      const { rows } = await loadDatasetRowsForMode('checkins', mode, async () => {
-        return fetchGoogleSheet(SPREADSHEET_ID, 'Checkins', {
-          valueRenderOption: 'FORMATTED_VALUE'
-        });
+
+      const rows = await fetchGoogleSheet(SPREADSHEET_ID, 'Checkins', {
+        valueRenderOption: 'FORMATTED_VALUE'
       });
 
       if (rows.length < 2) {
@@ -108,7 +103,7 @@ export const useCheckinsData = () => {
 
   useEffect(() => {
     fetchCheckinsData();
-  }, [mode]);
+  }, []);
 
   return { data, loading, error, refetch: fetchCheckinsData };
 };

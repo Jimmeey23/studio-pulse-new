@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { ExpirationData } from '@/types/dashboard';
 import { fetchGoogleSheet, SPREADSHEET_IDS } from '@/utils/googleAuth';
 import { createLogger } from '@/utils/logger';
-import { useDataSource } from '@/contexts/DataSourceContext';
-import { loadDatasetRowsForMode } from '@/lib/offlineDatasetLoader';
 
 const logger = createLogger('useExpirationsData');
 const SHEET_NAME = "Lapsed";
@@ -20,8 +18,6 @@ export const useExpirationsData = () => {
   const [data, setData] = useState<ExpirationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { mode } = useDataSource();
-
   const fetchExpirationsData = async () => {
     try {
       setLoading(true);
@@ -29,10 +25,8 @@ export const useExpirationsData = () => {
 
       logger.info('Fetching expirations data...');
 
-      const { rows } = await loadDatasetRowsForMode('expirations', mode, async () => {
-        return fetchGoogleSheet(SPREADSHEET_IDS.EXPIRATIONS, SHEET_NAME, {
-          valueRenderOption: 'FORMATTED_VALUE'
-        });
+      const rows = await fetchGoogleSheet(SPREADSHEET_IDS.EXPIRATIONS, SHEET_NAME, {
+        valueRenderOption: 'FORMATTED_VALUE'
       });
 
       logger.info(`Total rows received: ${rows.length}`);
@@ -45,53 +39,70 @@ export const useExpirationsData = () => {
 
       // Build header→index map (case+whitespace insensitive)
       const headers: string[] = (rows[0] as any[]).map(h => str(h));
+      const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const normHeaders = headers.map(norm);
+
+      // Single-name lookup
       const idx = (name: string): number => {
-        const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
         const target = norm(name);
-        const found = headers.findIndex(h => norm(h) === target);
-        return found;
+        return normHeaders.findIndex(h => h === target);
       };
+
+      // Multi-name lookup — tries each alias in order, returns first match.
+      // Primary names match the live Google Sheet columns; aliases handle the
+      // simplified offline CSV column names.
+      const idxAny = (...names: string[]): number => {
+        for (const n of names) {
+          const f = idx(n);
+          if (f >= 0) return f;
+        }
+        return -1;
+      };
+
+      // Separate indices for the two offline-CSV-only name columns
+      const firstNameCol = idx('First Name');
+      const lastNameCol  = idx('Last Name');
 
       // Pre-resolve all column indices once
       const COL = {
-        memberName:           idx('Member Name'),
-        memberId:             idx('Member ID'),
-        email:                idx('Member Email'),
-        phone:                idx('Member Phone'),
-        hostId:               idx('Host ID'),
-        status:               idx('Status'),
-        membershipName:       idx('Membership Name'),
-        sessionsLimit:        idx('Sessions Limit'),
-        purchaseDate:         idx('Purchase Date'),
-        startDate:            idx('Start Date'),
-        endDate:              idx('End Date'),
-        churnedDate:          idx('Churned Date'),
-        amountPaid:           idx('Amount Paid'),
-        discountCode:         idx('Discount Code'),
-        discountValue:        idx('Discount Value'),
-        originalAmount:       idx('Original Amount (Before Discount)'),
-        soldBy:               idx('Sold By'),
-        createdBy:            idx('Created By'),
-        mostRecentVisitDate:  idx('Most Recent Visit Date'),
-        firstVisitDate:       idx('First Visit Date'),
-        totalSessions:        idx('Total Sessions Completed'),
-        sessionsUsedPct:      idx('Sessions Used %'),
-        remainingSessions:    idx('Remaining Sessions'),
-        totalCancellations:   idx('Total Cancellations'),
-        lateCancellations:    idx('Late Cancellations'),
-        noShows:              idx('No Shows'),
-        cancellationRate:     idx('Cancellation Rate %'),
-        bookingMethod:        idx('Preferred Booking Method'),
-        primaryLocation:      idx('Primary Location'),
-        locationsAttended:    idx('Locations Attended'),
-        freezeCount:          idx('Membership Freeze Count'),
-        daysFrozen:           idx('Days Frozen'),
-        durationDays:         idx('Membership Duration (Days)'),
-        daysActive:           idx('Days Active'),
-        daysSinceLastVisit:   idx('Days Since Last Visit'),
-        avgSessionsPerMonth:  idx('Average Sessions Per Month'),
-        revenuePerSession:    idx('Revenue Per Session'),
-        attendanceRate:       idx('Attendance Rate %'),
+        memberName:           idxAny('Member Name'),
+        memberId:             idxAny('Member ID'),
+        email:                idxAny('Member Email',  'Email'),
+        phone:                idxAny('Member Phone',  'Phone'),
+        hostId:               idxAny('Host ID',       'Id'),
+        status:               idxAny('Status'),
+        membershipName:       idxAny('Membership Name'),
+        sessionsLimit:        idxAny('Sessions Limit'),
+        purchaseDate:         idxAny('Purchase Date', 'Order At'),
+        startDate:            idxAny('Start Date'),
+        endDate:              idxAny('End Date'),
+        churnedDate:          idxAny('Churned Date'),
+        amountPaid:           idxAny('Amount Paid',   'Paid'),
+        discountCode:         idxAny('Discount Code'),
+        discountValue:        idxAny('Discount Value'),
+        originalAmount:       idxAny('Original Amount (Before Discount)'),
+        soldBy:               idxAny('Sold By'),
+        createdBy:            idxAny('Created By'),
+        mostRecentVisitDate:  idxAny('Most Recent Visit Date'),
+        firstVisitDate:       idxAny('First Visit Date'),
+        totalSessions:        idxAny('Total Sessions Completed', 'Current Usage'),
+        sessionsUsedPct:      idxAny('Sessions Used %'),
+        remainingSessions:    idxAny('Remaining Sessions'),
+        totalCancellations:   idxAny('Total Cancellations'),
+        lateCancellations:    idxAny('Late Cancellations'),
+        noShows:              idxAny('No Shows'),
+        cancellationRate:     idxAny('Cancellation Rate %'),
+        bookingMethod:        idxAny('Preferred Booking Method'),
+        primaryLocation:      idxAny('Primary Location', 'Home Location'),
+        locationsAttended:    idxAny('Locations Attended'),
+        freezeCount:          idxAny('Membership Freeze Count'),
+        daysFrozen:           idxAny('Days Frozen'),
+        durationDays:         idxAny('Membership Duration (Days)'),
+        daysActive:           idxAny('Days Active'),
+        daysSinceLastVisit:   idxAny('Days Since Last Visit'),
+        avgSessionsPerMonth:  idxAny('Average Sessions Per Month'),
+        revenuePerSession:    idxAny('Revenue Per Session'),
+        attendanceRate:       idxAny('Attendance Rate %'),
       };
 
       logger.info('Column mapping resolved', COL);
@@ -103,11 +114,19 @@ export const useExpirationsData = () => {
       const processedData: ExpirationData[] = dataRows
         .filter((row: any[]) => row.some(cell => str(cell) !== ''))
         .map((row: any[]) => {
-          // Member Name may be "First Last" — split for firstName/lastName
+          // Member Name may be a combined "First Last" column (live sheet) OR two
+          // separate First Name / Last Name columns (offline CSV).
           const fullName = g(row, COL.memberName);
-          const nameParts = fullName.trim().split(/\s+/);
-          const firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : fullName;
-          const lastName  = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+          let firstName: string;
+          let lastName: string;
+          if (fullName) {
+            const nameParts = fullName.trim().split(/\s+/);
+            firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : fullName;
+            lastName  = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+          } else {
+            firstName = firstNameCol >= 0 ? str(row[firstNameCol]) : '';
+            lastName  = lastNameCol  >= 0 ? str(row[lastNameCol])  : '';
+          }
 
           const memberId      = g(row, COL.memberId);
           const endDate       = g(row, COL.endDate);
@@ -176,7 +195,7 @@ export const useExpirationsData = () => {
 
   useEffect(() => {
     fetchExpirationsData();
-  }, [mode]);
+  }, []);
 
   return {
     data,

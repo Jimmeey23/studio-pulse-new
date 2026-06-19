@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PayrollData } from '@/types/dashboard';
 import { fetchGoogleSheet, parseNumericValue, SPREADSHEET_IDS } from '@/utils/googleAuth';
-import { useDataSource } from '@/contexts/DataSourceContext';
-import { loadDatasetRowsForMode } from '@/lib/offlineDatasetLoader';
 
 const mapRowToPayroll = (row: any[]): PayrollData => {
   const teacherId = row[0] || '';
@@ -88,75 +86,43 @@ export const usePayrollData = () => {
   const [data, setData] = useState<PayrollData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { mode } = useDataSource();
 
   const fetchPayrollData = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const { rows } = await loadDatasetRowsForMode('payroll', mode, async () => {
-        try {
-          const response = await fetch('/api/payroll');
-          if (!response.ok) {
-            throw new Error(`Failed to fetch payroll data: ${response.status} ${response.statusText}`);
-          }
-
-          const result = await response.json();
-          if (result.error) {
-            throw new Error(result.error);
-          }
-
-          const headers = [
-            'teacherId', 'teacherName', 'teacherEmail', 'location',
-            'cycleSessions', 'emptyCycleSessions', 'nonEmptyCycleSessions', 'cycleCustomers', 'cyclePaid',
-            'strengthSessions', 'emptyStrengthSessions', 'nonEmptyStrengthSessions', 'strengthCustomers', 'strengthPaid',
-            'barreSessions', 'emptyBarreSessions', 'nonEmptyBarreSessions', 'barreCustomers', 'barrePaid',
-            'totalSessions', 'totalEmptySessions', 'totalNonEmptySessions', 'totalCustomers', 'totalPaid',
-            'monthYear', 'unique', 'converted', 'conversionRate', 'retained', 'retentionRate', 'newMembers'
-          ];
-
-          const bodyRows = (result.data || []).map((item: any) => [
-            item.teacherId,
-            item.teacherName,
-            item.teacherEmail,
-            item.location,
-            item.cycleSessions,
-            item.emptyCycleSessions,
-            item.nonEmptyCycleSessions,
-            item.cycleCustomers,
-            item.cyclePaid,
-            item.strengthSessions,
-            item.emptyStrengthSessions,
-            item.nonEmptyStrengthSessions,
-            item.strengthCustomers,
-            item.strengthPaid,
-            item.barreSessions,
-            item.emptyBarreSessions,
-            item.nonEmptyBarreSessions,
-            item.barreCustomers,
-            item.barrePaid,
-            item.totalSessions,
-            item.totalEmptySessions,
-            item.totalNonEmptySessions,
-            item.totalCustomers,
-            item.totalPaid,
-            item.monthYear,
-            item.unique,
-            item.converted,
-            item.conversionRate,
-            item.retained,
-            item.retentionRate,
-            item.new,
-          ]);
-
-          return [headers, ...bodyRows];
-        } catch {
-          return fetchGoogleSheet(SPREADSHEET_IDS.PAYROLL, 'Payroll', {
-            valueRenderOption: 'FORMATTED_VALUE',
-          });
+      let rows: any[][];
+      try {
+        const response = await fetch('/api/payroll');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch payroll data: ${response.status} ${response.statusText}`);
         }
-      });
+        const result = await response.json();
+        if (result.error) throw new Error(result.error);
+
+        const headers = [
+          'teacherId', 'teacherName', 'teacherEmail', 'location',
+          'cycleSessions', 'emptyCycleSessions', 'nonEmptyCycleSessions', 'cycleCustomers', 'cyclePaid',
+          'strengthSessions', 'emptyStrengthSessions', 'nonEmptyStrengthSessions', 'strengthCustomers', 'strengthPaid',
+          'barreSessions', 'emptyBarreSessions', 'nonEmptyBarreSessions', 'barreCustomers', 'barrePaid',
+          'totalSessions', 'totalEmptySessions', 'totalNonEmptySessions', 'totalCustomers', 'totalPaid',
+          'monthYear', 'unique', 'converted', 'conversionRate', 'retained', 'retentionRate', 'newMembers'
+        ];
+        const bodyRows = (result.data || []).map((item: any) => [
+          item.teacherId, item.teacherName, item.teacherEmail, item.location,
+          item.cycleSessions, item.emptyCycleSessions, item.nonEmptyCycleSessions, item.cycleCustomers, item.cyclePaid,
+          item.strengthSessions, item.emptyStrengthSessions, item.nonEmptyStrengthSessions, item.strengthCustomers, item.strengthPaid,
+          item.barreSessions, item.emptyBarreSessions, item.nonEmptyBarreSessions, item.barreCustomers, item.barrePaid,
+          item.totalSessions, item.totalEmptySessions, item.totalNonEmptySessions, item.totalCustomers, item.totalPaid,
+          item.monthYear, item.unique, item.converted, item.conversionRate, item.retained, item.retentionRate, item.new,
+        ]);
+        rows = [headers, ...bodyRows];
+      } catch {
+        rows = await fetchGoogleSheet(SPREADSHEET_IDS.PAYROLL, 'Payroll', {
+          valueRenderOption: 'FORMATTED_VALUE',
+        });
+      }
 
       const loadedData = rows.length < 2 ? [] : rows.slice(1).map(mapRowToPayroll);
 
@@ -173,7 +139,7 @@ export const usePayrollData = () => {
 
   useEffect(() => {
     fetchPayrollData();
-  }, [mode]);
+  }, []);
 
   return { data, isLoading, error, refetch: fetchPayrollData };
 };
