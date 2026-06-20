@@ -78,6 +78,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useGlobalLoading } from '@/hooks/useGlobalLoading';
 import { StudioPulseFilterSection } from '@/components/dashboard/StudioPulseFilterSection';
+import { SheetStructureCheck } from '@/components/dashboard/SheetStructureCheck';
 import { StudioPulseMetricCard } from '@/components/dashboard/StudioPulseMetricCard';
 import InsightDetailDialog from '@/components/dashboard/InsightDetailDialog';
 import { UniversalDrillDownModal } from '@/components/dashboard/UniversalDrillDownModal';
@@ -5047,6 +5048,9 @@ const StudioPulse = memo(() => {
             onDateRangeChange={setDateRange}
             onReset={handleResetFilters}
           />
+        </div>
+        <div className="mb-6">
+          <SheetStructureCheck />
         </div>
         </div>{/* end viewer-lock wrapper */}
 
