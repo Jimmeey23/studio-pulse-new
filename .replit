@@ -11,6 +11,27 @@ env = { "CI" = "true" }
 [workflows]
 runButton = "Project"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Studio Pulse"
+
+[[workflows.workflow]]
+name = "Studio Pulse"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=18673 BASE_PATH=/ pnpm --filter @workspace/studio-pulse run dev"
+waitForPort = 18673
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true
