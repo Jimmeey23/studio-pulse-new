@@ -188,7 +188,7 @@ export const useExpirationsData = () => {
     } catch (err) {
       logger.error('Error fetching expirations data:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
-      if (!((err as any)?.status >= 400)) setTimeout(() => fetchExpirationsData(), 30_000);
+      if (!((err as any)?.status >= 400)) setTimeout(() => fetchExpirationsData(), 300_000);
     } finally {
       setLoading(false);
     }

@@ -105,7 +105,7 @@ export const useSessionsData = () => {
       // Only retry on transient errors (network). 4xx/5xx from our API = missing credentials = permanent.
       const isPermanent = (err as any)?.status >= 400 || msg.includes('400') || msg.includes('INVALID_ARGUMENT') || msg.includes('Unable to parse range');
       if (!isPermanent) {
-        setTimeout(() => fetchSessionsData(), 30_000);
+        setTimeout(() => fetchSessionsData(), 300_000);
       }
     } finally {
       setLoading(false);

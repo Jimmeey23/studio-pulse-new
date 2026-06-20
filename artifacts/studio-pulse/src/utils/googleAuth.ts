@@ -139,16 +139,21 @@ async function fetchWithRetry(url: string, accessToken: string): Promise<any> {
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+    // Retry on 503 only; never retry on 429 (rate limit) or other 4xx
     if (response.status === 503 && attempt < SHEET_RETRY_DELAYS.length - 1) {
       continue;
     }
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to fetch sheet data: ${response.status} - ${errorText}`);
+      const err: any = new Error(`Failed to fetch sheet data: ${response.status} - ${errorText}`);
+      err.status = response.status;
+      throw err;
     }
     return response.json();
   }
-  throw new Error('Failed to fetch sheet data after retries');
+  const err: any = new Error('Failed to fetch sheet data after retries');
+  err.status = 503;
+  throw err;
 }
 
 /**

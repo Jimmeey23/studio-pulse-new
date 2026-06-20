@@ -116,7 +116,7 @@ export const useRecurringSessionsData = () => {
     } catch (err) {
       logger.error('Error fetching recurring sessions data:', err);
       setError('Failed to load recurring sessions data');
-      if (!((err as any)?.status >= 400)) setTimeout(() => fetchData(), 30_000);
+      if (!((err as any)?.status >= 400)) setTimeout(() => fetchData(), 300_000);
     } finally {
       setLoading(false);
     }

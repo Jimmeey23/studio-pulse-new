@@ -253,7 +253,7 @@ export const useLateCancellationsData = () => {
       setError(`Failed to load late cancellations data: ${errorMsg}`);
       setData([]);
       setAllCheckins([]);
-      if (!((err as any)?.status >= 400)) setTimeout(() => fetchLateCancellationsData(), 30_000);
+      if (!((err as any)?.status >= 400)) setTimeout(() => fetchLateCancellationsData(), 300_000);
     } finally {
       setLoading(false);
     }

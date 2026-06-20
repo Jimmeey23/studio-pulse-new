@@ -44,7 +44,11 @@ export const useGoogleSheets = () => {
             }
           );
           if (response.status === 503 && attempt < RETRY_DELAYS.length - 1) continue;
-          if (!response.ok) throw new Error('Failed to fetch data');
+          if (!response.ok) {
+            const fetchErr: any = new Error(`Failed to fetch data: ${response.status}`);
+            fetchErr.status = response.status;
+            throw fetchErr;
+          }
           result = await response.json();
           break;
         }
@@ -293,7 +297,7 @@ export const useGoogleSheets = () => {
       if (isMountedRef.current) {
         logger.error('Error fetching sales data:', err);
         setError('Failed to load sales data');
-        if (!((err as any)?.status >= 400)) setTimeout(() => fetchSalesData(), 30_000);
+        if (!((err as any)?.status >= 400)) setTimeout(() => fetchSalesData(), 300_000);
       }
     } finally {
       if (isMountedRef.current) {

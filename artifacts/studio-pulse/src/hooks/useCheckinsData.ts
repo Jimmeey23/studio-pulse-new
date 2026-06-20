@@ -96,7 +96,7 @@ export const useCheckinsData = () => {
     } catch (err) {
       logger.error('Error fetching checkins data:', err);
       setError('Failed to load checkins data');
-      if (!((err as any)?.status >= 400)) setTimeout(() => fetchCheckinsData(), 30_000);
+      if (!((err as any)?.status >= 400)) setTimeout(() => fetchCheckinsData(), 300_000);
     } finally {
       setLoading(false);
     }
