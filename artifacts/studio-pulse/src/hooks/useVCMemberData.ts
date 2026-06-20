@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { MemberBehaviorData, MonthlyMetrics } from '@/types/memberBehavior';
-import { fetchGoogleSheet, SPREADSHEET_IDS } from '@/utils/googleAuth';
+import { fetchGoogleSheet } from '@/utils/googleAuth';
 import { createLogger } from '@/utils/logger';
 
 const logger = createLogger('useVCMemberData');
 
-const SPREADSHEET_ID =
-  import.meta.env.VITE_GOOGLE_SESSIONS_SPREADSHEET_ID ||
-  import.meta.env.VITE_SESSIONS_SPREADSHEET_ID ||
-  SPREADSHEET_IDS.SESSIONS;
+// Sessions / VC live in the same spreadsheet as Recurring / Teacher Recurring
+const SPREADSHEET_ID = "1sDPAX6OmGb48kL1pm0mhin2C9KD-Jykq8skJjNuQUNg";
 const VC_SHEET_NAME = 'VC';
 
 interface UseVCMemberDataResult {

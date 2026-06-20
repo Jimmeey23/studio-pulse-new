@@ -2,8 +2,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { NewClientData } from '@/types/dashboard';
 import { parseDate } from '@/utils/dateUtils';
-import { fetchGoogleSheet, SPREADSHEET_IDS } from '@/utils/googleAuth';
+import { fetchGoogleSheet } from '@/utils/googleAuth';
 import { createLogger } from '@/utils/logger';
+
+// New clients live in the same spreadsheet as Payroll
+const NEW_CLIENTS_SPREADSHEET_ID = "149ILDqovzZA6FRUJKOwzutWdVqmqWBtWPfzG3A0zxTI";
 
 const logger = createLogger('useNewClientData');
 
@@ -126,7 +129,7 @@ export const useNewClientData = () => {
       setLoading(true);
       logger.info('Fetching new client data...');
 
-      const rows = await fetchGoogleSheet(SPREADSHEET_IDS.NEW_CLIENTS, 'New', {
+      const rows = await fetchGoogleSheet(NEW_CLIENTS_SPREADSHEET_ID, 'New', {
         valueRenderOption: 'FORMATTED_VALUE'
       });
 

@@ -1,9 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { fetchGoogleSheet, parseNumericValue, SPREADSHEET_IDS } from '@/utils/googleAuth';
+import { fetchGoogleSheet, parseNumericValue } from '@/utils/googleAuth';
 import { createLogger } from '@/utils/logger';
 
 const logger = createLogger('useSessionsData');
+// Sessions lives in the same spreadsheet as Recurring / Teacher Recurring
+const SPREADSHEET_ID = "1sDPAX6OmGb48kL1pm0mhin2C9KD-Jykq8skJjNuQUNg";
 
 export interface SessionData {
   trainerId: string;
@@ -47,7 +49,7 @@ export const useSessionsData = () => {
       setLoading(true);
       logger.info('Fetching sessions data...');
 
-      const rows = await fetchGoogleSheet(SPREADSHEET_IDS.SESSIONS, 'Sessions', {
+      const rows = await fetchGoogleSheet(SPREADSHEET_ID, 'Sessions', {
         valueRenderOption: 'FORMATTED_VALUE'
       });
       
