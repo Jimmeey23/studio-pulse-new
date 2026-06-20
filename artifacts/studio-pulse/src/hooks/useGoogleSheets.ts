@@ -30,15 +30,25 @@ export const useGoogleSheets = () => {
         logger.info('Fetching sales data from Google Sheets...');
         const accessToken = await getGoogleAccessToken();
 
-        const response = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sales?alt=json`,
-          {
-            headers: { 'Authorization': `Bearer ${accessToken}` },
-            signal: abortControllerRef.current?.signal,
+        const RETRY_DELAYS = [0, 2000, 5000, 15000];
+        let result: any;
+        for (let attempt = 0; attempt < RETRY_DELAYS.length; attempt++) {
+          if (RETRY_DELAYS[attempt] > 0) {
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAYS[attempt]));
           }
-        );
-        if (!response.ok) throw new Error('Failed to fetch data');
-        return response.json();
+          const response = await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sales?alt=json`,
+            {
+              headers: { 'Authorization': `Bearer ${accessToken}` },
+              signal: abortControllerRef.current?.signal,
+            }
+          );
+          if (response.status === 503 && attempt < RETRY_DELAYS.length - 1) continue;
+          if (!response.ok) throw new Error('Failed to fetch data');
+          result = await response.json();
+          break;
+        }
+        return result;
       });
 
       const rows = result.values || [];

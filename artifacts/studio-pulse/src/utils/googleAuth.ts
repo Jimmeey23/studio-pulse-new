@@ -129,6 +129,28 @@ export const queueRequest = <T>(request: () => Promise<T>): Promise<T> => {
   });
 };
 
+const SHEET_RETRY_DELAYS = [0, 2000, 5000, 15000];
+
+async function fetchWithRetry(url: string, accessToken: string): Promise<any> {
+  for (let attempt = 0; attempt < SHEET_RETRY_DELAYS.length; attempt++) {
+    if (SHEET_RETRY_DELAYS[attempt] > 0) {
+      await new Promise(resolve => setTimeout(resolve, SHEET_RETRY_DELAYS[attempt]));
+    }
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (response.status === 503 && attempt < SHEET_RETRY_DELAYS.length - 1) {
+      continue;
+    }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch sheet data: ${response.status} - ${errorText}`);
+    }
+    return response.json();
+  }
+  throw new Error('Failed to fetch sheet data after retries');
+}
+
 /**
  * Fetch data from a Google Sheet with rate limiting
  */
@@ -152,18 +174,7 @@ export const fetchGoogleSheet = async (
     url.searchParams.set('valueRenderOption', valueRenderOption);
     url.searchParams.set('dateTimeRenderOption', dateTimeRenderOption);
     
-    const response = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to fetch sheet data: ${response.status} - ${errorText}`);
-    }
-
-    const result = await response.json();
+    const result = await fetchWithRetry(url.toString(), accessToken);
     return result.values || [];
   });
 };
@@ -192,17 +203,7 @@ export const batchFetchGoogleSheet = async (
     url.searchParams.set('valueRenderOption', valueRenderOption);
     url.searchParams.set('dateTimeRenderOption', dateTimeRenderOption);
     
-    const response = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to batch fetch sheet data: ${response.status}`);
-    }
-
-    const result = await response.json();
+    const result = await fetchWithRetry(url.toString(), accessToken);
     const resultMap = new Map<string, any[][]>();
     
     result.valueRanges?.forEach((vr: any, index: number) => {
