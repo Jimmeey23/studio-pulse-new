@@ -297,13 +297,6 @@ export const ClientConversionMembershipTable: React.FC<ClientConversionMembershi
                           </Button>
                           <div>
                             <div className="font-semibold text-slate-900">{row.membershipType}</div>
-                            <div className="mt-1 flex flex-wrap gap-2 text-xs text-slate-500">
-                              {topLocations.map((location) => (
-                                <Badge key={location} variant="outline" className="rounded-full border-slate-200 bg-slate-50 text-slate-600">
-                                  {location}
-                                </Badge>
-                              ))}
-                            </div>
                           </div>
                         </div>
                       </TableCell>
