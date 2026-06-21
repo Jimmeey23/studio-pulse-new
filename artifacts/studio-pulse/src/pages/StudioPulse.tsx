@@ -74,6 +74,7 @@ import {
 
 import { Footer } from '@/components/ui/footer';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useGlobalLoading } from '@/hooks/useGlobalLoading';
@@ -2633,6 +2634,7 @@ const StudioPulse = memo(() => {
   const [scorecardSortDir, setScorecardSortDir] = useState<'desc' | 'asc'>('desc');
   const [scorecardExpandedTrainer, setScorecardExpandedTrainer] = useState<string | null>(null);
   const [showClassMomTable, setShowClassMomTable] = useState(false);
+  const [showSheetStructureCheck, setShowSheetStructureCheck] = useState(false);
   const [showLapsedMomTable, setShowLapsedMomTable] = useState(false);
   const [churnLocationMetric, setChurnLocationMetric] = useState<'count' | 'penalty'>('count');
   const [lapseRankDimension, setLapseRankDimension] = useState<'membership' | 'location'>('membership');
@@ -5050,7 +5052,28 @@ const StudioPulse = memo(() => {
           />
         </div>
         <div className="mb-6">
-          <SheetStructureCheck />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSheetStructureCheck(true)}
+            className="flex items-center gap-2 border-slate-300 text-slate-600 hover:bg-slate-50"
+          >
+            <svg className="h-4 w-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+              <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
+            </svg>
+            Sheet Structure Check
+          </Button>
+          <Dialog open={showSheetStructureCheck} onOpenChange={setShowSheetStructureCheck}>
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-slate-800">Sheet Structure Check</DialogTitle>
+                <DialogDescription className="text-slate-500 text-sm">
+                  Validates your Google Sheets column structure against the expected schema.
+                </DialogDescription>
+              </DialogHeader>
+              <SheetStructureCheck />
+            </DialogContent>
+          </Dialog>
         </div>
         </div>{/* end viewer-lock wrapper */}
 
@@ -7970,11 +7993,11 @@ const StudioPulse = memo(() => {
                 {(() => {
                   type HeatMetric = typeof heatmapMetric;
                   const HEATMAP_TABS: { key: HeatMetric; label: string; icon: string; format: (v: number) => string; palette: [string, string, string]; darkThreshold: number }[] = [
-                    { key: 'attendance',  label: 'Attendance',   icon: '👥', format: (v) => String(Math.round(v)),  palette: ['#e0f2fe','#0284c7','#0c4a6e'], darkThreshold: 0.45 },
-                    { key: 'classes',     label: 'Classes',      icon: '📅', format: (v) => String(Math.round(v)),  palette: ['#fdf4ff','#a855f7','#581c87'], darkThreshold: 0.4  },
-                    { key: 'booked',      label: 'Booked',       icon: '🎟️', format: (v) => String(Math.round(v)),  palette: ['#ecfdf5','#059669','#064e3b'], darkThreshold: 0.45 },
-                    { key: 'lateCancels', label: 'Late Cancels', icon: '⚠️', format: (v) => String(Math.round(v)),  palette: ['#fff7ed','#dc2626','#450a0a'], darkThreshold: 0.4  },
-                    { key: 'fillRate',    label: 'Fill Rate',    icon: '📊', format: (v) => `${v.toFixed(0)}%`,     palette: ['#fefce8','#f59e0b','#7c2d12'], darkThreshold: 0.4  },
+                    { key: 'attendance',  label: 'Attendance',   icon: '👥', format: (v) => String(Math.round(v)),  palette: ['#dbeafe','#2563eb','#1e3a8a'], darkThreshold: 0.42 },
+                    { key: 'classes',     label: 'Classes',      icon: '📅', format: (v) => String(Math.round(v)),  palette: ['#ede9fe','#7c3aed','#3b0764'], darkThreshold: 0.38 },
+                    { key: 'booked',      label: 'Booked',       icon: '🎟️', format: (v) => String(Math.round(v)),  palette: ['#d1fae5','#059669','#022c22'], darkThreshold: 0.42 },
+                    { key: 'lateCancels', label: 'Late Cancels', icon: '⚠️', format: (v) => String(Math.round(v)),  palette: ['#fee2e2','#dc2626','#450a0a'], darkThreshold: 0.38 },
+                    { key: 'fillRate',    label: 'Fill Rate',    icon: '📊', format: (v) => `${v.toFixed(0)}%`,     palette: ['#fef9c3','#d97706','#78350f'], darkThreshold: 0.38 },
                   ];
                   const activeTab = HEATMAP_TABS.find((t) => t.key === heatmapMetric)!;
 
@@ -8081,66 +8104,70 @@ const StudioPulse = memo(() => {
                                   const isPeak = slot === peakSlot && day === peakDay;
                                   const teacherList = cell?.teacherList ?? [];
                                   const classList = cell?.classList ?? [];
+                                  const fgColor = val > 0 ? cellFg(val) : '#94a3b8';
+                                  const fgMuted = val > 0 ? (cellFg(val) === '#fff' ? 'rgba(255,255,255,0.65)' : 'rgba(30,41,59,0.55)') : '#cbd5e1';
                                   return (
                                     <td
                                       key={day}
-                                      className="relative p-0 text-center group/cell overflow-visible"
-                                      style={{ backgroundColor: val > 0 ? cellBg(val) : '#f8fafc' }}
+                                      className="relative p-0 text-center group/cell overflow-hidden border border-white/30"
+                                      style={{ backgroundColor: val > 0 ? cellBg(val) : '#f1f5f9', minWidth: 90 }}
                                     >
-                                      <div className="flex h-9 items-center justify-center gap-0.5">
-                                        {isPeak && val > 0 && (
-                                          <span className="absolute top-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-yellow-300 shadow-[0_0_4px_2px_rgba(253,224,71,0.5)]" />
-                                        )}
-                                        <span
-                                          className="text-[11px] font-black tabular-nums leading-none"
-                                          style={{ color: val > 0 ? cellFg(val) : '#cbd5e1' }}
-                                        >
-                                          {val > 0 ? activeTab.format(val) : ''}
-                                        </span>
-                                      </div>
-                                      {/* Rich hover tooltip */}
-                                      {val > 0 && (
-                                        <div className="pointer-events-none absolute z-50 bottom-full left-1/2 mb-1.5 hidden group-hover/cell:block"
-                                          style={{ transform: 'translateX(-50%)', minWidth: 180, maxWidth: 240 }}
-                                        >
-                                          <div className="rounded-xl border border-white/10 bg-slate-900 p-3 shadow-2xl text-left">
-                                            <div className="text-[11px] font-bold text-white/90 mb-0.5">{fmtHour(slot)} · {day.slice(0,3)}</div>
-                                            <div className="text-[11px] font-semibold mb-2" style={{ color: activeTab.palette[1] }}>
-                                              {activeTab.label}: {activeTab.format(val)}
-                                              {heatmapMetric === 'attendance' && cell?.capacity ? ` / ${cell.capacity} cap` : ''}
-                                            </div>
-                                            {classList.length > 0 && (
-                                              <div className="mb-1.5">
-                                                <div className="text-[9px] font-bold uppercase tracking-widest text-white/30 mb-1">Classes</div>
-                                                {classList.slice(0, 5).map(cn => (
-                                                  <div key={cn} className="flex items-center gap-1.5 text-[11px] text-white/75 leading-relaxed">
-                                                    <span className="h-1 w-1 rounded-full bg-violet-400 shrink-0" />
-                                                    {cn}
-                                                  </div>
-                                                ))}
-                                                {classList.length > 5 && <div className="text-[10px] text-white/30 mt-0.5">+{classList.length - 5} more</div>}
-                                              </div>
-                                            )}
-                                            {teacherList.length > 0 && (
-                                              <div>
-                                                <div className="text-[9px] font-bold uppercase tracking-widest text-white/30 mb-1">Trainers</div>
-                                                {teacherList.slice(0, 5).map(t => (
-                                                  <div key={t} className="flex items-center gap-1.5 text-[11px] text-white/75 leading-relaxed">
-                                                    <span className="h-1 w-1 rounded-full bg-sky-400 shrink-0" />
-                                                    {t}
-                                                  </div>
-                                                ))}
-                                                {teacherList.length > 5 && <div className="text-[10px] text-white/30 mt-0.5">+{teacherList.length - 5} more</div>}
-                                              </div>
-                                            )}
-                                            {classList.length === 0 && teacherList.length === 0 && (
-                                              <div className="text-[10px] text-white/30 italic">No name data in this slot</div>
-                                            )}
-                                          </div>
-                                          {/* Arrow */}
-                                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-slate-900" />
-                                        </div>
+                                      {isPeak && val > 0 && (
+                                        <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-yellow-300 shadow-[0_0_4px_2px_rgba(253,224,71,0.5)]" />
                                       )}
+                                      <div className="flex flex-col items-center gap-0.5 px-1 py-1.5">
+                                        {/* Primary value */}
+                                        <span
+                                          className="text-[13px] font-black tabular-nums leading-none"
+                                          style={{ color: val > 0 ? fgColor : '#cbd5e1' }}
+                                        >
+                                          {val > 0 ? activeTab.format(val) : '—'}
+                                        </span>
+                                        {val > 0 && (
+                                          <>
+                                            {/* Class names — always visible */}
+                                            {classList.length > 0 && (
+                                              <div className="w-full mt-0.5 space-y-px">
+                                                {classList.slice(0, 2).map((cn) => (
+                                                  <div
+                                                    key={cn}
+                                                    className="truncate rounded px-1 text-[8px] font-semibold leading-tight text-center"
+                                                    style={{ color: fgMuted, maxWidth: '100%' }}
+                                                    title={cn}
+                                                  >
+                                                    {cn.length > 14 ? cn.slice(0, 13) + '…' : cn}
+                                                  </div>
+                                                ))}
+                                                {classList.length > 2 && (
+                                                  <div className="text-[7px] font-medium text-center" style={{ color: fgMuted }}>
+                                                    +{classList.length - 2} more
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
+                                            {/* Trainer names — always visible */}
+                                            {teacherList.length > 0 && (
+                                              <div className="w-full mt-0.5 space-y-px">
+                                                {teacherList.slice(0, 2).map((t) => (
+                                                  <div
+                                                    key={t}
+                                                    className="truncate rounded px-1 text-[8px] font-medium leading-tight text-center"
+                                                    style={{ color: fgMuted, maxWidth: '100%' }}
+                                                    title={t}
+                                                  >
+                                                    👤 {t.length > 12 ? t.slice(0, 11) + '…' : t}
+                                                  </div>
+                                                ))}
+                                                {teacherList.length > 2 && (
+                                                  <div className="text-[7px] font-medium text-center" style={{ color: fgMuted }}>
+                                                    +{teacherList.length - 2} trainers
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
+                                          </>
+                                        )}
+                                      </div>
                                     </td>
                                   );
                                 })}

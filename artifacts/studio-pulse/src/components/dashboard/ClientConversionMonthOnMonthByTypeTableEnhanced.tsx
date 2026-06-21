@@ -263,8 +263,7 @@ export const ClientConversionMonthOnMonthByTypeTable: React.FC<ClientConversionM
               return (
                 <TableRow
                   key={ct}
-                  className={`cursor-pointer border-b border-slate-100 transition-colors hover:bg-slate-50 ${rowIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
-                  onClick={() => onRowClick?.({ type: ct, clients: data.filter((c) => c.isNew === ct) })}
+                  className={`border-b border-slate-100 ${rowIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
                 >
                   <TableCell className="sticky left-0 z-10 bg-inherit py-2.5">
                     <span className="text-[12px] font-semibold text-slate-800">
@@ -274,13 +273,17 @@ export const ClientConversionMonthOnMonthByTypeTable: React.FC<ClientConversionM
                   {months.map((mk) => {
                     const clients = matrix[ct]?.[mk] ?? [];
                     if (viewMode === 'growth') {
-                      // compare to previous month
                       const prevMk = months[months.indexOf(mk) + 1] ?? null;
                       const cur = buildCell(clients, metric);
                       const prev = prevMk ? buildCell(matrix[ct]?.[prevMk] ?? [], metric) : null;
                       const pct = prev !== null && prev !== 0 ? ((cur - prev) / prev) * 100 : null;
                       return (
-                        <TableCell key={mk} className="py-2 text-center text-xs font-semibold">
+                        <TableCell
+                          key={mk}
+                          className="py-2 text-center text-xs font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
+                          onClick={() => clients.length > 0 && onRowClick?.({ type: ct, month: mk, clients })}
+                          title={clients.length > 0 ? `Click to drill down: ${ct} · ${mk} (${clients.length} clients)` : undefined}
+                        >
                           {pct === null ? (
                             <span className="text-slate-300">—</span>
                           ) : (
@@ -293,7 +296,12 @@ export const ClientConversionMonthOnMonthByTypeTable: React.FC<ClientConversionM
                     }
                     const value = buildCell(clients, metric);
                     return (
-                      <TableCell key={mk} className={`py-2 text-center text-[12px] font-medium text-slate-800 ${value === 0 ? 'text-slate-300' : ''}`}>
+                      <TableCell
+                        key={mk}
+                        className={`py-2 text-center text-[12px] font-medium text-slate-800 cursor-pointer hover:bg-blue-50 transition-colors ${value === 0 ? 'text-slate-300' : ''}`}
+                        onClick={() => clients.length > 0 && onRowClick?.({ type: ct, month: mk, clients })}
+                        title={clients.length > 0 ? `Click to drill down: ${ct} · ${mk} (${clients.length} clients)` : undefined}
+                      >
                         {value === 0 ? '0' : fmtCell(value, metric)}
                       </TableCell>
                     );
@@ -315,7 +323,12 @@ export const ClientConversionMonthOnMonthByTypeTable: React.FC<ClientConversionM
                   const prev = prevMk ? buildCell(monthTotals[prevMk] ?? [], metric) : null;
                   const pct = prev !== null && prev !== 0 ? ((cur - prev) / prev) * 100 : null;
                   return (
-                    <TableCell key={mk} className="py-3 text-center text-xs font-bold">
+                    <TableCell
+                      key={mk}
+                      className="py-3 text-center text-xs font-bold cursor-pointer hover:bg-slate-700 transition-colors"
+                      onClick={() => clients.length > 0 && onRowClick?.({ type: 'Totals', month: mk, clients })}
+                      title={clients.length > 0 ? `Click to drill down: All types · ${mk} (${clients.length} clients)` : undefined}
+                    >
                       {pct === null ? (
                         <span className="text-slate-500">—</span>
                       ) : (
@@ -328,7 +341,12 @@ export const ClientConversionMonthOnMonthByTypeTable: React.FC<ClientConversionM
                 }
                 const value = buildCell(clients, metric);
                 return (
-                  <TableCell key={mk} className="py-3 text-center text-[12px] font-bold text-white">
+                  <TableCell
+                    key={mk}
+                    className="py-3 text-center text-[12px] font-bold text-white cursor-pointer hover:bg-slate-700 transition-colors"
+                    onClick={() => clients.length > 0 && onRowClick?.({ type: 'Totals', month: mk, clients })}
+                    title={clients.length > 0 ? `Click to drill down: All types · ${mk} (${clients.length} clients)` : undefined}
+                  >
                     {fmtCell(value, metric)}
                   </TableCell>
                 );
