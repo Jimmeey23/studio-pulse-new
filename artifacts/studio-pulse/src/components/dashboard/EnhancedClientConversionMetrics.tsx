@@ -152,9 +152,19 @@ export const EnhancedClientConversionMetrics: React.FC<EnhancedClientConversionM
 
                   {/* Conversion */}
                   <div className="mb-4">
-                    <div className="flex items-end justify-between mb-1">
+                    <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-slate-500 font-medium">Conversion Rate</span>
-                      <span className="text-xl font-bold text-slate-900">{wm.conversionRate.toFixed(1)}%</span>
+                    </div>
+                    <div className="flex items-end gap-3 mb-1.5">
+                      <span className="text-2xl font-black text-slate-900 leading-none">{wm.conversionRate.toFixed(1)}%</span>
+                      <div className="flex flex-col pb-0.5">
+                        <span className={`text-lg font-bold leading-none ${col.accent}`}>{wm.converted}</span>
+                        <span className="text-[10px] text-slate-400 leading-tight">converted</span>
+                      </div>
+                      <div className="flex flex-col pb-0.5 text-slate-400">
+                        <span className="text-xs leading-none">of {newMembers}</span>
+                        <span className="text-[10px] leading-tight">new clients</span>
+                      </div>
                     </div>
                     <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                       <div
@@ -162,16 +172,24 @@ export const EnhancedClientConversionMetrics: React.FC<EnhancedClientConversionM
                         style={{ width: `${Math.min(wm.conversionRate, 100)}%` }}
                       />
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1">
-                      {wm.converted} members converted within {wm.days} days
-                    </p>
+                    <p className="text-[10px] text-slate-400 mt-1">within {wm.days} days of first class</p>
                   </div>
 
                   {/* Retention */}
                   <div>
-                    <div className="flex items-end justify-between mb-1">
+                    <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-slate-500 font-medium">Retention Rate</span>
-                      <span className="text-xl font-bold text-slate-900">{wm.retentionRate.toFixed(1)}%</span>
+                    </div>
+                    <div className="flex items-end gap-3 mb-1.5">
+                      <span className="text-2xl font-black text-slate-900 leading-none">{wm.retentionRate.toFixed(1)}%</span>
+                      <div className="flex flex-col pb-0.5">
+                        <span className={`text-lg font-bold leading-none ${col.accent}`}>{wm.retained}</span>
+                        <span className="text-[10px] text-slate-400 leading-tight">retained</span>
+                      </div>
+                      <div className="flex flex-col pb-0.5 text-slate-400">
+                        <span className="text-xs leading-none">of {wm.converted}</span>
+                        <span className="text-[10px] leading-tight">converters</span>
+                      </div>
                     </div>
                     <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                       <div
@@ -179,9 +197,7 @@ export const EnhancedClientConversionMetrics: React.FC<EnhancedClientConversionM
                         style={{ width: `${Math.min(wm.retentionRate, 100)}%` }}
                       />
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1">
-                      {wm.retained} of {wm.converted} {wm.days}-day converters retained
-                    </p>
+                    <p className="text-[10px] text-slate-400 mt-1">among {wm.days}-day converters</p>
                   </div>
                 </div>
               );
