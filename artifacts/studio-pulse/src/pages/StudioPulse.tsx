@@ -6572,10 +6572,9 @@ const StudioPulse = memo(() => {
                               <td className="px-3 py-2 text-center text-slate-700">{formatNumber(t.sessions)}</td>
                               <td className="px-3 py-2 text-center text-slate-700">{formatNumber(Math.max(t.sessions - t.nonEmpty, 0))}</td>
                               <td className="px-3 py-2 text-center text-slate-700">{formatNumber(t.nonEmpty)}</td>
-                              <td className="px-3 py-2 text-center text-slate-700">{formatCurrency(t.paid)}</td>
+                              <td className="px-3 py-2 text-center text-slate-700">{formatPercentage(t.fillRate)}</td>
                               <td className="px-3 py-2 text-center text-slate-700">{(t.sessions ? t.customers / t.sessions : 0).toFixed(1)}</td>
                               <td className="px-3 py-2 text-center text-slate-700">{t.classAvg.toFixed(1)}</td>
-                              <td className="px-3 py-2 text-center text-slate-700">{formatPercentage(t.fillRate)}</td>
                               <td className="px-3 py-2 text-center text-slate-700">{formatNumber(tNew)}</td>
                               <td className="px-3 py-2 text-center text-slate-700">{formatNumber(tConv)}</td>
                               <td className="px-3 py-2 text-center text-slate-700">{formatNumber(tRet)}</td>
@@ -6644,10 +6643,9 @@ const StudioPulse = memo(() => {
                             <td className="px-3 py-2 text-center">{formatNumber(totSessions)}</td>
                             <td className="px-3 py-2 text-center">{formatNumber(totEmpty)}</td>
                             <td className="px-3 py-2 text-center">{formatNumber(totActive)}</td>
-                            <td className="px-3 py-2 text-center">{formatCurrency(totPaid)}</td>
+                            <td className="px-3 py-2 text-center">{formatPercentage(rows.reduce((s, r) => s + r.fillRate, 0) / (rows.length || 1))}</td>
                             <td className="px-3 py-2 text-center">{(totSessions ? totCustomers / totSessions : 0).toFixed(1)}</td>
                             <td className="px-3 py-2 text-center">—</td>
-                            <td className="px-3 py-2 text-center">{formatPercentage(rows.reduce((s, r) => s + r.fillRate, 0) / (rows.length || 1))}</td>
                             <td className="px-3 py-2 text-center">{formatNumber(totNew)}</td>
                             <td className="px-3 py-2 text-center">{formatNumber(totConverted)}</td>
                             <td className="px-3 py-2 text-center">{formatNumber(totRetained)}</td>
