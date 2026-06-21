@@ -597,6 +597,48 @@
   }
 }
 
+/* ── Studio Pulse — Header & Chart animations ───────────────────────── */
+@keyframes sp-scan-line {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { transform: translateY(2000%); opacity: 0; }
+}
+@keyframes sp-particle-float {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  33%  { transform: translate(var(--dx1, 8px), var(--dy1, -12px)) scale(1.2); opacity: 1; }
+  66%  { transform: translate(var(--dx2, -6px), var(--dy2, -20px)) scale(0.9); opacity: 0.7; }
+  100% { transform: translate(0, -32px) scale(0); opacity: 0; }
+}
+@keyframes sp-ring-pulse {
+  0%   { transform: translate(-50%,-50%) scale(0.4); opacity: 0.7; }
+  100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
+}
+@keyframes sp-border-chase {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes sp-chart-rise {
+  0%   { transform: translateY(24px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+@keyframes sp-glow-breathe {
+  0%, 100% { filter: blur(60px); opacity: 0.18; }
+  50%       { filter: blur(80px); opacity: 0.32; }
+}
+@keyframes sp-ticker {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.sp-scan-line          { animation: sp-scan-line 4s linear infinite; }
+.sp-particle           { animation: sp-particle-float 3s ease-in-out infinite; }
+.sp-ring               { animation: sp-ring-pulse 2.4s ease-out infinite; }
+.sp-glow-breathe       { animation: sp-glow-breathe 5s ease-in-out infinite; }
+.sp-chart-rise         { animation: sp-chart-rise 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+.sp-ticker             { animation: sp-ticker 0.5s ease-out both; }
+
 /* Advanced Animation Keyframes */
 @keyframes shimmer {
   0% {

@@ -691,6 +691,41 @@ const chartTooltipStyle = {
   fontSize: 12,
 };
 
+/* ── 3D Bar shape for all BarCharts ─────────────────────────────────── */
+const Custom3DBar = (props: any) => {
+  const { x, y, width, height, fill } = props;
+  if (!height || height <= 0 || !width || width <= 0) return null;
+  const d  = Math.min(10, width * 0.28);   // horizontal depth
+  const dh = d * 0.55;                      // vertical depth offset
+  // Top-face and side-face use CSS filter for lightening / darkening
+  return (
+    <g>
+      {/* Front face — vertical gradient */}
+      <defs>
+        <linearGradient id={`fg-${fill?.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={fill} stopOpacity={1} />
+          <stop offset="100%" stopColor={fill} stopOpacity={0.72} />
+        </linearGradient>
+      </defs>
+      <rect x={x} y={y} width={width} height={height} fill={`url(#fg-${fill?.replace('#','')})`} rx={2} />
+      {/* Top face — lighter */}
+      <path
+        d={`M${x},${y} L${x+d},${y-dh} L${x+width+d},${y-dh} L${x+width},${y} Z`}
+        fill={fill}
+        fillOpacity={1}
+        style={{ filter: 'brightness(1.55) saturate(0.85)' }}
+      />
+      {/* Right side face — darker */}
+      <path
+        d={`M${x+width},${y} L${x+width+d},${y-dh} L${x+width+d},${y+height-dh} L${x+width},${y+height} Z`}
+        fill={fill}
+        fillOpacity={0.85}
+        style={{ filter: 'brightness(0.52)' }}
+      />
+    </g>
+  );
+};
+
 const exportTableToSheet = (sheetName: string, columns: string[], rows: Array<Record<string, any>>) => {
   const worksheet = XLSX.utils.json_to_sheet(rows.map((row) => {
     const normalized: Record<string, any> = {};
@@ -4928,22 +4963,71 @@ const StudioPulse = memo(() => {
               Studio · Operations · Intelligence
             </motion.p>
 
-            {/* Floating data dots — ambient decoration */}
+            {/* Scanning horizontal line — sweeps top→bottom on loop */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
+              <div
+                className="sp-scan-line absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-rose-400/70 to-transparent"
+                style={{ animationDelay: '2s' }}
+              />
+              <div
+                className="sp-scan-line absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/50 to-transparent"
+                style={{ animationDelay: '5s' }}
+              />
+            </div>
+
+            {/* Pulsing concentric rings from center */}
+            {[0, 0.8, 1.6].map((delay, i) => (
+              <div
+                key={i}
+                className="sp-ring pointer-events-none absolute rounded-full border border-white/6"
+                style={{
+                  left: '50%', top: '50%',
+                  width: 220 + i * 80, height: 220 + i * 80,
+                  animationDelay: `${delay}s`,
+                }}
+              />
+            ))}
+
+            {/* Floating data dots — with actual float animation */}
             {[
-              { x: '8%', y: '20%', delay: 1.6, size: 'h-1.5 w-1.5', color: 'bg-rose-400' },
-              { x: '92%', y: '25%', delay: 1.75, size: 'h-1 w-1', color: 'bg-indigo-400' },
-              { x: '5%', y: '72%', delay: 1.85, size: 'h-1 w-1', color: 'bg-white/40' },
-              { x: '95%', y: '68%', delay: 1.7, size: 'h-1.5 w-1.5', color: 'bg-rose-300' },
+              { x: '8%',  y: '22%', delay: 1.6,  dur: 3.2, size: 'h-1.5 w-1.5', color: 'bg-rose-400',    dx1: '6px',  dy1: '-10px', dx2: '-4px', dy2: '-18px' },
+              { x: '92%', y: '25%', delay: 1.75, dur: 4.1, size: 'h-1 w-1',     color: 'bg-indigo-400',  dx1: '-8px', dy1: '-8px',  dx2: '4px',  dy2: '-16px' },
+              { x: '5%',  y: '70%', delay: 1.85, dur: 3.7, size: 'h-1 w-1',     color: 'bg-white/50',    dx1: '5px',  dy1: '-12px', dx2: '-3px', dy2: '-20px' },
+              { x: '95%', y: '65%', delay: 1.7,  dur: 3.5, size: 'h-1.5 w-1.5', color: 'bg-rose-300',    dx1: '-6px', dy1: '-9px',  dx2: '3px',  dy2: '-15px' },
+              { x: '18%', y: '80%', delay: 2.1,  dur: 4.4, size: 'h-1 w-1',     color: 'bg-cyan-400',    dx1: '7px',  dy1: '-11px', dx2: '-5px', dy2: '-19px' },
+              { x: '82%', y: '78%', delay: 2.4,  dur: 3.9, size: 'h-1 w-1',     color: 'bg-violet-400',  dx1: '-5px', dy1: '-13px', dx2: '6px',  dy2: '-21px' },
+              { x: '35%', y: '10%', delay: 2.0,  dur: 4.8, size: 'h-0.5 w-0.5', color: 'bg-white/30',    dx1: '4px',  dy1: '-7px',  dx2: '-2px', dy2: '-14px' },
+              { x: '65%', y: '88%', delay: 2.6,  dur: 3.3, size: 'h-0.5 w-0.5', color: 'bg-emerald-400', dx1: '-3px', dy1: '-10px', dx2: '5px',  dy2: '-17px' },
             ].map((dot, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, delay: dot.delay }}
-                className={cn('pointer-events-none absolute rounded-full', dot.size, dot.color)}
-                style={{ left: dot.x, top: dot.y }}
+                className={cn('pointer-events-none absolute rounded-full sp-particle', dot.size, dot.color)}
+                style={{
+                  left: dot.x, top: dot.y,
+                  animationDelay: `${dot.delay}s`,
+                  animationDuration: `${dot.dur}s`,
+                  '--dx1': dot.dx1, '--dy1': dot.dy1,
+                  '--dx2': dot.dx2, '--dy2': dot.dy2,
+                } as React.CSSProperties}
               />
             ))}
+
+            {/* Glowing breathe orbs — richer ambient */}
+            <div className="sp-glow-breathe pointer-events-none absolute left-1/4 top-1/2 -translate-y-1/2 h-48 w-48 rounded-full bg-cyan-500/10" />
+            <div className="sp-glow-breathe pointer-events-none absolute right-1/4 top-1/2 -translate-y-1/2 h-48 w-48 rounded-full bg-rose-500/10" style={{ animationDelay: '2.5s' }} />
+
+            {/* Bottom accent bar — animated gradient chase */}
+            <div
+              className="pointer-events-none absolute bottom-0 left-0 right-0 h-[2px]"
+              style={{
+                background: 'linear-gradient(90deg, #f43f5e, #818cf8, #06b6d4, #f43f5e)',
+                backgroundSize: '300% 100%',
+                animation: 'sp-border-chase 4s linear infinite',
+              }}
+            />
           </div>
         </header>
 
@@ -5776,19 +5860,19 @@ const StudioPulse = memo(() => {
                       <p className="text-xs text-white/60">Memberships · Packages · Intro Offers · Single Classes — month-on-month</p>
                     </div>
                   </div>
-                  <div className="p-6">
-                    <ResponsiveContainer width="100%" height={260}>
-                      <BarChart data={productMixByMonth} barCategoryGap="30%">
+                  <div className="p-6 sp-chart-rise" style={{ animationDelay: '0.15s' }}>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <BarChart data={productMixByMonth} barCategoryGap="28%" margin={{ top: 14, right: 20, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                         <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12 }} />
+                        <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 8px 24px rgba(15,23,42,0.12)' }} />
                         <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
-                        <Bar dataKey="memberships" name="Memberships" fill="#1e3a8a" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="packages" name="Packages" fill="#0e7490" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="introOffers" name="Intro Offers" fill="#6d28d9" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="singleClasses" name="Single Classes" fill="#be123c" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="other" name="Other" fill="#64748b" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="memberships" name="Memberships" fill="#2563eb" shape={<Custom3DBar />} isAnimationActive animationDuration={900} animationEasing="ease-out" />
+                        <Bar dataKey="packages"    name="Packages"    fill="#0e7490" shape={<Custom3DBar />} isAnimationActive animationDuration={900} animationEasing="ease-out" animationBegin={80} />
+                        <Bar dataKey="introOffers" name="Intro Offers" fill="#7c3aed" shape={<Custom3DBar />} isAnimationActive animationDuration={900} animationEasing="ease-out" animationBegin={160} />
+                        <Bar dataKey="singleClasses" name="Single Classes" fill="#be123c" shape={<Custom3DBar />} isAnimationActive animationDuration={900} animationEasing="ease-out" animationBegin={240} />
+                        <Bar dataKey="other" name="Other" fill="#475569" shape={<Custom3DBar />} isAnimationActive animationDuration={900} animationEasing="ease-out" animationBegin={320} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -6910,17 +6994,17 @@ const StudioPulse = memo(() => {
                         </div>
                       </div>
                     </div>
-                    <div className="p-5">
+                    <div className="p-5 sp-chart-rise" style={{ animationDelay: '0.2s' }}>
                       {chartData.length > 1 ? (
-                        <ResponsiveContainer width="100%" height={260}>
-                          <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                        <ResponsiveContainer width="100%" height={280}>
+                          <BarChart data={chartData} margin={{ top: 14, right: 20, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                             <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                             <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={36} allowDecimals={false} />
                             <RechartsTooltip contentStyle={chartTooltipStyle} />
                             <Legend wrapperStyle={{ fontSize: 10 }} />
                             {allKeys.map((key, i) => (
-                              <Bar key={key} dataKey={key} stackId="a" fill={BAR_COLORS[i % BAR_COLORS.length]} radius={i === allKeys.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} />
+                              <Bar key={key} dataKey={key} stackId="a" fill={BAR_COLORS[i % BAR_COLORS.length]} shape={i === allKeys.length - 1 ? <Custom3DBar /> : undefined} isAnimationActive animationDuration={800} animationEasing="ease-out" animationBegin={i * 60} />
                             ))}
                           </BarChart>
                         </ResponsiveContainer>
@@ -8304,29 +8388,33 @@ const StudioPulse = memo(() => {
                         ))}
                       </div>
                     </div>
-                  <div className="p-6">
-                    <ResponsiveContainer width="100%" height={240}>
-                        <AreaChart data={compRateTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                  <div className="p-6 sp-chart-rise" style={{ animationDelay: '0.1s' }}>
+                    <ResponsiveContainer width="100%" height={260}>
+                        <AreaChart data={compRateTrend} margin={{ top: 14, right: 20, left: 0, bottom: 0 }}>
                           <defs>
                             <linearGradient id="nonPaidGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.28} />
+                              <stop offset="0%"  stopColor="#f59e0b" stopOpacity={0.45} />
                               <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                             </linearGradient>
                             <linearGradient id="compGrad2" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.28} />
+                              <stop offset="0%"  stopColor="#8b5cf6" stopOpacity={0.45} />
                               <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                             </linearGradient>
+                            <filter id="area-glow">
+                              <feGaussianBlur stdDeviation="3" result="blur" />
+                              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                            </filter>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                           <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v.toFixed(0)}%`} />
                           <RechartsTooltip
-                            contentStyle={{ borderRadius: 14, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+                            contentStyle={{ borderRadius: 14, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
                             formatter={(v: number, name: string) => [`${v.toFixed(2)}%`, name === 'nonPaidRate' ? 'NonPaid %' : 'Comp %']}
                           />
                           <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} formatter={(v) => v === 'nonPaidRate' ? 'NonPaid %' : 'Comp %'} />
-                          <Area type="monotone" dataKey="nonPaidRate" stroke="#f59e0b" strokeWidth={2.5} fill="url(#nonPaidGrad)" dot={{ r: 3.5, fill: '#f59e0b', strokeWidth: 0 }} activeDot={{ r: 5 }} />
-                          <Area type="monotone" dataKey="compRate"    stroke="#8b5cf6" strokeWidth={2.5} fill="url(#compGrad2)"   dot={{ r: 3.5, fill: '#8b5cf6', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                          <Area type="monotone" dataKey="nonPaidRate" stroke="#f59e0b" strokeWidth={3} fill="url(#nonPaidGrad)" dot={{ r: 4, fill: '#f59e0b', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#f59e0b', stroke: '#fff', strokeWidth: 2 }} isAnimationActive animationDuration={1200} animationEasing="ease-out" />
+                          <Area type="monotone" dataKey="compRate"    stroke="#8b5cf6" strokeWidth={3} fill="url(#compGrad2)"   dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 2 }} isAnimationActive animationDuration={1200} animationEasing="ease-out" animationBegin={200} />
                         </AreaChart>
                     </ResponsiveContainer>
                   </div>

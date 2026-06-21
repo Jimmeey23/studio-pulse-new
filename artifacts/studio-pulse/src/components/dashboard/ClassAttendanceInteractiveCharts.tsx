@@ -13,6 +13,26 @@ interface ClassAttendanceInteractiveChartsProps {
 
 const COLORS = ['#3B82F6', '#EC4899', '#F59E0B', '#10B981', '#8B5CF6', '#06B6D4', '#EF4444', '#84CC16'];
 
+const Custom3DBar = (props: any) => {
+  const { x, y, width, height, fill } = props;
+  if (!height || height <= 0 || !width || width <= 0) return null;
+  const d = Math.min(10, width * 0.28);
+  const dh = d * 0.55;
+  return (
+    <g>
+      <defs>
+        <linearGradient id={`caic-fg-${fill?.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={fill} stopOpacity={1} />
+          <stop offset="100%" stopColor={fill} stopOpacity={0.72} />
+        </linearGradient>
+      </defs>
+      <rect x={x} y={y} width={width} height={height} fill={`url(#caic-fg-${fill?.replace('#','')})`} rx={2} />
+      <path d={`M${x},${y} L${x+d},${y-dh} L${x+width+d},${y-dh} L${x+width},${y} Z`} fill={fill} fillOpacity={1} style={{ filter: 'brightness(1.55) saturate(0.85)' }} />
+      <path d={`M${x+width},${y} L${x+width+d},${y-dh} L${x+width+d},${y+height-dh} L${x+width},${y+height} Z`} fill={fill} fillOpacity={0.85} style={{ filter: 'brightness(0.52)' }} />
+    </g>
+  );
+};
+
 export const ClassAttendanceInteractiveCharts: React.FC<ClassAttendanceInteractiveChartsProps> = ({ data }) => {
   const [activeChart, setActiveChart] = useState('overview');
 
@@ -214,12 +234,12 @@ export const ClassAttendanceInteractiveCharts: React.FC<ClassAttendanceInteracti
             </CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData.overview}>
+                <BarChart data={chartData.overview} margin={{ top: 14, right: 16, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="format" angle={-45} textAnchor="end" height={100} />
                   <YAxis tickFormatter={(value) => `${value}%`} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="fillRate" fill="#3B82F6" name="Fill Rate %" />
+                  <Bar dataKey="fillRate" fill="#3B82F6" name="Fill Rate %" shape={<Custom3DBar />} isAnimationActive animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -237,12 +257,12 @@ export const ClassAttendanceInteractiveCharts: React.FC<ClassAttendanceInteracti
             </CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData.overview}>
+                <BarChart data={chartData.overview} margin={{ top: 14, right: 16, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="format" angle={-45} textAnchor="end" height={100} />
                   <YAxis />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="totalCheckedIn" fill="#10B981" name="Total Attendance" />
+                  <Bar dataKey="totalCheckedIn" fill="#10B981" name="Total Attendance" shape={<Custom3DBar />} isAnimationActive animationDuration={900} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -297,14 +317,14 @@ export const ClassAttendanceInteractiveCharts: React.FC<ClassAttendanceInteracti
             </CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData.utilization}>
+                <BarChart data={chartData.utilization} margin={{ top: 14, right: 16, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="format" angle={-45} textAnchor="end" height={100} />
                   <YAxis />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Bar dataKey="utilized" stackId="a" fill="#10B981" name="Utilized Sessions" />
-                  <Bar dataKey="empty" stackId="a" fill="#EF4444" name="Empty Sessions" />
+                  <Bar dataKey="utilized" stackId="a" fill="#10B981" name="Utilized Sessions" isAnimationActive animationDuration={900} animationEasing="ease-out" />
+                  <Bar dataKey="empty"    stackId="a" fill="#EF4444" name="Empty Sessions"    shape={<Custom3DBar />} isAnimationActive animationDuration={900} animationEasing="ease-out" animationBegin={100} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -333,8 +353,8 @@ export const ClassAttendanceInteractiveCharts: React.FC<ClassAttendanceInteracti
                   <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value}%`} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="sessions" fill="#3B82F6" name="Total Sessions" />
-                  <Bar yAxisId="left" dataKey="attendance" fill="#10B981" name="Total Attendance" />
+                  <Bar yAxisId="left" dataKey="sessions"   fill="#3B82F6" name="Total Sessions"    shape={<Custom3DBar />} isAnimationActive animationDuration={900} animationEasing="ease-out" />
+                  <Bar yAxisId="left" dataKey="attendance" fill="#10B981" name="Total Attendance" shape={<Custom3DBar />} isAnimationActive animationDuration={900} animationEasing="ease-out" animationBegin={120} />
                   <Line yAxisId="right" type="monotone" dataKey="fillRate" stroke="#EC4899" strokeWidth={3} name="Fill Rate %" />
                 </ComposedChart>
               </ResponsiveContainer>
