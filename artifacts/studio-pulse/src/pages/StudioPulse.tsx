@@ -2579,20 +2579,24 @@ const StudioPulse = memo(() => {
 
   // ── Product Mix by Month ─────────────────────────────────────────────────
   const productMixByMonth = useMemo(() => {
-    const monthly: Record<string, { memberships: number; packages: number; introOffers: number; singleClasses: number }> = {};
-    recurringData.forEach((r) => {
-      if (!inStudio(r.location, studio)) return;
-      if (!isWithinRange(r.date, dateRange)) return;
-      const mk = monthKeyFromDate(r.date);
+    const monthly: Record<string, { memberships: number; packages: number; introOffers: number; singleClasses: number; other: number }> = {};
+    filteredSales.forEach((item) => {
+      const cat = (item.cleanedCategory || item.cleanedProduct || '').toLowerCase();
+      const mk = monthKeyFromDate(item.paymentDate || (item as any).date || '');
       if (!mk) return;
-      if (!monthly[mk]) monthly[mk] = { memberships: 0, packages: 0, introOffers: 0, singleClasses: 0 };
-      monthly[mk].memberships += r.memberships || 0;
-      monthly[mk].packages += r.packages || 0;
-      monthly[mk].introOffers += r.introOffers || 0;
-      monthly[mk].singleClasses += r.singleClasses || 0;
+      if (!monthly[mk]) monthly[mk] = { memberships: 0, packages: 0, introOffers: 0, singleClasses: 0, other: 0 };
+      const rev = Number(item.paymentValue) || 0;
+      if (/member|membership/i.test(cat)) monthly[mk].memberships += rev;
+      else if (/intro|welcome|trial|first.?time|new.*client/i.test(cat)) monthly[mk].introOffers += rev;
+      else if (/single|drop.?in|walk.?in|casual/i.test(cat)) monthly[mk].singleClasses += rev;
+      else if (/pack|package|class\s*pack|session\s*pack/i.test(cat)) monthly[mk].packages += rev;
+      else monthly[mk].other += rev;
     });
-    return Object.entries(monthly).sort(([a], [b]) => a.localeCompare(b)).map(([mk, d]) => ({ month: monthLabel(mk), ...d }));
-  }, [recurringData, studio, dateRange]);
+    return Object.entries(monthly)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([mk, d]) => ({ month: monthLabel(mk), ...d }))
+      .filter((d) => d.memberships + d.packages + d.introOffers + d.singleClasses + d.other > 0);
+  }, [filteredSales]);
 
   // ── Capacity Utilization by Studio ──────────────────────────────────────
   const capacityByStudio = useMemo(() => {
@@ -3017,10 +3021,24 @@ const StudioPulse = memo(() => {
     const enriched = rows.map((g) => {
       const cancellationRate = g.visits + g.lateCancels > 0 ? (g.lateCancels / (g.visits + g.lateCancels)) * 100 : 0;
       const revPerCheckin = g.visits > 0 ? g.revenue / g.visits : 0;
-      const attendanceScore = Math.min(g.classAvg * 5, 100);
-      const fillScore = Math.min(g.fillRate, 100);
-      const sessionScore = Math.min(g.sessions * 2, 100);
-      const compositeScore = attendanceScore * 0.4 + fillScore * 0.35 + sessionScore * 0.25;
+      // Composite score (0–100):
+      //   30% fill rate — primary demand signal
+      //   25% avg attendance normalised to 15 pax benchmark
+      //   20% empty-session penalty — penalise classes that run empty
+      //   15% session volume (consistency) normalised to 30 sessions
+      //   10% revenue per attendee normalised to ₹500
+      const attendanceScore     = Math.min((g.classAvg / 15) * 100, 100);
+      const fillScore           = Math.min(g.fillRate, 100);
+      const sessionVolumeScore  = Math.min((g.sessions / 30) * 100, 100);
+      const emptyRate           = g.sessions > 0 ? g.empty / g.sessions : 0;
+      const emptyPenaltyScore   = (1 - emptyRate) * 100;
+      const revPerCheckinScore  = Math.min((revPerCheckin / 500) * 100, 100);
+      const compositeScore =
+        fillScore          * 0.30 +
+        attendanceScore    * 0.25 +
+        emptyPenaltyScore  * 0.20 +
+        sessionVolumeScore * 0.15 +
+        revPerCheckinScore * 0.10;
       const isActive = activeKeys.has(g.name);
       return { ...g, cancellationRate, revPerCheckin, compositeScore, isActive };
     }).filter((g) => {
@@ -3161,9 +3179,23 @@ const StudioPulse = memo(() => {
       const utilization = trainer.sessions > 0 ? (trainer.nonEmpty / trainer.sessions) * 100 : 0;
       const conversionRate = totalNew > 0 ? (totalConverted / totalNew) * 100 : 0;
       const retentionRate = totalConverted > 0 ? (totalRetained / totalConverted) * 100 : 0;
-      // Composite score (0–100): 40% avg class size (normalised, 30 = full), 30% fill rate, 20% conv%, 10% ret%
-      const avgScore = Math.min((trainer.classAvg / 30) * 100, 100);
-      const compositeScore = avgScore * 0.4 + fillRate * 0.3 + conversionRate * 0.2 + retentionRate * 0.1;
+      // Composite score (0–100):
+      //   30% fill rate — primary demand signal
+      //   25% avg class attendance normalised to 15 pax benchmark
+      //   20% empty-session penalty — share of sessions run with 0 attendees
+      //   15% session volume (consistency) normalised to 30 sessions
+      //   10% conversion rate (business impact)
+      const emptySessions       = trainerSessions.filter((s) => (Number(s.checkedInCount) || 0) === 0).length;
+      const emptyRate           = trainerSessions.length > 0 ? emptySessions / trainerSessions.length : 0;
+      const emptyPenaltyScore   = (1 - emptyRate) * 100;
+      const classAvgScore       = Math.min((trainer.classAvg / 15) * 100, 100);
+      const sessionVolumeScore  = Math.min((trainer.sessions / 30) * 100, 100);
+      const compositeScore =
+        fillRate           * 0.30 +
+        classAvgScore      * 0.25 +
+        emptyPenaltyScore  * 0.20 +
+        sessionVolumeScore * 0.15 +
+        conversionRate     * 0.10;
       return { ...trainer, rank: index + 1, utilization, fillRate, conversionRate, retentionRate, totalNew, totalConverted, totalRetained, lateCancels: trainerLC, revenueScore: compositeScore };
     }).sort((a, b) => b.revenueScore - a.revenueScore);
 
@@ -5756,6 +5788,7 @@ const StudioPulse = memo(() => {
                         <Bar dataKey="packages" name="Packages" fill="#0e7490" radius={[4, 4, 0, 0]} />
                         <Bar dataKey="introOffers" name="Intro Offers" fill="#6d28d9" radius={[4, 4, 0, 0]} />
                         <Bar dataKey="singleClasses" name="Single Classes" fill="#be123c" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="other" name="Other" fill="#64748b" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

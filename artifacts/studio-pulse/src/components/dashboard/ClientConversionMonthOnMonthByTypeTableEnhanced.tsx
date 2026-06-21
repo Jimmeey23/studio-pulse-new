@@ -568,7 +568,7 @@ export const NewClientMembershipPurchasesTable: React.FC<MembershipPurchasesTabl
                             : <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500" />
                           : <span className="w-3.5" />
                         }
-                        <span className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-bold leading-tight ${badge}`}>{row.memberType}</span>
+                        <span className="text-[12px] font-semibold text-slate-800">{row.memberType}</span>
                       </div>
                     </TableCell>
                     <TableCell className="py-3 px-3 text-center text-[13px] font-medium text-slate-800">{formatNumber(row.newTrials)}</TableCell>
